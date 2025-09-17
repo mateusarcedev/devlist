@@ -1,6 +1,6 @@
 'use client'
 
-import { AxiosConfig } from '@/utils'
+import { AxiosConfig, getClientSessionToken } from '@/utils'
 import { ExternalLink } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -32,12 +32,18 @@ export default function Card({ tool, initialIsFavorite = false, onFavoriteChange
 
   const fetchFavoriteStatus = async () => {
     try {
+      const token = getClientSessionToken()
+
+      if (!token) {
+        throw new Error('Missing authentication token')
+      }
+
       const response = await AxiosConfig.get('/favorites/check', {
         params: {
           toolId: tool.id,
         },
         headers: {
-          'x-user-id': String(session.user.githubId),
+          Authorization: `Bearer ${token}`,
         },
       })
       setIsFavorite(response.data.isFavorite)
@@ -60,6 +66,16 @@ export default function Card({ tool, initialIsFavorite = false, onFavoriteChange
 
     const previousFavoriteStatus = isFavorite
 
+    const token = getClientSessionToken()
+
+    if (!token) {
+      setToast({
+        message: 'Please log in again to update favorites.',
+        type: 'error',
+      })
+      return
+    }
+
     try {
       const newFavoriteStatus = !previousFavoriteStatus
       setIsFavorite(newFavoriteStatus)
@@ -69,7 +85,7 @@ export default function Card({ tool, initialIsFavorite = false, onFavoriteChange
         { toolId: tool.id },
         {
           headers: {
-            'x-user-id': String(session.user.githubId),
+            Authorization: `Bearer ${token}`,
           },
         },
       )
