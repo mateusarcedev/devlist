@@ -1,4 +1,4 @@
-import { AxiosConfig } from '@/utils'
+import { AxiosConfig, getClientSessionToken } from '@/utils'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -28,12 +28,15 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
   })
 
   const mutation = useMutation({
-    mutationFn: suggestionData =>
-      AxiosConfig.post('/suggestions', suggestionData, {
+    mutationFn: async ({ suggestionData, token }) => {
+      const response = await AxiosConfig.post('/suggestions', suggestionData, {
         headers: {
-          'x-user-id': String(session?.user?.githubId),
+          Authorization: `Bearer ${token}`,
         },
-      }).then(response => response.data),
+      })
+
+      return response.data
+    },
     onSuccess: data => {
       setName('')
       setLink('')
@@ -49,8 +52,10 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       onSubmit?.({
         status: 'error',
         message:
-          error.response?.data?.message ||
-          'Error sending suggestion. Please try again.',
+          error.message === 'Missing authentication token'
+            ? 'Please log in again to submit a suggestion.'
+            : error.response?.data?.message ||
+              'Error sending suggestion. Please try again.',
       })
     },
   })
@@ -63,6 +68,17 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       return
     }
 
+    const token = getClientSessionToken()
+
+    if (!token) {
+      console.error('Authentication token not found')
+      onSubmit?.({
+        status: 'error',
+        message: 'Please log in again to submit a suggestion.',
+      })
+      return
+    }
+
     const suggestionData = {
       name,
       link,
@@ -70,7 +86,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       categoryId,
     }
 
-    mutation.mutate(suggestionData)
+    mutation.mutate({ suggestionData, token })
   }
 
   useEffect(() => {

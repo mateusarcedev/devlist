@@ -5,7 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { verify, JwtPayload } from 'jsonwebtoken';
 import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
+
+type NextAuthJwtPayload = JwtPayload & {
+  githubId?: number | string;
+};
 
 @Injectable()
 export class AuthenticatedUserGuard implements CanActivate {
@@ -14,23 +19,80 @@ export class AuthenticatedUserGuard implements CanActivate {
       Request & { user?: AuthenticatedUser }
     >();
 
-    const headerValue = request.headers['x-user-id'];
-    const userIdHeader = Array.isArray(headerValue)
-      ? headerValue[0]
-      : headerValue;
+    const token = this.extractBearerToken(request);
+    const secret = process.env.NEXTAUTH_SECRET;
 
-    if (!userIdHeader) {
-      throw new UnauthorizedException('Missing user identifier');
+    if (!secret) {
+      throw new UnauthorizedException('Authentication is not configured');
     }
 
-    const parsedUserId = Number.parseInt(userIdHeader, 10);
+    let decodedToken: NextAuthJwtPayload;
 
-    if (Number.isNaN(parsedUserId) || parsedUserId <= 0) {
-      throw new UnauthorizedException('Invalid user identifier');
+    try {
+      decodedToken = verify(token, secret) as NextAuthJwtPayload;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid authentication token');
     }
 
-    request.user = { id: parsedUserId };
+    const userId = this.extractUserId(decodedToken);
+
+    if (!userId) {
+      throw new UnauthorizedException('Invalid authentication token');
+    }
+
+    request.user = { id: userId };
 
     return true;
+  }
+
+  private extractBearerToken(
+    request: Request,
+  ): string {
+    const authHeader = request.headers['authorization'];
+    const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
+
+    if (!headerValue) {
+      throw new UnauthorizedException('Missing authentication token');
+    }
+
+    const [scheme, ...rest] = headerValue.trim().split(' ');
+
+    if (!scheme || scheme.toLowerCase() !== 'bearer' || rest.length === 0) {
+      throw new UnauthorizedException('Invalid authentication token');
+    }
+
+    const token = rest.join(' ').trim();
+
+    if (!token) {
+      throw new UnauthorizedException('Invalid authentication token');
+    }
+
+    return token;
+  }
+
+  private extractUserId(payload: NextAuthJwtPayload): number | null {
+    const possibleIdentifiers: Array<string | number | undefined> = [
+      payload.githubId,
+      payload.sub,
+    ];
+
+    for (const identifier of possibleIdentifiers) {
+      if (typeof identifier === 'number' && Number.isInteger(identifier)) {
+        if (identifier > 0) {
+          return identifier;
+        }
+        continue;
+      }
+
+      if (typeof identifier === 'string') {
+        const parsed = Number.parseInt(identifier, 10);
+
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          return parsed;
+        }
+      }
+    }
+
+    return null;
   }
 }
