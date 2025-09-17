@@ -1,29 +1,43 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import Card from '@/components/Card'
+import FavoritesContent from './FavoritesContent'
 import { getServerSession } from 'next-auth'
+import { getApiBaseUrl } from '@/utils'
 
 export const metadata = {
   title: 'Favorites - Tools4.tech',
 }
 
 async function getFavorites(userId) {
+  if (!userId) {
+    return []
+  }
+
   try {
+    const baseUrl = getApiBaseUrl()
+
+    if (!baseUrl) {
+      return []
+    }
+
     const response = await fetch(
-      `${process.env.URL_API}/favorites/user/${userId}`,
+      `${baseUrl}/favorites/user/${userId}`,
       {
         method: 'GET',
         cache: 'no-store',
+        headers: {
+          'x-user-id': String(userId),
+        },
       },
     )
 
     if (!response.ok) {
-      return null
+      return []
     }
 
     const data = await response.json()
     return data
   } catch (error) {
-    return null
+    return []
   }
 }
 
@@ -41,30 +55,20 @@ export default async function Favorites() {
     )
   }
 
-  const favorites = await getFavorites(session?.user?.githubId)
+  const userId = session?.user?.githubId
 
-  if (!favorites || favorites.length === 0) {
+  if (!userId) {
     return (
       <div className='flex flex-col justify-center items-center h-screen'>
-        <h2 className='text-xl font-semibold mb-4'>No favorites found</h2>
-        <p className='text-gray-600'>
-          You haven't added any tools to your favorites yet.
-        </p>
+        <h2 className='text-xl font-semibold mb-4'>
+          We couldn't load your favorites
+        </h2>
+        <p className='text-gray-600'>Try signing out and back in again.</p>
       </div>
     )
   }
 
-  return (
-    <div className='w-4/5 mx-auto py-8'>
-      <h1 className='text-2xl font-bold mb-6'>My Favorites</h1>
-      <div className='grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-5 gap-5'>
-        {favorites &&
-          favorites.map(fav => (
-            <div key={fav.id}>
-              <Card tool={fav.tool} isFavorite={true} favoriteId={fav.id} />
-            </div>
-          ))}
-      </div>
-    </div>
-  )
+  const favorites = await getFavorites(userId)
+
+  return <FavoritesContent initialFavorites={favorites} />
 }

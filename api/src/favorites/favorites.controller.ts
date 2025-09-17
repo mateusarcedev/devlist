@@ -2,39 +2,63 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { CreateFavoriteDto } from "./dto/create-favorite.dto";
 import { FavoritesService } from "./favorites.service";
+import { AuthenticatedUserGuard } from "src/common/guards/authenticated-user.guard";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import { AuthenticatedUser } from "src/common/interfaces/authenticated-user.interface";
 
 @Controller("favorites")
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
+  @UseGuards(AuthenticatedUserGuard)
   @Post()
-  create(@Body() createFavoriteDto: CreateFavoriteDto) {
-    return this.favoritesService.create(createFavoriteDto);
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() createFavoriteDto: CreateFavoriteDto
+  ) {
+    return this.favoritesService.create(user.id, createFavoriteDto.toolId);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Get("check")
   checkFavorite(
-    @Query("userId") userId: string,
-    @Query("toolId") toolId: string
+    @CurrentUser("id") userId: number,
+    @Query("toolId", ParseUUIDPipe) toolId: string
   ) {
-    return this.favoritesService.checkFavorite(parseInt(userId), toolId);
+    return this.favoritesService.checkFavorite(userId, toolId);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Get("user/:userId")
-  getFavoritesByUserId(@Param("userId") userId: string) {
+  getFavoritesByUserId(
+    @Param("userId", ParseIntPipe) userId: number,
+    @CurrentUser("id") currentUserId: number
+  ) {
+    if (currentUserId !== userId) {
+      throw new ForbiddenException();
+    }
+
     return this.favoritesService.getFavoritesByUserId(userId);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Post("toggle")
-  toggleFavorite(@Body() body: { userId: number; toolId: string }) {
-    return this.favoritesService.toggleFavorite(body.userId, body.toolId);
+  toggleFavorite(
+    @CurrentUser("id") userId: number,
+    @Body("toolId", ParseUUIDPipe) toolId: string
+  ) {
+    return this.favoritesService.toggleFavorite(userId, toolId);
   }
 
   @Get(":id")

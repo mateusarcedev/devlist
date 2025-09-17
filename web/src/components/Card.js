@@ -7,22 +7,39 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Toast } from './Toast'
 
-export default function Card({ tool, onFavoriteChange }) {
+export default function Card({ tool, initialIsFavorite = false, onFavoriteChange }) {
   const { data: session, status } = useSession()
   const [toast, setToast] = useState(null)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.githubId) {
+    setIsFavorite(initialIsFavorite)
+  }, [initialIsFavorite])
+
+  useEffect(() => {
+    if (
+      status === 'authenticated' &&
+      session?.user?.githubId &&
+      !initialIsFavorite
+    ) {
       fetchFavoriteStatus()
     }
-  }, [session, status])
+
+    if (status === 'unauthenticated') {
+      setIsFavorite(false)
+    }
+  }, [session, status, initialIsFavorite, tool.id])
 
   const fetchFavoriteStatus = async () => {
     try {
-      const response = await AxiosConfig.get(
-        `/favorites/check?userId=${session.user.githubId}&toolId=${tool.id}`,
-      )
+      const response = await AxiosConfig.get('/favorites/check', {
+        params: {
+          toolId: tool.id,
+        },
+        headers: {
+          'x-user-id': String(session.user.githubId),
+        },
+      })
       setIsFavorite(response.data.isFavorite)
     } catch (error) {
       console.error('Error checking favorite', error)
@@ -41,14 +58,21 @@ export default function Card({ tool, onFavoriteChange }) {
       return
     }
 
+    const previousFavoriteStatus = isFavorite
+
     try {
-      const newFavoriteStatus = !isFavorite
+      const newFavoriteStatus = !previousFavoriteStatus
       setIsFavorite(newFavoriteStatus)
 
-      const response = await AxiosConfig.post('/favorites/toggle', {
-        userId: session.user.githubId,
-        toolId: tool.id,
-      })
+      await AxiosConfig.post(
+        '/favorites/toggle',
+        { toolId: tool.id },
+        {
+          headers: {
+            'x-user-id': String(session.user.githubId),
+          },
+        },
+      )
 
       setToast({
         message: `${tool.name} ${
@@ -61,13 +85,14 @@ export default function Card({ tool, onFavoriteChange }) {
         onFavoriteChange(tool.id, newFavoriteStatus)
       }
     } catch (error) {
-      setIsFavorite(isFavorite)
+      setIsFavorite(previousFavoriteStatus)
       console.error(
         'Error updating favorites:',
         error.response ? error.response.data : error.message,
       )
       setToast({
         message:
+          error.response?.data?.message ||
           'An error occurred while updating favorites. Please try again.',
         type: 'error',
       })

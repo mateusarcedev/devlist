@@ -42,11 +42,14 @@ export default function Navbar() {
     setIsModalOpen(true)
   }
 
-  const handleModalSubmit = async suggestionData => {
-    try {
+  const handleModalSubmit = result => {
+    if (result?.status === 'success') {
       showToast('Suggestion sent successfully!', 'success')
-    } catch (error) {
-      showToast('Error sending suggestion. Please try again.', 'error')
+      return
+    }
+
+    if (result?.status === 'error') {
+      showToast(result.message || 'Error sending suggestion. Please try again.', 'error')
     }
   }
 

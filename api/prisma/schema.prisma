@@ -60,6 +60,7 @@ model Favorite {
   user   User   @relation("UserFavorites", fields: [userId], references: [githubId])
   tool   Tool   @relation(fields: [toolId], references: [id])
 
+  @@unique([userId, toolId])
   @@map("favorites")
 }
 
