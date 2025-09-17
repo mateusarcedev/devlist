@@ -9,11 +9,6 @@ async function fetchCategories() {
   return data
 }
 
-async function createSuggestion(suggestionData) {
-  const { data } = await AxiosConfig.post('/suggestions', suggestionData)
-  return data
-}
-
 export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
   const { data: session, status } = useSession()
   const [name, setName] = useState('')
@@ -29,10 +24,16 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
   } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
+    enabled: isOpen,
   })
 
   const mutation = useMutation({
-    mutationFn: createSuggestion,
+    mutationFn: suggestionData =>
+      AxiosConfig.post('/suggestions', suggestionData, {
+        headers: {
+          'x-user-id': String(session?.user?.githubId),
+        },
+      }).then(response => response.data),
     onSuccess: data => {
       setName('')
       setLink('')
@@ -41,10 +42,16 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
 
       onClose()
 
-      onSubmit(data)
+      onSubmit?.({ status: 'success', data })
     },
     onError: error => {
       console.error('Error creating suggestion:', error)
+      onSubmit?.({
+        status: 'error',
+        message:
+          error.response?.data?.message ||
+          'Error sending suggestion. Please try again.',
+      })
     },
   })
 
@@ -61,7 +68,6 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       link,
       description,
       categoryId,
-      userId: session.user.githubId,
     }
 
     mutation.mutate(suggestionData)
@@ -72,6 +78,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
+      setIsSelectOpen(false)
     }
     return () => {
       document.body.style.overflow = 'unset'

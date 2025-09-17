@@ -7,7 +7,8 @@ import { ToolsModule } from 'src/tools/tools.module';
 import { UsersModule } from 'src/users/users.module';
 import { FavoritesModule } from 'src/favorites/favorites.module';
 import { SuggestionsModule } from 'src/suggestions/suggestions.module';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [PrismaModule, CategoriesModule, ToolsModule, UsersModule, FavoritesModule, SuggestionsModule,
@@ -17,6 +18,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
     }]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule { }

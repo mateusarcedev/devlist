@@ -1,26 +1,44 @@
-import { Injectable } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateFavoriteDto } from "./dto/create-favorite.dto";
 import { UpdateFavoriteDto } from "./dto/update-favorite.dto";
 
 @Injectable()
 export class FavoritesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createFavoriteDto: CreateFavoriteDto) {
-    const { userId, toolId } = createFavoriteDto;
+  async create(userId: number, toolId: string) {
+    const [user, tool] = await Promise.all([
+      this.prisma.user.findUnique({ where: { githubId: userId } }),
+      this.prisma.tool.findUnique({ where: { id: toolId } }),
+    ]);
 
-    const toolExists = await this.prisma.tool.findUnique({
-      where: { id: toolId },
-    });
-
-    if (!toolExists) {
-      throw new Error("Tool not found");
+    if (!user) {
+      throw new NotFoundException("User not found");
     }
 
-    return this.prisma.favorite.create({
-      data: { userId, toolId },
-    });
+    if (!tool) {
+      throw new NotFoundException("Tool not found");
+    }
+
+    try {
+      return await this.prisma.favorite.create({
+        data: { userId, toolId },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictException("Tool already favorited");
+      }
+
+      throw error;
+    }
   }
 
   findOne(id: string) {
@@ -28,27 +46,44 @@ export class FavoritesService {
   }
 
   async checkFavorite(userId: number, toolId: string) {
-    const favorite = await this.prisma.favorite.findFirst({
+    const favorite = await this.prisma.favorite.findUnique({
       where: {
-        userId,
-        toolId,
+        userId_toolId: {
+          userId,
+          toolId,
+        },
       },
     });
     return { isFavorite: !!favorite };
   }
 
-  async getFavoritesByUserId(userId: string) {
+  async getFavoritesByUserId(userId: number) {
     return this.prisma.favorite.findMany({
-      where: { userId: parseInt(userId) },
+      where: { userId },
       include: { tool: true },
     });
   }
 
   async toggleFavorite(userId: number, toolId: string) {
-    const existingFavorite = await this.prisma.favorite.findFirst({
+    const [user, tool] = await Promise.all([
+      this.prisma.user.findUnique({ where: { githubId: userId } }),
+      this.prisma.tool.findUnique({ where: { id: toolId } }),
+    ]);
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (!tool) {
+      throw new NotFoundException("Tool not found");
+    }
+
+    const existingFavorite = await this.prisma.favorite.findUnique({
       where: {
-        userId,
-        toolId,
+        userId_toolId: {
+          userId,
+          toolId,
+        },
       },
     });
 

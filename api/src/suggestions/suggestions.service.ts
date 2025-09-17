@@ -8,16 +8,20 @@ import { UpdateSuggestionDto } from "./dto/update-suggestion.dto";
 export class SuggestionsService {
   constructor(private prisma: PrismaService) { }
 
-  async create(createSuggestionDto: CreateSuggestionDto) {
-    const { name, link, description, categoryId, userId } = createSuggestionDto;
+  async create(userId: number, createSuggestionDto: CreateSuggestionDto) {
+    const { name, link, description, categoryId } = createSuggestionDto;
 
-
-    const user = await this.prisma.user.findUnique({
-      where: { githubId: userId },
-    });
+    const [user, category] = await Promise.all([
+      this.prisma.user.findUnique({ where: { githubId: userId } }),
+      this.prisma.category.findUnique({ where: { id: categoryId } }),
+    ]);
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
     }
 
     return this.prisma.sugestion.create({

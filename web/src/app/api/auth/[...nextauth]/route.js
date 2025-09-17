@@ -3,7 +3,7 @@ import GithubProvider from 'next-auth/providers/github';
 import { AxiosConfig } from '@/utils';
 
 // Configuração do NextAuth (não exportada)
-const authOptions = {
+export const authOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID,

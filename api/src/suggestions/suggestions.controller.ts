@@ -1,17 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { SuggestionsService } from './suggestions.service';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { UpdateSuggestionDto } from './dto/update-suggestion.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { AuthenticatedUser } from 'src/common/interfaces/authenticated-user.interface';
 
 @Controller('suggestions')
 @ApiTags("Suggestions")
 export class SuggestionsController {
   constructor(private readonly suggestionsService: SuggestionsService) { }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Post()
-  create(@Body() createSuggestionDto: CreateSuggestionDto) {
-    return this.suggestionsService.create(createSuggestionDto);
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() createSuggestionDto: CreateSuggestionDto,
+  ) {
+    return this.suggestionsService.create(user.id, createSuggestionDto);
   }
 
   @Get()

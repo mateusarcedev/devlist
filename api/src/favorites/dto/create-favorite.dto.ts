@@ -1,16 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreateFavoriteDto {
-
-  @IsNotEmpty()
-  @IsNumber()
-  @ApiProperty({
-    description: 'The ID of the user who favorites the tool',
-    example: 'user-uuid',
-  })
-  userId: number;
-
   @IsNotEmpty()
   @IsUUID()
   @ApiProperty({
