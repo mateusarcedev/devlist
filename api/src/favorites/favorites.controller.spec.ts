@@ -25,7 +25,7 @@ describe('FavoritesController', () => {
 
   describe('toggleFavorite', () => {
     it('should respond successfully when concurrent requests favorite the same tool', async () => {
-      prisma.createBarrier('favorite.findFirst', 2);
+      prisma.createBarrier('favorite.findUnique', 2);
 
       const [first, second] = await Promise.all([
         controller.toggleFavorite(userId, toolId),
@@ -39,7 +39,7 @@ describe('FavoritesController', () => {
 
     it('should respond successfully when concurrent requests unfavorite the same tool', async () => {
       prisma.seedFavorite(userId, toolId);
-      prisma.createBarrier('favorite.findFirst', 2);
+      prisma.createBarrier('favorite.findUnique', 2);
 
       const [first, second] = await Promise.all([
         controller.toggleFavorite(userId, toolId),

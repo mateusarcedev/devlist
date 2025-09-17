@@ -22,7 +22,7 @@ describe('FavoritesService', () => {
 
   describe('toggleFavorite', () => {
     it('should resolve concurrent favorite toggles without conflicts', async () => {
-    prisma.createBarrier('favorite.findFirst', 2);
+      prisma.createBarrier('favorite.findUnique', 2);
 
       const [first, second] = await Promise.all([
         service.toggleFavorite(userId, toolId),
@@ -36,7 +36,7 @@ describe('FavoritesService', () => {
 
     it('should resolve concurrent unfavorite toggles without conflicts', async () => {
       prisma.seedFavorite(userId, toolId);
-      prisma.createBarrier('favorite.findFirst', 2);
+      prisma.createBarrier('favorite.findUnique', 2);
 
       const [first, second] = await Promise.all([
         service.toggleFavorite(userId, toolId),

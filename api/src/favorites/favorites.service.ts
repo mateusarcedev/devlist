@@ -46,10 +46,12 @@ export class FavoritesService {
   }
 
   async checkFavorite(userId: number, toolId: string) {
-    const favorite = await this.prisma.favorite.findFirst({
+    const favorite = await this.prisma.favorite.findUnique({
       where: {
-        userId,
-        toolId,
+        userId_toolId: {
+          userId,
+          toolId,
+        },
       },
     });
     return { isFavorite: !!favorite };
@@ -77,10 +79,12 @@ export class FavoritesService {
         throw new NotFoundException("Tool not found");
       }
 
-      const existingFavorite = await tx.favorite.findFirst({
+      const existingFavorite = await tx.favorite.findUnique({
         where: {
-          userId,
-          toolId,
+          userId_toolId: {
+            userId,
+            toolId,
+          },
         },
       });
 
