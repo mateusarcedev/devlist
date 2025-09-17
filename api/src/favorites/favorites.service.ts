@@ -46,12 +46,10 @@ export class FavoritesService {
   }
 
   async checkFavorite(userId: number, toolId: string) {
-    const favorite = await this.prisma.favorite.findUnique({
+    const favorite = await this.prisma.favorite.findFirst({
       where: {
-        userId_toolId: {
-          userId,
-          toolId,
-        },
+        userId,
+        toolId,
       },
     });
     return { isFavorite: !!favorite };
@@ -65,39 +63,55 @@ export class FavoritesService {
   }
 
   async toggleFavorite(userId: number, toolId: string) {
-    const [user, tool] = await Promise.all([
-      this.prisma.user.findUnique({ where: { githubId: userId } }),
-      this.prisma.tool.findUnique({ where: { id: toolId } }),
-    ]);
+    return this.prisma.$transaction(async (tx) => {
+      const [user, tool] = await Promise.all([
+        tx.user.findUnique({ where: { githubId: userId } }),
+        tx.tool.findUnique({ where: { id: toolId } }),
+      ]);
 
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
 
-    if (!tool) {
-      throw new NotFoundException("Tool not found");
-    }
+      if (!tool) {
+        throw new NotFoundException("Tool not found");
+      }
 
-    const existingFavorite = await this.prisma.favorite.findUnique({
-      where: {
-        userId_toolId: {
+      const existingFavorite = await tx.favorite.findFirst({
+        where: {
           userId,
           toolId,
         },
-      },
-    });
+      });
 
-    if (existingFavorite) {
-      await this.prisma.favorite.delete({
-        where: { id: existingFavorite.id },
-      });
-      return { isFavorite: false };
-    } else {
-      await this.prisma.favorite.create({
-        data: { userId, toolId },
-      });
-      return { isFavorite: true };
-    }
+      if (existingFavorite) {
+        await tx.favorite.deleteMany({
+          where: {
+            userId,
+            toolId,
+          },
+        });
+
+        return { isFavorite: false };
+      }
+
+      try {
+        await tx.favorite.create({
+          data: { userId, toolId },
+        });
+
+        return { isFavorite: true };
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          return { isFavorite: true };
+        }
+
+        throw error;
+      }
+    });
   }
 
   update(id: string, updateFavoriteDto: UpdateFavoriteDto) {
