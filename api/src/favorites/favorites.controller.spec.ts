@@ -163,4 +163,41 @@ describe('FavoritesController (HTTP)', () => {
       expect(prisma.favoriteCount()).toBe(0);
     });
   });
+
+  it('should reject requests without an authorization header', async () => {
+    await request(app.getHttpServer())
+      .post('/favorites/toggle')
+      .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+      .expect(401);
+
+    expect(favoritesService.toggleFavorite).not.toHaveBeenCalled();
+  });
+
+  it('should reject requests with an invalid token', async () => {
+    await request(app.getHttpServer())
+      .post('/favorites/toggle')
+      .set('Authorization', 'Bearer invalid-token')
+      .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+      .expect(401);
+
+    expect(favoritesService.toggleFavorite).not.toHaveBeenCalled();
+  });
+
+  it('should forward valid requests to the service', async () => {
+    favoritesService.toggleFavorite.mockResolvedValue({ success: true });
+
+    const token = createToken();
+
+    await request(app.getHttpServer())
+      .post('/favorites/toggle')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+      .expect(201)
+      .expect({ success: true });
+
+    expect(favoritesService.toggleFavorite).toHaveBeenCalledWith(
+      123,
+      '11111111-1111-1111-1111-111111111111',
+    );
+  });
 });

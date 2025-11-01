@@ -2,13 +2,14 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import FavoritesContent from './FavoritesContent'
 import { getServerSession } from 'next-auth'
 import { getApiBaseUrl } from '@/utils'
+import getServerSessionToken from '@/utils/getServerSessionToken'
 
 export const metadata = {
   title: 'Favorites - Tools4.tech',
 }
 
-async function getFavorites(userId) {
-  if (!userId) {
+async function getFavorites(userId, token) {
+  if (!userId || !token) {
     return []
   }
 
@@ -25,7 +26,7 @@ async function getFavorites(userId) {
         method: 'GET',
         cache: 'no-store',
         headers: {
-          'x-user-id': String(userId),
+          Authorization: `Bearer ${token}`,
         },
       },
     )
@@ -56,8 +57,9 @@ export default async function Favorites() {
   }
 
   const userId = session?.user?.githubId
+  const token = getServerSessionToken()
 
-  if (!userId) {
+  if (!userId || !token) {
     return (
       <div className='flex flex-col justify-center items-center h-screen'>
         <h2 className='text-xl font-semibold mb-4'>
@@ -68,7 +70,7 @@ export default async function Favorites() {
     )
   }
 
-  const favorites = await getFavorites(userId)
+  const favorites = await getFavorites(userId, token)
 
   return <FavoritesContent initialFavorites={favorites} />
 }
