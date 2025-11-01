@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -54,6 +55,7 @@ export class FavoritesController {
 
   @UseGuards(AuthenticatedUserGuard)
   @Post("toggle")
+  @HttpCode(200)
   toggleFavorite(
     @CurrentUser("id") userId: number,
     @Body("toolId", ParseUUIDPipe) toolId: string
