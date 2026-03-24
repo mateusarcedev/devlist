@@ -1,122 +1,22 @@
 'use client'
 
-import { AxiosConfig, getClientSessionToken } from '@/utils'
+import { useFavoriteToggle } from '@/hooks/useFavoriteToggle'
 import { ExternalLink } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { Toast } from './Toast'
 
 export default function Card({ tool, initialIsFavorite = false, onFavoriteChange }) {
-  const { data: session, status } = useSession()
-  const [toast, setToast] = useState(null)
-  const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
+  const { isFavorite, toast, setToast, toggle, isAuthLoading } =
+    useFavoriteToggle(tool, initialIsFavorite)
 
-  useEffect(() => {
-    setIsFavorite(initialIsFavorite)
-  }, [initialIsFavorite])
-
-  useEffect(() => {
-    if (
-      status === 'authenticated' &&
-      session?.user?.githubId &&
-      !initialIsFavorite
-    ) {
-      fetchFavoriteStatus()
-    }
-
-    if (status === 'unauthenticated') {
-      setIsFavorite(false)
-    }
-  }, [session, status, initialIsFavorite, tool.id])
-
-  const fetchFavoriteStatus = async () => {
-    try {
-      const token = getClientSessionToken()
-
-      if (!token) {
-        throw new Error('Missing authentication token')
-      }
-
-      const response = await AxiosConfig.get('/favorites/check', {
-        params: {
-          toolId: tool.id,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      setIsFavorite(response.data.isFavorite)
-    } catch (error) {
-      console.error('Error checking favorite', error)
-    }
+  if (isAuthLoading) {
+    return <div>Loading...</div>
   }
 
   const handleFavoriteClick = async e => {
     e.preventDefault()
     e.stopPropagation()
-
-    if (status !== 'authenticated' || !session?.user?.githubId) {
-      setToast({
-        message: 'Please log in to add to favorites.',
-        type: 'error',
-      })
-      return
-    }
-
-    const previousFavoriteStatus = isFavorite
-
-    const token = getClientSessionToken()
-
-    if (!token) {
-      setToast({
-        message: 'Please log in again to update favorites.',
-        type: 'error',
-      })
-      return
-    }
-
-    try {
-      const newFavoriteStatus = !previousFavoriteStatus
-      setIsFavorite(newFavoriteStatus)
-
-      await AxiosConfig.post(
-        '/favorites/toggle',
-        { toolId: tool.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      setToast({
-        message: `${tool.name} ${
-          newFavoriteStatus ? 'added to' : 'removed from'
-        } favorites`,
-        type: 'success',
-      })
-
-      if (onFavoriteChange) {
-        onFavoriteChange(tool.id, newFavoriteStatus)
-      }
-    } catch (error) {
-      setIsFavorite(previousFavoriteStatus)
-      console.error(
-        'Error updating favorites:',
-        error.response ? error.response.data : error.message,
-      )
-      setToast({
-        message:
-          error.response?.data?.message ||
-          'An error occurred while updating favorites. Please try again.',
-        type: 'error',
-      })
-    }
-  }
-
-  if (status === 'loading') {
-    return <div>Loading...</div>
+    await toggle(onFavoriteChange)
   }
 
   return (

@@ -1,38 +1,7 @@
 import { Prisma } from '@prisma/client';
+import { Barrier } from 'src/common/testing/barrier';
 
 type FavoriteRecord = { id: string; userId: number; toolId: string };
-
-class Barrier {
-  private readonly parties: number;
-  private count = 0;
-  private resolvers: Array<() => void> = [];
-  private released = false;
-
-  constructor(parties: number) {
-    this.parties = parties;
-  }
-
-  async wait() {
-    if (this.released) {
-      return;
-    }
-
-    this.count += 1;
-
-    if (this.count >= this.parties) {
-      this.released = true;
-      this.resolvers.forEach((resolve) => resolve());
-      this.resolvers = [];
-      return;
-    }
-
-    await new Promise<void>((resolve) => this.resolvers.push(resolve));
-  }
-
-  isReleased() {
-    return this.released;
-  }
-}
 
 export class FakePrismaService {
   private users = new Map<number, { githubId: number }>();

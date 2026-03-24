@@ -1,5 +1,6 @@
-import { AxiosConfig, getClientSessionToken } from '@/utils'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { AxiosConfig } from '@/utils'
+import { useSubmitSuggestion } from '@/hooks/useSubmitSuggestion'
+import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
@@ -27,24 +28,13 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
     enabled: isOpen,
   })
 
-  const mutation = useMutation({
-    mutationFn: async ({ suggestionData, token }) => {
-      const response = await AxiosConfig.post('/suggestions', suggestionData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      return response.data
-    },
+  const mutation = useSubmitSuggestion({
     onSuccess: data => {
       setName('')
       setLink('')
       setDescription('')
       setCategoryId('')
-
       onClose()
-
       onSubmit?.({ status: 'success', data })
     },
     onError: error => {
@@ -52,10 +42,8 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       onSubmit?.({
         status: 'error',
         message:
-          error.message === 'Missing authentication token'
-            ? 'Please log in again to submit a suggestion.'
-            : error.response?.data?.message ||
-              'Error sending suggestion. Please try again.',
+          error.response?.data?.message ||
+          'Error sending suggestion. Please try again.',
       })
     },
   })
@@ -64,29 +52,10 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
     e.preventDefault()
 
     if (status !== 'authenticated' || !session?.user?.githubId) {
-      console.error('User not authenticated')
       return
     }
 
-    const token = getClientSessionToken()
-
-    if (!token) {
-      console.error('Authentication token not found')
-      onSubmit?.({
-        status: 'error',
-        message: 'Please log in again to submit a suggestion.',
-      })
-      return
-    }
-
-    const suggestionData = {
-      name,
-      link,
-      description,
-      categoryId,
-    }
-
-    mutation.mutate({ suggestionData, token })
+    mutation.mutate({ name, link, description, categoryId })
   }
 
   useEffect(() => {
