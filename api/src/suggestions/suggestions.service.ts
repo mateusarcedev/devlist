@@ -24,7 +24,7 @@ export class SuggestionsService {
       throw new NotFoundException('Category not found');
     }
 
-    return this.prisma.sugestion.create({
+    return this.prisma.suggestion.create({
       data: {
         name,
         link,
@@ -42,7 +42,7 @@ export class SuggestionsService {
 
 
   async findAll() {
-    return this.prisma.sugestion.findMany({
+    return this.prisma.suggestion.findMany({
       include: {
         user: {
           select: {
@@ -59,7 +59,7 @@ export class SuggestionsService {
 
 
   async findOne(id: string) {
-    const suggestion = await this.prisma.sugestion.findUnique({
+    const suggestion = await this.prisma.suggestion.findUnique({
       where: { id },
       include: {
         user: {
@@ -82,7 +82,7 @@ export class SuggestionsService {
   }
 
   async update(id: string, updateSuggestionDto: UpdateSuggestionDto) {
-    const suggestion = await this.prisma.sugestion.update({
+    const suggestion = await this.prisma.suggestion.update({
       where: { id },
       data: updateSuggestionDto,
     });
@@ -95,7 +95,7 @@ export class SuggestionsService {
   }
 
   async remove(id: string) {
-    const suggestion = await this.prisma.sugestion.delete({
+    const suggestion = await this.prisma.suggestion.delete({
       where: { id },
     });
 

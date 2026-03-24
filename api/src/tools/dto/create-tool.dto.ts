@@ -17,7 +17,7 @@ export class CreateToolDto {
 
   @IsNotEmpty()
   @ApiProperty({ example: 'category-uuid' })
-  categoryID: string;
+  categoryId: string;
 
   @ApiProperty({ example: 'user-uuid' })
   suggestedBy?: string;

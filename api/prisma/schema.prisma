@@ -20,35 +20,35 @@ enum UserRole {
 }
 
 model Tool {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
-  link        String      @unique
+  link        String       @unique
   description String
-  categoryID  String
-  category    Category    @relation("ToolCategory", fields: [categoryID], references: [id])
+  categoryId  String
+  category    Category     @relation("ToolCategory", fields: [categoryId], references: [id])
   favorites   Favorite[]
-  Sugestion   Sugestion[]
+  suggestions Suggestion[]
 
   @@map("tools")
 }
 
 model Category {
-  id          String      @id @default(uuid())
-  name        String      @unique
-  tools       Tool[]      @relation("ToolCategory")
-  suggestions Sugestion[] @relation("SuggestionCategory")
+  id          String       @id @default(uuid())
+  name        String       @unique
+  tools       Tool[]       @relation("ToolCategory")
+  suggestions Suggestion[] @relation("SuggestionCategory")
 
   @@map("categories")
 }
 
 model User {
-  githubId    Int         @id @unique
+  githubId    Int          @id @unique
   name        String
   email       String
   avatar      String
-  role        UserRole    @default(USER)
-  favorites   Favorite[]  @relation("UserFavorites")
-  suggestions Sugestion[] @relation("UserSuggestions") // Nova relação
+  role        UserRole     @default(USER)
+  favorites   Favorite[]   @relation("UserFavorites")
+  suggestions Suggestion[] @relation("UserSuggestions")
 
   @@map("users")
 }
@@ -64,7 +64,7 @@ model Favorite {
   @@map("favorites")
 }
 
-model Sugestion {
+model Suggestion {
   id          String           @id @default(uuid())
   name        String
   link        String

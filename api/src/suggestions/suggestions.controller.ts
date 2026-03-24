@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -40,13 +41,34 @@ export class SuggestionsController {
     return this.suggestionsService.findOne(id);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSuggestionDto: UpdateSuggestionDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateSuggestionDto: UpdateSuggestionDto,
+    @CurrentUser('id') currentUserId: number,
+  ) {
+    const suggestion = await this.suggestionsService.findOne(id);
+
+    if (suggestion.userId !== currentUserId) {
+      throw new ForbiddenException();
+    }
+
     return this.suggestionsService.update(id, updateSuggestionDto);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('id') currentUserId: number,
+  ) {
+    const suggestion = await this.suggestionsService.findOne(id);
+
+    if (suggestion.userId !== currentUserId) {
+      throw new ForbiddenException();
+    }
+
     return this.suggestionsService.remove(id);
   }
 }

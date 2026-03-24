@@ -15,7 +15,7 @@ export class ToolsService {
         name: dto.name,
         link: dto.link,
         description: dto.description,
-        categoryID: dto.categoryID,
+        categoryId: dto.categoryId,
       })),
     });
   }
@@ -39,11 +39,11 @@ export class ToolsService {
     });
     
     if (!category) {
-      throw new NotFoundException('Categoria não encontrada.');
+      throw new NotFoundException('Category not found');
     }
     
     return this.prisma.tool.findMany({
-      where: { categoryID: category.id },
+      where: { categoryId: category.id },
     });
   }
   

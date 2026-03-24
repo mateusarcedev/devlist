@@ -5,7 +5,7 @@ export class ToolEntity implements Tool {
   name: string;
   link: string;
   description: string;
-  categoryID: string;
+  categoryId: string;
   suggestedBy: string;
 
   constructor(partial: Partial<ToolEntity>) {

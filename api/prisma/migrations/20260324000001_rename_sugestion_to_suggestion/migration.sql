@@ -1,0 +1,2 @@
+-- Rename Prisma model from Sugestion to Suggestion.
+-- No SQL changes needed: the table was already mapped to "suggestions" via @@map.

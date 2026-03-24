@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -63,13 +64,28 @@ export class FavoritesController {
     return this.favoritesService.toggleFavorite(userId, toolId);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.favoritesService.findOne(id);
   }
 
+  @UseGuards(AuthenticatedUserGuard)
   @Delete(":id")
-  remove(@Param("id") id: string) {
+  async remove(
+    @Param("id") id: string,
+    @CurrentUser("id") currentUserId: number
+  ) {
+    const favorite = await this.favoritesService.findOne(id);
+
+    if (!favorite) {
+      throw new NotFoundException("Favorite not found");
+    }
+
+    if (favorite.userId !== currentUserId) {
+      throw new ForbiddenException();
+    }
+
     return this.favoritesService.remove(id);
   }
 }

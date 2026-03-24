@@ -7,14 +7,22 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UpdateFavoriteDto } from "./dto/update-favorite.dto";
 
+type PrismaTransactionClient = Parameters<
+  Parameters<PrismaService["$transaction"]>[0]
+>[0];
+
 @Injectable()
 export class FavoritesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: number, toolId: string) {
+  private async validateUserAndTool(
+    userId: number,
+    toolId: string,
+    tx: PrismaTransactionClient | PrismaService = this.prisma
+  ) {
     const [user, tool] = await Promise.all([
-      this.prisma.user.findUnique({ where: { githubId: userId } }),
-      this.prisma.tool.findUnique({ where: { id: toolId } }),
+      tx.user.findUnique({ where: { githubId: userId } }),
+      tx.tool.findUnique({ where: { id: toolId } }),
     ]);
 
     if (!user) {
@@ -24,6 +32,10 @@ export class FavoritesService {
     if (!tool) {
       throw new NotFoundException("Tool not found");
     }
+  }
+
+  async create(userId: number, toolId: string) {
+    await this.validateUserAndTool(userId, toolId);
 
     try {
       return await this.prisma.favorite.create({
@@ -66,18 +78,7 @@ export class FavoritesService {
 
   async toggleFavorite(userId: number, toolId: string) {
     return this.prisma.$transaction(async (tx) => {
-      const [user, tool] = await Promise.all([
-        tx.user.findUnique({ where: { githubId: userId } }),
-        tx.tool.findUnique({ where: { id: toolId } }),
-      ]);
-
-      if (!user) {
-        throw new NotFoundException("User not found");
-      }
-
-      if (!tool) {
-        throw new NotFoundException("Tool not found");
-      }
+      await this.validateUserAndTool(userId, toolId, tx);
 
       const existingFavorite = await tx.favorite.findUnique({
         where: {

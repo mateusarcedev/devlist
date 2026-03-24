@@ -29,14 +29,14 @@ export class ToolsController {
   }
 
   @Get('category/:nameCategory')
-  @ApiOperation({ summary: 'Busca ferramentas por categoria' })
-  @ApiParam({ name: 'nameCategory', description: 'nome da categoria', type: String })
+  @ApiOperation({ summary: 'Search tools by category' })
+  @ApiParam({ name: 'nameCategory', description: 'category name', type: String })
   @ApiResponse({
     status: 200,
-    description: 'Lista de ferramentas retornada com sucesso.',
+    description: 'Tools listed successfully.',
     isArray: true,
   })
-  @ApiResponse({ status: 404, description: 'Categoria não encontrada.' })
+  @ApiResponse({ status: 404, description: 'Category not found.' })
   async findToolsByCategory(@Param('nameCategory') nameCategory: string): Promise<Tool[]> {
     return this.toolsService.findToolsByCategory(nameCategory);
   }

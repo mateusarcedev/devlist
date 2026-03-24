@@ -1,6 +1,6 @@
-import { Sugestion, SuggestionStatus } from '@prisma/client';
+import { Suggestion, SuggestionStatus } from '@prisma/client';
 
-export class SuggestionEntity implements Sugestion {
+export class SuggestionEntity implements Suggestion {
   id: string;
   name: string;
   link: string;

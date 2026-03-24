@@ -50,6 +50,7 @@ describe('SuggestionsController', () => {
 
     controller = module.get<SuggestionsController>(SuggestionsController);
     app = module.createNestApplication();
+    app.useGlobalPipes(new (require('@nestjs/common').ValidationPipe)());
     await app.init();
   });
 
@@ -74,6 +75,18 @@ describe('SuggestionsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('should reject suggestion creation with an invalid URL in the link field', async () => {
+    const token = createToken();
+
+    await request(app.getHttpServer())
+      .post('/suggestions')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...suggestionPayload, link: 'not-a-valid-url' })
+      .expect(400);
+
+    expect(suggestionsService.create).not.toHaveBeenCalled();
   });
 
   it('should reject suggestion creation without credentials', async () => {
@@ -108,5 +121,83 @@ describe('SuggestionsController', () => {
       .expect({ id: 'suggestion-id' });
 
     expect(suggestionsService.create).toHaveBeenCalledWith(456, suggestionPayload);
+  });
+
+  describe('PATCH /suggestions/:id', () => {
+    it('should reject update without credentials', async () => {
+      await request(app.getHttpServer())
+        .patch('/suggestions/suggestion-1')
+        .send({ name: 'Updated Tool' })
+        .expect(401);
+
+      expect(suggestionsService.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject update from a user who does not own the suggestion', async () => {
+      suggestionsService.findOne.mockResolvedValue({ id: 'suggestion-1', userId: 999 });
+
+      const token = createToken();
+
+      await request(app.getHttpServer())
+        .patch('/suggestions/suggestion-1')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Updated Tool' })
+        .expect(403);
+
+      expect(suggestionsService.update).not.toHaveBeenCalled();
+    });
+
+    it('should allow update from the suggestion owner', async () => {
+      suggestionsService.findOne.mockResolvedValue({ id: 'suggestion-1', userId: 456 });
+      suggestionsService.update.mockResolvedValue({ id: 'suggestion-1', name: 'Updated Tool' });
+
+      const token = createToken();
+
+      await request(app.getHttpServer())
+        .patch('/suggestions/suggestion-1')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Updated Tool' })
+        .expect(200)
+        .expect({ id: 'suggestion-1', name: 'Updated Tool' });
+
+      expect(suggestionsService.update).toHaveBeenCalledWith('suggestion-1', { name: 'Updated Tool' });
+    });
+  });
+
+  describe('DELETE /suggestions/:id', () => {
+    it('should reject deletion without credentials', async () => {
+      await request(app.getHttpServer())
+        .delete('/suggestions/suggestion-1')
+        .expect(401);
+
+      expect(suggestionsService.remove).not.toHaveBeenCalled();
+    });
+
+    it('should reject deletion from a user who does not own the suggestion', async () => {
+      suggestionsService.findOne.mockResolvedValue({ id: 'suggestion-1', userId: 999 });
+
+      const token = createToken();
+
+      await request(app.getHttpServer())
+        .delete('/suggestions/suggestion-1')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(403);
+
+      expect(suggestionsService.remove).not.toHaveBeenCalled();
+    });
+
+    it('should allow deletion from the suggestion owner', async () => {
+      suggestionsService.findOne.mockResolvedValue({ id: 'suggestion-1', userId: 456 });
+      suggestionsService.remove.mockResolvedValue({ id: 'suggestion-1' });
+
+      const token = createToken();
+
+      await request(app.getHttpServer())
+        .delete('/suggestions/suggestion-1')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(suggestionsService.remove).toHaveBeenCalledWith('suggestion-1');
+    });
   });
 });
