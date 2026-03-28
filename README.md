@@ -1,98 +1,92 @@
-# Tools4.tech
+# Devlist
 
-A developer tools discovery platform where you can explore, favorite, and suggest tools for your workflow.
+> Discover the tools developers actually use — found and organized by the community.
 
-## Features
+[🇧🇷 Português](./README.pt-BR.md)
 
-- Browse and search developer tools organized by category
-- Sign in with GitHub to save your favorite tools
-- Suggest new tools to the community
-- Admin panel for reviewing and approving suggestions
+---
 
-## Tech Stack
+## Why devlist exists
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 15, React 19, Tailwind CSS 4, TanStack React Query |
-| Backend | NestJS 10, Prisma ORM |
-| Database | PostgreSQL |
-| Auth | NextAuth v4 (GitHub OAuth) |
+Finding good development tools is harder than it should be.
+Recommendations are scattered across Twitter threads, newsletters, random lists,
+and Slack conversations — with no context, no curation, no way to know if anyone actually uses them.
 
-## Project Structure
+devlist centralizes all of that. An open source platform where the community discovers,
+favorites, and suggests tools — so you can see what real developers are actually using.
 
-```
-tools4.tech/
-├── api/   # NestJS REST API
-└── web/   # Next.js frontend
-```
+---
 
-## Getting Started
+## What you can do
+
+- **Explore** tools organized by category
+- **Favorite** the ones that fit your workflow (sign in with GitHub)
+- **Suggest** new tools for the community to review
+
+---
+
+## Preview
+
+> 🚧 Coming soon — [devlist.mateusarce.dev](https://devlist.mateusarce.dev)
+
+<!-- Add screenshot here when the deployment is live -->
+
+---
+
+## Running locally
+
+> For contributors who want to run the project on their own machine.
 
 ### Prerequisites
 
 - Node.js 20+
-- pnpm (frontend)
-- npm (backend)
-- Docker (for local PostgreSQL)
+- pnpm (frontend) / npm (backend)
+- Docker
 
-### 1. Start the database
+### 1. Database
 
 ```bash
-cd api
-docker-compose up -d
+cd api && docker-compose up -d
 ```
 
-### 2. Set up the API
+### 2. API
 
 ```bash
 cd api
 npm install
-cp .env.example .env   # fill in DATABASE_URL, DIRECT_URL, NEXTAUTH_SECRET
+cp .env.example .env
 npx prisma migrate dev
-npm run dev            # runs on http://localhost:3001
+npm run dev  # http://localhost:3001
 ```
 
-API environment variables:
-
-```env
-DATABASE_URL=postgresql://arce:arce@localhost:5432/devlinks
-DIRECT_URL=postgresql://arce:arce@localhost:5432/devlinks
-NEXTAUTH_SECRET=your-secret-here
-PORT=3001
-```
-
-### 3. Set up the frontend
+### 3. Frontend
 
 ```bash
 cd web
 pnpm install
-cp .env.example .env.local   # fill in GitHub OAuth credentials and secrets
-pnpm dev                     # runs on http://localhost:3000
+cp .env.example .env.local
+pnpm dev  # http://localhost:3000
 ```
 
-Frontend environment variables (see `web/.env.example`):
+> Swagger available at `http://localhost:3001/api`
 
-```env
-URL_API=http://localhost:3001
-NEXT_PUBLIC_URL_API=http://localhost:3001
-GITHUB_ID=your-github-app-id
-GITHUB_SECRET=your-github-app-secret
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here
-GITHUB_TOKEN=              # optional, for contributor stats
-```
-
-> To get `GITHUB_ID` and `GITHUB_SECRET`, create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers) with callback URL `http://localhost:3000/api/auth/callback/github`.
-
-## API Documentation
-
-Swagger UI is available at `http://localhost:3001/api` when the API is running.
+---
 
 ## Contributing
 
-1. Fork the repository and create a new branch for your change.
-2. Make sure your code follows the existing style and all tests pass (`npm run test` in `/api`).
-3. Open a pull request describing what you changed and why.
-4. A maintainer will review your PR and may request changes.
+1. Fork the repository and create a new branch for your change
+2. Make sure the tests pass: `npm run test` in `/api`
+3. Open a PR describing what changed and why
 
-Contributors are recognized in `CONTRIBUTORS.md`.
+Contributors are recognized in [`CONTRIBUTORS.md`](./CONTRIBUTORS.md).
+
+---
+
+## Tech Stack
+
+| Layer    | Technology                                               |
+|----------|----------------------------------------------------------|
+| Frontend | Next.js 15, React 19, Tailwind CSS 4, TanStack Query     |
+| Backend  | NestJS 10, Prisma ORM                                    |
+| Database | PostgreSQL                                               |
+| Auth     | NextAuth v4 (GitHub OAuth)                               |
