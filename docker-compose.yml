@@ -37,9 +37,9 @@ services:
   web:
     build:
       context: ./web
-    container_name: devlist-web
       args:
         NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API}
+    container_name: devlist-web
     restart: always
     environment:
       URL_API: ${URL_API}
