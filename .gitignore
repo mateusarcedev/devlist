@@ -1,6 +1,9 @@
 # Superpowers plugin (specs, plans, generated docs)
 docs/superpowers/
 
+# Git worktrees
+.worktrees/
+
 # Claude Code project instructions
 CLAUDE.md
 CLAUDE.md
