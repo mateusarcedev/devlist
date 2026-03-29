@@ -1,4 +1,35 @@
-export default async function getContributors(owner, repo) {
+import type { Contributor } from '@/types'
+
+interface GitHubContributorsResponse {
+  data?: {
+    repository?: {
+      defaultBranchRef?: {
+        target: {
+          history: {
+            edges: Array<{
+              node: {
+                author?: {
+                  user?: {
+                    login: string
+                    avatarUrl: string
+                    name: string | null
+                    followers: { totalCount: number }
+                    repositories: { totalCount: number }
+                  }
+                }
+              }
+            }>
+          }
+        }
+      }
+    }
+  }
+}
+
+export default async function getContributors(
+  owner: string,
+  repo: string,
+): Promise<Contributor[] | null> {
   const query = `
     query {
       repository(owner: "${owner}", name: "${repo}") {
@@ -40,36 +71,29 @@ export default async function getContributors(owner, repo) {
     body: JSON.stringify({ query }),
   })
 
-  const result = await response.json()
-  const { data } = result
+  const result: GitHubContributorsResponse = await response.json()
 
-  if (!data || !data.repository) {
+  if (!result.data?.repository?.defaultBranchRef) {
     return null
   }
 
-  if (!data.repository.defaultBranchRef) {
-    return null
-  }
-
-  const commits = data.repository.defaultBranchRef.target.history.edges
-
-  const contributionsMap = new Map()
+  const commits = result.data.repository.defaultBranchRef.target.history.edges
+  const contributionsMap = new Map<string, Contributor>()
 
   commits.forEach(({ node }) => {
     if (node.author?.user) {
-      const { login, avatarUrl, name, followers, repositories } =
-        node.author.user
+      const { login, avatarUrl, name, followers, repositories } = node.author.user
       if (!contributionsMap.has(login)) {
         contributionsMap.set(login, {
           login,
           avatar_url: avatarUrl,
-          name: name || login,
-          followers: followers?.totalCount || 0,
-          public_repos: repositories?.totalCount || 0,
+          name: name ?? login,
+          followers: followers.totalCount,
+          public_repos: repositories.totalCount,
           contributions: 0,
         })
       }
-      contributionsMap.get(login).contributions += 1
+      contributionsMap.get(login)!.contributions += 1
     }
   })
 

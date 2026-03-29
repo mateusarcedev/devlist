@@ -1,12 +1,17 @@
 'use client'
 
 import Card from '@/components/Card'
+import type { Favorite } from '@/types'
 import { useState } from 'react'
 
-export default function FavoritesContent({ initialFavorites }) {
-  const [favorites, setFavorites] = useState(initialFavorites ?? [])
+interface Props {
+  initialFavorites: Favorite[]
+}
 
-  const handleFavoriteChange = (toolId, isFavorite) => {
+export default function FavoritesContent({ initialFavorites }: Props) {
+  const [favorites, setFavorites] = useState<Favorite[]>(initialFavorites ?? [])
+
+  const handleFavoriteChange = (toolId: string, isFavorite: boolean) => {
     if (!isFavorite) {
       setFavorites(prev => prev.filter(favorite => favorite.toolId !== toolId))
     }
@@ -17,7 +22,7 @@ export default function FavoritesContent({ initialFavorites }) {
       <div className='flex flex-col justify-center items-center h-screen'>
         <h2 className='text-xl font-semibold mb-4'>No favorites found</h2>
         <p className='text-gray-600'>
-          You haven't added any tools to your favorites yet.
+          You haven&apos;t added any tools to your favorites yet.
         </p>
       </div>
     )
@@ -30,7 +35,7 @@ export default function FavoritesContent({ initialFavorites }) {
         {favorites.map(favorite => (
           <div key={favorite.id}>
             <Card
-              tool={favorite.tool}
+              tool={favorite.tool!}
               initialIsFavorite
               onFavoriteChange={handleFavoriteChange}
             />

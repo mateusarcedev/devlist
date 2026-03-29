@@ -2,9 +2,19 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
+import { type Session } from 'next-auth'
 import { useState } from 'react'
 
-export function QueryProvider({ children }) {
+interface QueryProviderProps {
+  children: React.ReactNode
+}
+
+interface SessionWrapperProps {
+  children: React.ReactNode
+  session?: Session | null
+}
+
+export function QueryProvider({ children }: QueryProviderProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -21,6 +31,6 @@ export function QueryProvider({ children }) {
   )
 }
 
-export function SessionWrapper({ children, session }) {
+export function SessionWrapper({ children, session }: SessionWrapperProps) {
   return <SessionProvider session={session}>{children}</SessionProvider>
 }

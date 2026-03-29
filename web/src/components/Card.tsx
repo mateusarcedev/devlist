@@ -1,11 +1,18 @@
 'use client'
 
 import { useFavoriteToggle } from '@/hooks/useFavoriteToggle'
+import type { OnFavoriteChange, Tool } from '@/types'
 import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { Toast } from './Toast'
 
-export default function Card({ tool, initialIsFavorite = false, onFavoriteChange }) {
+interface Props {
+  tool: Tool
+  initialIsFavorite?: boolean
+  onFavoriteChange?: OnFavoriteChange
+}
+
+export default function Card({ tool, initialIsFavorite = false, onFavoriteChange }: Props) {
   const { isFavorite, toast, setToast, toggle, isAuthLoading } =
     useFavoriteToggle(tool, initialIsFavorite)
 
@@ -13,7 +20,7 @@ export default function Card({ tool, initialIsFavorite = false, onFavoriteChange
     return <div>Loading...</div>
   }
 
-  const handleFavoriteClick = async e => {
+  const handleFavoriteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
     await toggle(onFavoriteChange)

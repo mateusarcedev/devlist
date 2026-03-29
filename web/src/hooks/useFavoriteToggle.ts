@@ -1,29 +1,43 @@
 'use client'
 
 import { AxiosConfig } from '@/utils'
+import type { OnFavoriteChange, Tool } from '@/types'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 
-export function useFavoriteToggle(tool, initialIsFavorite = false) {
+interface ToastState {
+  message: string
+  type: 'success' | 'error'
+}
+
+interface UseFavoriteToggleReturn {
+  isFavorite: boolean
+  toast: ToastState | null
+  setToast: Dispatch<SetStateAction<ToastState | null>>
+  toggle: (onFavoriteChange?: OnFavoriteChange) => Promise<void>
+  isAuthLoading: boolean
+}
+
+export function useFavoriteToggle(
+  tool: Tool,
+  initialIsFavorite = false,
+): UseFavoriteToggleReturn {
   const { data: session, status } = useSession()
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
-  const [toast, setToast] = useState(null)
+  const [toast, setToast] = useState<ToastState | null>(null)
 
   useEffect(() => {
     setIsFavorite(initialIsFavorite)
   }, [initialIsFavorite])
 
   useEffect(() => {
-    if (
-      status === 'authenticated' &&
-      session?.user?.githubId &&
-      !initialIsFavorite
-    ) {
+    if (status === 'authenticated' && session?.user?.githubId && !initialIsFavorite) {
       const fetchFavoriteStatus = async () => {
         try {
-          const response = await AxiosConfig.get('/favorites/check', {
-            params: { toolId: tool.id },
-          })
+          const response = await AxiosConfig.get<{ isFavorite: boolean }>(
+            '/favorites/check',
+            { params: { toolId: tool.id } },
+          )
           setIsFavorite(response.data.isFavorite)
         } catch (error) {
           console.error('Error checking favorite', error)
@@ -37,7 +51,7 @@ export function useFavoriteToggle(tool, initialIsFavorite = false) {
     }
   }, [session, status, initialIsFavorite, tool.id])
 
-  const toggle = async onFavoriteChange => {
+  const toggle = async (onFavoriteChange?: OnFavoriteChange): Promise<void> => {
     if (status !== 'authenticated' || !session?.user?.githubId) {
       setToast({ message: 'Please log in to add to favorites.', type: 'error' })
       return
@@ -57,14 +71,15 @@ export function useFavoriteToggle(tool, initialIsFavorite = false) {
       })
 
       onFavoriteChange?.(tool.id, newFavoriteStatus)
-    } catch (error) {
+    } catch (error: unknown) {
       setIsFavorite(previousFavoriteStatus)
-      setToast({
-        message:
-          error.response?.data?.message ||
-          'An error occurred while updating favorites. Please try again.',
-        type: 'error',
-      })
+      const message =
+        error instanceof Error &&
+        'response' in error &&
+        (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          ? (error as { response: { data: { message: string } } }).response.data.message
+          : 'An error occurred while updating favorites. Please try again.'
+      setToast({ message, type: 'error' })
     }
   }
 

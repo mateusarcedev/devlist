@@ -38,9 +38,7 @@ export default async function Home() {
           </div>
 
           <section className='space-y-8 text-center'>
-            <h2 className='text-3xl font-bold text-white'>
-              Project Statistics
-            </h2>
+            <h2 className='text-3xl font-bold text-white'>Project Statistics</h2>
             <div className='flex justify-center gap-9'>
               {stars !== null && (
                 <div className='flex flex-col items-center'>

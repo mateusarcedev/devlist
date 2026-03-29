@@ -1,9 +1,9 @@
 const SESSION_COOKIE_NAMES = [
   '__Secure-next-auth.session-token',
   'next-auth.session-token',
-]
+] as const
 
-const getClientSessionToken = () => {
+const getClientSessionToken = (): string | null => {
   if (typeof document === 'undefined' || !document.cookie) {
     return null
   }
@@ -23,4 +23,3 @@ const getClientSessionToken = () => {
 }
 
 export default getClientSessionToken
-

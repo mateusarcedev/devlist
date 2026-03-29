@@ -1,9 +1,17 @@
 'use client'
 
 import { AxiosConfig } from '@/utils'
+import type { Category } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+
+interface ToolFormData {
+  name: string
+  link: string
+  description: string
+  categoryID: string
+}
 
 const CreateToolPage = () => {
   const queryClient = useQueryClient()
@@ -15,7 +23,7 @@ const CreateToolPage = () => {
     formState: { errors },
     reset,
     watch,
-  } = useForm({
+  } = useForm<ToolFormData>({
     defaultValues: {
       name: '',
       link: '',
@@ -24,19 +32,19 @@ const CreateToolPage = () => {
     },
   })
 
-  const descriptionValue = watch('description') || ''
+  const descriptionValue = watch('description') ?? ''
   const remainingChars = 230 - descriptionValue.length
 
-  const { data: categories, isLoading: loadingCategories } = useQuery({
+  const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const response = await AxiosConfig.get('/categories')
+      const response = await AxiosConfig.get<Category[]>('/categories')
       return response.data
     },
   })
 
   const createTool = useMutation({
-    mutationFn: async data => {
+    mutationFn: async (data: ToolFormData) => {
       const response = await AxiosConfig.post('/tools', data)
       return response.data
     },
@@ -52,7 +60,7 @@ const CreateToolPage = () => {
     },
   })
 
-  const onSubmit = data => {
+  const onSubmit = (data: ToolFormData) => {
     createTool.mutate(data)
   }
 
@@ -72,12 +80,12 @@ const CreateToolPage = () => {
             r='10'
             stroke='currentColor'
             strokeWidth='4'
-          ></circle>
+          />
           <path
             className='opacity-75'
             fill='currentColor'
             d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-          ></path>
+          />
         </svg>
       </div>
     )
@@ -114,9 +122,7 @@ const CreateToolPage = () => {
                 placeholder='Tool name'
               />
               {errors.name && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.name.message}
-                </p>
+                <p className='mt-1 text-sm text-red-500'>{errors.name.message}</p>
               )}
             </div>
 
@@ -133,9 +139,7 @@ const CreateToolPage = () => {
                 placeholder='https://...'
               />
               {errors.link && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.link.message}
-                </p>
+                <p className='mt-1 text-sm text-red-500'>{errors.link.message}</p>
               )}
             </div>
 
@@ -160,7 +164,7 @@ const CreateToolPage = () => {
                     message: 'Description cannot exceed 230 characters',
                   },
                 })}
-                rows='4'
+                rows={4}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
                   errors.description || remainingChars < 0
                     ? 'border-red-500'
@@ -169,9 +173,7 @@ const CreateToolPage = () => {
                 placeholder='Tool description...'
               />
               {errors.description && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.description.message}
-                </p>
+                <p className='mt-1 text-sm text-red-500'>{errors.description.message}</p>
               )}
             </div>
 
@@ -180,9 +182,7 @@ const CreateToolPage = () => {
                 Category
               </label>
               <select
-                {...register('categoryID', {
-                  required: 'Category is required',
-                })}
+                {...register('categoryID', { required: 'Category is required' })}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
                   errors.categoryID ? 'border-red-500' : 'border-neutral-800'
                 }`}
@@ -195,9 +195,7 @@ const CreateToolPage = () => {
                 ))}
               </select>
               {errors.categoryID && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.categoryID.message}
-                </p>
+                <p className='mt-1 text-sm text-red-500'>{errors.categoryID.message}</p>
               )}
             </div>
 

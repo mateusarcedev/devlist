@@ -7,7 +7,6 @@ import {
   PlusCircle,
   User2Icon,
 } from 'lucide-react'
-
 import { signIn, signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,17 +14,27 @@ import { useState } from 'react'
 import AddSuggestionModal from './AddSuggestionModal'
 import { Toast } from './Toast'
 
+interface ToastState {
+  message: string
+  type: 'success' | 'error' | 'warning'
+}
+
+interface SubmitResult {
+  status: 'success' | 'error'
+  message?: string
+}
+
 export default function Navbar() {
   const { data: session } = useSession()
   const router = useRouter()
-  const [toast, setToast] = useState(null)
+  const [toast, setToast] = useState<ToastState | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const showToast = (message, type) => {
+  const showToast = (message: string, type: ToastState['type']) => {
     setToast({ message, type })
   }
 
-  const handleFavoritesClick = e => {
+  const handleFavoritesClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     if (!session) {
       showToast('Log in to access your favorites!', 'warning')
@@ -42,15 +51,12 @@ export default function Navbar() {
     setIsModalOpen(true)
   }
 
-  const handleModalSubmit = result => {
-    if (result?.status === 'success') {
+  const handleModalSubmit = (result: SubmitResult) => {
+    if (result.status === 'success') {
       showToast('Suggestion sent successfully!', 'success')
       return
     }
-
-    if (result?.status === 'error') {
-      showToast(result.message || 'Error sending suggestion. Please try again.', 'error')
-    }
+    showToast(result.message ?? 'Error sending suggestion. Please try again.', 'error')
   }
 
   return (
@@ -100,8 +106,8 @@ export default function Navbar() {
               <span className='opacity-20'>|</span>
               <div className='flex items-center w-8 h-8 bg-zinc-800 rounded-full'>
                 <img
-                  src={session?.user?.avatar_url}
-                  alt={session?.user?.name}
+                  src={session.user.avatar_url}
+                  alt={session.user.name ?? ''}
                   className='w-full h-full object-cover rounded-full'
                 />
               </div>

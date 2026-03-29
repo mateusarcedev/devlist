@@ -1,18 +1,16 @@
 import { authOptions } from '@/lib/auth'
-import FavoritesContent from './FavoritesContent'
-import { getServerSession } from 'next-auth'
 import { getApiBaseUrl } from '@/utils'
 import getServerSessionToken from '@/utils/getServerSessionToken'
+import type { Favorite } from '@/types'
+import { getServerSession } from 'next-auth'
+import { type Metadata } from 'next'
+import FavoritesContent from './FavoritesContent'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Favorites - Tools4.tech',
 }
 
-async function getFavorites(userId, token) {
-  if (!userId || !token) {
-    return []
-  }
-
+async function getFavorites(userId: number, token: string): Promise<Favorite[]> {
   try {
     const baseUrl = getApiBaseUrl()
 
@@ -20,24 +18,21 @@ async function getFavorites(userId, token) {
       return []
     }
 
-    const response = await fetch(
-      `${baseUrl}/favorites/user/${userId}`,
-      {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await fetch(`${baseUrl}/favorites/user/${userId}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    )
+    })
 
     if (!response.ok) {
       return []
     }
 
-    const data = await response.json()
+    const data: Favorite[] = await response.json()
     return data
-  } catch (error) {
+  } catch {
     return []
   }
 }
@@ -48,22 +43,20 @@ export default async function Favorites() {
   if (!session) {
     return (
       <div className='flex flex-col justify-center items-center h-screen'>
-        <h2 className='text-xl font-semibold mb-4'>
-          You need to sign in first!
-        </h2>
+        <h2 className='text-xl font-semibold mb-4'>You need to sign in first!</h2>
         <p className='text-gray-600'>Please log in to view your favorites.</p>
       </div>
     )
   }
 
-  const userId = session?.user?.githubId
-  const token = getServerSessionToken()
+  const userId = session.user.githubId
+  const token = await getServerSessionToken()
 
-  if (!userId || !token) {
+  if (!token) {
     return (
       <div className='flex flex-col justify-center items-center h-screen'>
         <h2 className='text-xl font-semibold mb-4'>
-          We couldn't load your favorites
+          We couldn&apos;t load your favorites
         </h2>
         <p className='text-gray-600'>Try signing out and back in again.</p>
       </div>

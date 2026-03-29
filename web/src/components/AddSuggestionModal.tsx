@@ -1,16 +1,31 @@
-import { AxiosConfig } from '@/utils'
+'use client'
+
 import { useSubmitSuggestion } from '@/hooks/useSubmitSuggestion'
+import type { Category, Suggestion } from '@/types'
+import { AxiosConfig } from '@/utils'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 
-async function fetchCategories() {
-  const { data } = await AxiosConfig.get('/categories')
+interface SubmitResult {
+  status: 'success' | 'error'
+  data?: Suggestion
+  message?: string
+}
+
+interface Props {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit?: (result: SubmitResult) => void
+}
+
+async function fetchCategories(): Promise<Category[]> {
+  const { data } = await AxiosConfig.get<Category[]>('/categories')
   return data
 }
 
-export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
+export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props) {
   const { data: session, status } = useSession()
   const [name, setName] = useState('')
   const [link, setLink] = useState('')
@@ -22,7 +37,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
     data: categories,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: fetchCategories,
     enabled: isOpen,
@@ -37,18 +52,19 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
       onClose()
       onSubmit?.({ status: 'success', data })
     },
-    onError: error => {
+    onError: (error: unknown) => {
       console.error('Error creating suggestion:', error)
-      onSubmit?.({
-        status: 'error',
-        message:
-          error.response?.data?.message ||
-          'Error sending suggestion. Please try again.',
-      })
+      const message =
+        error instanceof Error &&
+        'response' in error &&
+        (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          ? (error as { response: { data: { message: string } } }).response.data.message
+          : 'Error sending suggestion. Please try again.'
+      onSubmit?.({ status: 'error', message })
     },
   })
 
-  const handleSubmit = e => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (status !== 'authenticated' || !session?.user?.githubId) {
@@ -76,9 +92,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
     return (
       <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
         <div className='bg-zinc-900 rounded-lg w-full max-w-md p-6 text-center'>
-          <h2 className='text-xl font-semibold text-white mb-4'>
-            Login Required
-          </h2>
+          <h2 className='text-xl font-semibold text-white mb-4'>Login Required</h2>
           <p className='text-zinc-300 mb-4'>
             You need to be logged in to submit a suggestion.
           </p>
@@ -109,7 +123,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
           <div className='flex items-center space-x-3 p-3 bg-zinc-800 rounded-lg'>
             <img
               src={session?.user?.avatar_url}
-              alt={session?.user?.name}
+              alt={session?.user?.name ?? ''}
               className='w-8 h-8 rounded-full'
             />
             <div className='text-sm'>
@@ -119,10 +133,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div>
-            <label
-              htmlFor='name'
-              className='block text-sm font-medium text-zinc-300 mb-1'
-            >
+            <label htmlFor='name' className='block text-sm font-medium text-zinc-300 mb-1'>
               Tool Name
             </label>
             <input
@@ -137,10 +148,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div>
-            <label
-              htmlFor='link'
-              className='block text-sm font-medium text-zinc-300 mb-1'
-            >
+            <label htmlFor='link' className='block text-sm font-medium text-zinc-300 mb-1'>
               Link
             </label>
             <input
@@ -155,10 +163,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div>
-            <label
-              htmlFor='description'
-              className='block text-sm font-medium text-zinc-300 mb-1'
-            >
+            <label htmlFor='description' className='block text-sm font-medium text-zinc-300 mb-1'>
               Description
             </label>
             <textarea
@@ -171,16 +176,11 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
               required
               disabled={mutation.isPending}
             />
-            <p className='text-xs text-zinc-400 mt-1'>
-              {description.length}/230 characters
-            </p>
+            <p className='text-xs text-zinc-400 mt-1'>{description.length}/230 characters</p>
           </div>
 
           <div className='relative'>
-            <label
-              htmlFor='category'
-              className='block text-sm font-medium text-zinc-300 mb-1'
-            >
+            <label htmlFor='category' className='block text-sm font-medium text-zinc-300 mb-1'>
               Category
             </label>
             <button
@@ -196,13 +196,9 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
             {isSelectOpen && (
               <div className='absolute w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg max-h-60 overflow-auto z-50'>
                 {isLoading ? (
-                  <div className='px-3 py-2 text-zinc-400'>
-                    Loading categories...
-                  </div>
+                  <div className='px-3 py-2 text-zinc-400'>Loading categories...</div>
                 ) : error ? (
-                  <div className='px-3 py-2 text-zinc-400'>
-                    Error loading categories
-                  </div>
+                  <div className='px-3 py-2 text-zinc-400'>Error loading categories</div>
                 ) : (
                   categories?.map(category => (
                     <button
@@ -225,7 +221,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }) {
           <button
             type='submit'
             className='w-full py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-            disabled={isLoading || error || mutation.isPending}
+            disabled={isLoading || !!error || mutation.isPending}
           >
             {mutation.isPending ? 'Sending...' : 'Submit Suggestion'}
           </button>

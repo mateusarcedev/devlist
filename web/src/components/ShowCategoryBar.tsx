@@ -1,8 +1,9 @@
+import type { Category } from '@/types'
 import { headers } from 'next/headers'
 import { TbMoodEmpty } from 'react-icons/tb'
-import Category from './Category'
+import CategoryComponent from './Category'
 
-const getCategories = async () => {
+const getCategories = async (): Promise<Category[]> => {
   try {
     const response = await fetch(`${process.env.URL_API}/categories`, {
       method: 'GET',
@@ -12,10 +13,10 @@ const getCategories = async () => {
       throw new Error(`Failed to fetch categories: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data: Category[] = await response.json()
     return data
   } catch (error) {
-    console.error("Erro ao buscar categorias:", error);
+    console.error('Erro ao buscar categorias:', error)
     return []
   }
 }
@@ -25,8 +26,7 @@ export default async function ShowCategoryBar() {
   const pathname = headerList.get('x-current-path')
 
   const excludedPaths = ['/contributors', '/addtools']
-
-  const showCategoryBar = !excludedPaths.includes(pathname)
+  const showCategoryBar = !excludedPaths.includes(pathname ?? '')
 
   const categories = await getCategories()
 
@@ -34,7 +34,7 @@ export default async function ShowCategoryBar() {
     showCategoryBar && (
       <div className='flex flex-col items-center justify-center'>
         <div className='w-full container mx-auto p-5 gap-2 mt-4'>
-          {categories && categories.length === 0 ? (
+          {categories.length === 0 ? (
             <div className='flex justify-center items-center gap-3 flex-col mt-6'>
               <span className='text-5xl text-neutral-700'>
                 <TbMoodEmpty />
@@ -44,10 +44,10 @@ export default async function ShowCategoryBar() {
           ) : (
             <div className='grid grid-cols-1 tablet:grid-cols-3 desktop:grid-cols-4 gap-4'>
               {categories.map(category => (
-                <Category
+                <CategoryComponent
                   key={category.id}
                   id={category.id}
-                  name={category.name}  
+                  name={category.name}
                   title={category.name}
                 />
               ))}

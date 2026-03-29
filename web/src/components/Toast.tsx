@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 
-export function Toast({ message, type, onClose }) {
+interface Props {
+  message: string
+  type: 'success' | 'error' | 'warning'
+  onClose: () => void
+}
+
+export function Toast({ message, type, onClose }: Props) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {

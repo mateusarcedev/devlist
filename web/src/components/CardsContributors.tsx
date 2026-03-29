@@ -1,12 +1,19 @@
 'use client'
 
+import type { Contributor } from '@/types'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState } from 'react'
 
-export default function CardsContributors({ data }) {
+interface Props {
+  data: Contributor[]
+}
+
+type SortKey = 'contributions' | 'followers' | 'name'
+
+export default function CardsContributors({ data }: Props) {
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('contributions')
+  const [sortBy, setSortBy] = useState<SortKey>('contributions')
   const MotionLink = motion(Link)
 
   const filteredAndSortedContributors = data
@@ -18,7 +25,7 @@ export default function CardsContributors({ data }) {
         case 'contributions':
           return b.contributions - a.contributions
         case 'followers':
-          return (b.followers || 0) - (a.followers || 0)
+          return (b.followers ?? 0) - (a.followers ?? 0)
         case 'name':
           return a.login.localeCompare(b.login)
         default:
@@ -38,7 +45,7 @@ export default function CardsContributors({ data }) {
         />
         <select
           value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
+          onChange={e => setSortBy(e.target.value as SortKey)}
           className='p-2 rounded-lg bg-[#222] text-white focus:outline-hidden focus:ring-2 focus:ring-gray-600'
         >
           <option value='contributions'>Most contributions</option>

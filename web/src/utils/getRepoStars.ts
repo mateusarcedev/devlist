@@ -1,4 +1,17 @@
-export default async function getRepoStars(owner, repo) {
+interface GitHubStarsResponse {
+  data?: {
+    repository?: {
+      stargazers: {
+        totalCount: number
+      }
+    }
+  }
+}
+
+export default async function getRepoStars(
+  owner: string,
+  repo: string,
+): Promise<number | null> {
   const query = `
     query {
       repository(owner: "${owner}", name: "${repo}") {
@@ -18,9 +31,9 @@ export default async function getRepoStars(owner, repo) {
     body: JSON.stringify({ query }),
   })
 
-  const result = await response.json()
+  const result: GitHubStarsResponse = await response.json()
 
-  if (!result.data || !result.data.repository) {
+  if (!result.data?.repository) {
     return null
   }
 
