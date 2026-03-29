@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: devlist-db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -16,6 +17,7 @@ services:
 
   api:
     build: ./api
+    container_name: devlist-api
     restart: always
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -35,6 +37,7 @@ services:
   web:
     build:
       context: ./web
+    container_name: devlist-web
       args:
         NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API}
     restart: always

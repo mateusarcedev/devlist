@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: devlist-db-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: tools4
