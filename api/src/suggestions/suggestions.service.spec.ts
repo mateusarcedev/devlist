@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { SuggestionsService } from './suggestions.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SuggestionStatus } from '@prisma/client';
@@ -43,71 +42,97 @@ describe('SuggestionsService', () => {
       categoryId: 'cat-1',
     };
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    it('should return err NOT_FOUND when user does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
 
-      await expect(service.create(userId, dto)).rejects.toThrow(
-        new NotFoundException('User not found'),
-      );
+      const result = await service.create(userId, dto);
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error).toEqual({ type: 'NOT_FOUND', message: 'User not found' });
+      }
       expect(mockPrisma.suggestion.create).not.toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when category does not exist', async () => {
+    it('should return err NOT_FOUND when category does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ githubId: userId });
       mockPrisma.category.findUnique.mockResolvedValue(null);
 
-      await expect(service.create(userId, dto)).rejects.toThrow(
-        new NotFoundException('Category not found'),
-      );
+      const result = await service.create(userId, dto);
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error).toEqual({ type: 'NOT_FOUND', message: 'Category not found' });
+      }
       expect(mockPrisma.suggestion.create).not.toHaveBeenCalled();
     });
 
-    it('should create a suggestion with PENDING status when user and category exist', async () => {
-      const user = { githubId: userId };
-      const category = { id: 'cat-1' };
+    it('should return ok with PENDING suggestion when user and category exist', async () => {
       const created = { id: 'sug-1', ...dto, userId, status: SuggestionStatus.PENDING };
-      mockPrisma.user.findUnique.mockResolvedValue(user);
-      mockPrisma.category.findUnique.mockResolvedValue(category);
+      mockPrisma.user.findUnique.mockResolvedValue({ githubId: userId });
+      mockPrisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
       mockPrisma.suggestion.create.mockResolvedValue(created);
 
       const result = await service.create(userId, dto);
-      expect(result).toEqual(created);
-      expect(mockPrisma.suggestion.create).toHaveBeenCalledWith({
-        data: {
-          name: dto.name,
-          link: dto.link,
-          description: dto.description,
-          categoryId: dto.categoryId,
-          userId,
-          status: SuggestionStatus.PENDING,
-        },
-        include: { user: true, category: true },
-      });
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value).toEqual(created);
+        expect(mockPrisma.suggestion.create).toHaveBeenCalledWith({
+          data: {
+            name: dto.name,
+            link: dto.link,
+            description: dto.description,
+            categoryId: dto.categoryId,
+            userId,
+            status: SuggestionStatus.PENDING,
+          },
+          include: { user: true, category: true },
+        });
+      }
+    });
+
+    it('should return err when suggestion creation fails', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ githubId: userId });
+      mockPrisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
+      mockPrisma.suggestion.create.mockRejectedValue(new Error('DB error'));
+
+      const result = await service.create(userId, dto);
+      expect(result.isErr()).toBe(true);
     });
   });
 
   describe('findOne', () => {
-    it('should return a suggestion with relations', async () => {
+    it('should return ok with a suggestion with relations', async () => {
       const suggestion = { id: 'sug-1', name: 'Tool X', user: {}, category: {}, tool: null };
       mockPrisma.suggestion.findUnique.mockResolvedValue(suggestion);
 
       const result = await service.findOne('sug-1');
-      expect(result).toEqual(suggestion);
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value).toEqual(suggestion);
+      }
     });
 
-    it('should throw NotFoundException when suggestion does not exist', async () => {
+    it('should return err NOT_FOUND when suggestion does not exist', async () => {
       mockPrisma.suggestion.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent')).rejects.toThrow(
-        new NotFoundException('Suggestion not found'),
-      );
+      const result = await service.findOne('nonexistent');
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error).toEqual({ type: 'NOT_FOUND', message: 'Suggestion not found' });
+      }
+    });
+
+    it('should return err when Prisma rejects', async () => {
+      mockPrisma.suggestion.findUnique.mockRejectedValue(new Error('DB error'));
+
+      const result = await service.findOne('sug-1');
+      expect(result.isErr()).toBe(true);
     });
   });
 
   describe('update', () => {
     it('should update and return the suggestion', async () => {
-      const updated = { id: 'sug-1', name: 'Tool X Updated', status: SuggestionStatus.APPROVED };
+      const updated = { id: 'sug-1', status: SuggestionStatus.APPROVED };
       mockPrisma.suggestion.update.mockResolvedValue(updated);
 
       const result = await service.update('sug-1', { status: SuggestionStatus.APPROVED });

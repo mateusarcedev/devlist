@@ -1,8 +1,11 @@
-import { INestApplication, NotFoundException } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
+import { okAsync, errAsync } from 'neverthrow';
 import { ToolsController } from './tools.controller';
 import { ToolsService } from './tools.service';
+
+const NOT_FOUND = { type: 'NOT_FOUND' as const, message: 'Not found' };
 
 const mockToolsService = {
   create: jest.fn(),
@@ -48,7 +51,7 @@ describe('ToolsController', () => {
   describe('GET /tools/category/:nameCategory', () => {
     it('should return 200 with tools for the category', async () => {
       const tools = [{ id: '1', name: 'Tool A' }];
-      mockToolsService.findToolsByCategory.mockResolvedValue(tools);
+      mockToolsService.findToolsByCategory.mockReturnValue(okAsync(tools));
 
       const res = await request(app.getHttpServer()).get('/tools/category/Frontend');
       expect(res.status).toBe(200);
@@ -57,9 +60,7 @@ describe('ToolsController', () => {
     });
 
     it('should return 404 when category does not exist', async () => {
-      mockToolsService.findToolsByCategory.mockRejectedValue(
-        new NotFoundException('Category not found'),
-      );
+      mockToolsService.findToolsByCategory.mockReturnValue(errAsync(NOT_FOUND));
 
       const res = await request(app.getHttpServer()).get('/tools/category/NonExistent');
       expect(res.status).toBe(404);
@@ -69,7 +70,7 @@ describe('ToolsController', () => {
   describe('GET /tools/:id', () => {
     it('should return 200 with the tool', async () => {
       const tool = { id: '1', name: 'Tool A' };
-      mockToolsService.findOne.mockResolvedValue(tool);
+      mockToolsService.findOne.mockReturnValue(okAsync(tool));
 
       const res = await request(app.getHttpServer()).get('/tools/1');
       expect(res.status).toBe(200);
@@ -77,7 +78,7 @@ describe('ToolsController', () => {
     });
 
     it('should return 404 when tool does not exist', async () => {
-      mockToolsService.findOne.mockRejectedValue(new NotFoundException('Tool not found'));
+      mockToolsService.findOne.mockReturnValue(errAsync(NOT_FOUND));
 
       const res = await request(app.getHttpServer()).get('/tools/nonexistent');
       expect(res.status).toBe(404);
@@ -95,27 +96,55 @@ describe('ToolsController', () => {
       expect(res.body).toEqual(created);
       expect(mockToolsService.create).toHaveBeenCalledWith([dto]);
     });
+
+    it('should accept an array of dtos and pass them directly to the service', async () => {
+      const dtos = [
+        { name: 'Tool A', link: 'https://tool-a.com', description: 'desc a', categoryId: 'cat-1' },
+        { name: 'Tool B', link: 'https://tool-b.com', description: 'desc b', categoryId: 'cat-1' },
+      ];
+      const created = { count: 2 };
+      mockToolsService.create.mockResolvedValue(created);
+
+      const res = await request(app.getHttpServer()).post('/tools').send(dtos);
+      expect(res.status).toBe(201);
+      expect(res.body).toEqual(created);
+      expect(mockToolsService.create).toHaveBeenCalledWith(dtos);
+    });
   });
 
   describe('PATCH /tools/:id', () => {
     it('should return 200 with updated tool', async () => {
       const updated = { id: '1', name: 'Tool B' };
-      mockToolsService.update.mockResolvedValue(updated);
+      mockToolsService.update.mockReturnValue(okAsync(updated));
 
       const res = await request(app.getHttpServer()).patch('/tools/1').send({ name: 'Tool B' });
       expect(res.status).toBe(200);
       expect(res.body).toEqual(updated);
+    });
+
+    it('should return 404 when tool does not exist', async () => {
+      mockToolsService.update.mockReturnValue(errAsync(NOT_FOUND));
+
+      const res = await request(app.getHttpServer()).patch('/tools/nonexistent').send({ name: 'Tool B' });
+      expect(res.status).toBe(404);
     });
   });
 
   describe('DELETE /tools/:id', () => {
     it('should return 200 with deleted tool', async () => {
       const tool = { id: '1', name: 'Tool A' };
-      mockToolsService.remove.mockResolvedValue(tool);
+      mockToolsService.remove.mockReturnValue(okAsync(tool));
 
       const res = await request(app.getHttpServer()).delete('/tools/1');
       expect(res.status).toBe(200);
       expect(res.body).toEqual(tool);
+    });
+
+    it('should return 404 when tool does not exist', async () => {
+      mockToolsService.remove.mockReturnValue(errAsync(NOT_FOUND));
+
+      const res = await request(app.getHttpServer()).delete('/tools/nonexistent');
+      expect(res.status).toBe(404);
     });
   });
 });
