@@ -7,7 +7,7 @@ import {
   PlusCircle,
   User2Icon,
 } from 'lucide-react'
-import { signIn, signOut, useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -25,7 +25,7 @@ interface SubmitResult {
 }
 
 export default function Navbar() {
-  const { data: session } = useSession()
+  const { user, loading, logout } = useAuth()
   const router = useRouter()
   const [toast, setToast] = useState<ToastState | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -36,7 +36,7 @@ export default function Navbar() {
 
   const handleFavoritesClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    if (!session) {
+    if (!user) {
       showToast('Log in to access your favorites!', 'warning')
       return
     }
@@ -44,7 +44,7 @@ export default function Navbar() {
   }
 
   const handleSuggestionClick = () => {
-    if (!session) {
+    if (!user) {
       showToast('Log in to suggest a tool!', 'warning')
       return
     }
@@ -101,18 +101,18 @@ export default function Navbar() {
             </span>
           </button>
 
-          {session ? (
+          {!loading && user ? (
             <>
               <span className='opacity-20'>|</span>
               <div className='flex items-center w-8 h-8 bg-zinc-800 rounded-full'>
                 <img
-                  src={session.user.avatar_url}
-                  alt={session.user.name ?? ''}
+                  src={user.avatar}
+                  alt={user.name ?? ''}
                   className='w-full h-full object-cover rounded-full'
                 />
               </div>
               <button
-                onClick={() => signOut()}
+                onClick={logout}
                 className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'
               >
                 <LogOut className='h-5 w-5 text-white' />
@@ -122,9 +122,9 @@ export default function Navbar() {
                 </span>
               </button>
             </>
-          ) : (
+          ) : !loading ? (
             <button
-              onClick={() => signIn('github')}
+              onClick={() => { window.location.href = `${process.env.NEXT_PUBLIC_URL_API}/auth/github` }}
               className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'
             >
               <User2Icon className='h-5 w-5 text-white' />
@@ -133,7 +133,7 @@ export default function Navbar() {
                 Log in with GitHub
               </span>
             </button>
-          )}
+          ) : null}
         </div>
       </nav>
 

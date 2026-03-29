@@ -1,17 +1,11 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { SessionProvider } from 'next-auth/react'
-import { type Session } from 'next-auth'
+import { AuthProvider } from '@/contexts/auth-context'
 import { useState } from 'react'
 
 interface QueryProviderProps {
   children: React.ReactNode
-}
-
-interface SessionWrapperProps {
-  children: React.ReactNode
-  session?: Session | null
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
@@ -31,6 +25,4 @@ export function QueryProvider({ children }: QueryProviderProps) {
   )
 }
 
-export function SessionWrapper({ children, session }: SessionWrapperProps) {
-  return <SessionProvider session={session}>{children}</SessionProvider>
-}
+export { AuthProvider }

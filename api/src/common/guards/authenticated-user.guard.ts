@@ -16,11 +16,11 @@ type NextAuthJwtPayload = JwtPayload & {
 export class AuthenticatedUserGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<
-      Request & { user?: AuthenticatedUser }
+      Request & { user?: AuthenticatedUser; cookies?: Record<string, string> }
     >();
 
-    const token = this.extractBearerToken(request);
-    const secret = process.env.NEXTAUTH_SECRET;
+    const token = this.extractToken(request);
+    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET;
 
     if (!secret) {
       throw new UnauthorizedException('Authentication is not configured');
@@ -30,7 +30,7 @@ export class AuthenticatedUserGuard implements CanActivate {
 
     try {
       decodedToken = verify(token, secret) as NextAuthJwtPayload;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid authentication token');
     }
 
@@ -45,9 +45,14 @@ export class AuthenticatedUserGuard implements CanActivate {
     return true;
   }
 
-  private extractBearerToken(
-    request: Request,
+  private extractToken(
+    request: Request & { cookies?: Record<string, string> },
   ): string {
+    // 1. Cookie takes priority (browser requests with httpOnly cookie)
+    const cookieToken = request.cookies?.['access_token'];
+    if (cookieToken) return cookieToken;
+
+    // 2. Authorization: Bearer header (SSR / server-side / API client requests)
     const authHeader = request.headers['authorization'];
     const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
 
@@ -71,9 +76,10 @@ export class AuthenticatedUserGuard implements CanActivate {
   }
 
   private extractUserId(payload: NextAuthJwtPayload): number | null {
+    // New tokens use `sub`; legacy NextAuth tokens use `githubId`
     const possibleIdentifiers: Array<string | number | undefined> = [
-      payload.githubId,
       payload.sub,
+      payload.githubId,
     ];
 
     for (const identifier of possibleIdentifiers) {

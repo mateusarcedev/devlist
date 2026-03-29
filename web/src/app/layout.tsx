@@ -2,11 +2,10 @@ import Navbar from '@/components/Navbar'
 import { cn } from '@/utils'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { type Session } from 'next-auth'
 import { JetBrains_Mono } from 'next/font/google'
 import { type Metadata, type Viewport } from 'next'
 import './globals.css'
-import { QueryProvider, SessionWrapper } from './providers'
+import { QueryProvider, AuthProvider } from './providers'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.tools4.tech'),
@@ -56,23 +55,18 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains-mono',
 })
 
-interface RootLayoutProps {
-  children: React.ReactNode
-  session?: Session | null
-}
-
-export default function RootLayout({ children, session }: RootLayoutProps) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='en'>
       <body className={cn(jetbrainsMono.variable, 'bg-[#111111]')}>
-        <SessionWrapper session={session}>
+        <AuthProvider>
           <QueryProvider>
             <Navbar />
             {children}
             <Analytics />
             <SpeedInsights />
           </QueryProvider>
-        </SessionWrapper>
+        </AuthProvider>
       </body>
     </html>
   )

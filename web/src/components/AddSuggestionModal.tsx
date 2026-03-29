@@ -5,7 +5,7 @@ import type { Category, Suggestion } from '@/types'
 import { AxiosConfig } from '@/utils'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 
 interface SubmitResult {
@@ -26,7 +26,7 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props) {
-  const { data: session, status } = useSession()
+  const { user } = useAuth()
   const [name, setName] = useState('')
   const [link, setLink] = useState('')
   const [description, setDescription] = useState('')
@@ -67,7 +67,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (status !== 'authenticated' || !session?.user?.githubId) {
+    if (!user) {
       return
     }
 
@@ -88,7 +88,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
 
   if (!isOpen) return null
 
-  if (status === 'unauthenticated') {
+  if (!user) {
     return (
       <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
         <div className='bg-zinc-900 rounded-lg w-full max-w-md p-6 text-center'>
@@ -122,13 +122,12 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
         <form onSubmit={handleSubmit} className='p-6 space-y-4'>
           <div className='flex items-center space-x-3 p-3 bg-zinc-800 rounded-lg'>
             <img
-              src={session?.user?.avatar_url}
-              alt={session?.user?.name ?? ''}
+              src={user?.avatar}
+              alt={user?.name ?? ''}
               className='w-8 h-8 rounded-full'
             />
             <div className='text-sm'>
-              <p className='text-white font-medium'>{session?.user?.name}</p>
-              <p className='text-zinc-400'>{session?.user?.email}</p>
+              <p className='text-white font-medium'>{user?.name}</p>
             </div>
           </div>
 

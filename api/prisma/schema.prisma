@@ -42,13 +42,14 @@ model Category {
 }
 
 model User {
-  githubId    Int          @id @unique
-  name        String
-  email       String
-  avatar      String
-  role        UserRole     @default(USER)
-  favorites   Favorite[]   @relation("UserFavorites")
-  suggestions Suggestion[] @relation("UserSuggestions")
+  githubId      Int            @id @unique
+  name          String
+  email         String
+  avatar        String
+  role          UserRole       @default(USER)
+  favorites     Favorite[]     @relation("UserFavorites")
+  suggestions   Suggestion[]   @relation("UserSuggestions")
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -79,4 +80,16 @@ model Suggestion {
   user        User             @relation("UserSuggestions", fields: [userId], references: [githubId])
 
   @@map("suggestions")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    Int
+  user      User      @relation(fields: [userId], references: [githubId])
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("refresh_tokens")
 }

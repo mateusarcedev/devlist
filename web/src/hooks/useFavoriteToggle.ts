@@ -2,7 +2,7 @@
 
 import { AxiosConfig } from '@/utils'
 import type { OnFavoriteChange, Tool } from '@/types'
-import { useSession } from 'next-auth/react'
+import { useAuth } from './useAuth'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 
 interface ToastState {
@@ -22,7 +22,7 @@ export function useFavoriteToggle(
   tool: Tool,
   initialIsFavorite = false,
 ): UseFavoriteToggleReturn {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
   const [toast, setToast] = useState<ToastState | null>(null)
 
@@ -31,7 +31,7 @@ export function useFavoriteToggle(
   }, [initialIsFavorite])
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.githubId && !initialIsFavorite) {
+    if (!loading && user && !initialIsFavorite) {
       const fetchFavoriteStatus = async () => {
         try {
           const response = await AxiosConfig.get<{ isFavorite: boolean }>(
@@ -46,13 +46,13 @@ export function useFavoriteToggle(
       fetchFavoriteStatus()
     }
 
-    if (status === 'unauthenticated') {
+    if (!loading && !user) {
       setIsFavorite(false)
     }
-  }, [session, status, initialIsFavorite, tool.id])
+  }, [user, loading, initialIsFavorite, tool.id])
 
   const toggle = async (onFavoriteChange?: OnFavoriteChange): Promise<void> => {
-    if (status !== 'authenticated' || !session?.user?.githubId) {
+    if (!user) {
       setToast({ message: 'Please log in to add to favorites.', type: 'error' })
       return
     }
@@ -88,6 +88,6 @@ export function useFavoriteToggle(
     toast,
     setToast,
     toggle,
-    isAuthLoading: status === 'loading',
+    isAuthLoading: loading,
   }
 }

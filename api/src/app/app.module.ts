@@ -7,11 +7,12 @@ import { ToolsModule } from 'src/tools/tools.module';
 import { UsersModule } from 'src/users/users.module';
 import { FavoritesModule } from 'src/favorites/favorites.module';
 import { SuggestionsModule } from 'src/suggestions/suggestions.module';
+import { AuthModule } from 'src/auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [PrismaModule, CategoriesModule, ToolsModule, UsersModule, FavoritesModule, SuggestionsModule,
+  imports: [PrismaModule, CategoriesModule, ToolsModule, UsersModule, FavoritesModule, SuggestionsModule, AuthModule,
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 10,
