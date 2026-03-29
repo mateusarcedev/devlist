@@ -45,10 +45,14 @@ pnpm lint
 ### Database
 
 ```bash
-cd api
-docker-compose up -d              # start PostgreSQL (user/pass: arce, db: devlinks)
-npx prisma migrate dev            # run migrations
-npx prisma studio                 # visual DB explorer
+# From repo root — starts postgres, api, and web (requires Infisical)
+infisical run -- docker compose up -d
+
+# Migrations (run from api/ with production DATABASE_URL in Infisical)
+cd api && infisical run -- npx prisma migrate deploy
+
+# Visual DB explorer (requires DATABASE_URL in local .env)
+cd api && npx prisma studio
 ```
 
 ## Architecture

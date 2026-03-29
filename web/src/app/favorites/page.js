@@ -1,4 +1,4 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import FavoritesContent from './FavoritesContent'
 import { getServerSession } from 'next-auth'
 import { getApiBaseUrl } from '@/utils'
