@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "pnpm turbo run build --filter=@tools4tech/api"
+watchPatterns = ["apps/api/**", "package.json", "pnpm-workspace.yaml", "turbo.json", "pnpm-lock.yaml"]
+
+[deploy]
+startCommand = "pnpm --filter @tools4tech/api run start:prod"

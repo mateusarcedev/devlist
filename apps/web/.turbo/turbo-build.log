@@ -1,0 +1,60 @@
+
+> @tools4tech/web@0.1.0 build /Users/mateusarce/projetos/tools4.tech/apps/web
+> next build
+
+   ▲ Next.js 15.1.6
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/deflate.js
+A Node.js API is used (CompressionStream at line: 18) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/deflate.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/jwe_decrypt.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/jwt/decrypt.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/index.js
+
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/deflate.js
+A Node.js API is used (DecompressionStream at line: 34) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/deflate.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/lib/jwe_decrypt.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/jwt/decrypt.js
+../../node_modules/.pnpm/jose@6.2.10/node_modules/jose/dist/webapi/index.js
+
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+ ⨯ ESLint: Converting circular structure to JSON     --> starting at object with constructor 'Object'     |     property 'configs' -> object with constructor 'Object'     |     property 'flat' -> object with constructor 'Object'     |     ...     |     property 'plugins' -> object with constructor 'Object'     --- property 'react' closes the circle Referenced from: /Users/mateusarce/projetos/tools4.tech/apps/web/.eslintrc.json
+   Collecting page data ...
+   Generating static pages (0/9) ...
+   Generating static pages (2/9) 
+   Generating static pages (4/9) 
+   Generating static pages (6/9) 
+ ✓ Generating static pages (9/9)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    172 B           109 kB
+├ ○ /_not-found                          976 B           106 kB
+├ ○ /admin/addtools                      12.6 kB         145 kB
+├ ○ /contributors                        42.5 kB         151 kB
+├ ƒ /favorites                           3.13 kB         130 kB
+├ ○ /login                               722 B           106 kB
+└ ƒ /tools/[slug]                        2.88 kB         130 kB
++ First Load JS shared by all            105 kB
+  ├ chunks/36e0bf4c-ae400a84085a177c.js  52.9 kB
+  ├ chunks/727-bd13a7b4be48d872.js       50.4 kB
+  └ other shared chunks (total)          1.91 kB
+
+
+ƒ Middleware                             37 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
