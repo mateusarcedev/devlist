@@ -1,13 +1,13 @@
-FROM node:20-alpine AS deps
+FROM node:24.21.0-alpine AS deps
 WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@12.9.1 --activate
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ---- builder ----
-FROM node:20-alpine AS builder
+FROM node:24.21.0-alpine AS builder
 WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@12.9.1 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -17,7 +17,7 @@ ENV NEXT_PUBLIC_URL_API=$NEXT_PUBLIC_URL_API
 RUN pnpm run build
 
 # ---- runner ----
-FROM node:20-alpine AS runner
+FROM node:24.21.0-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
