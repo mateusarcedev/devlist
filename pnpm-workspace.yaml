@@ -1,2 +1,11 @@
 packages:
   - "apps/*"
+
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  prisma: true
+  puppeteer: false
+  unrs-resolver: false
