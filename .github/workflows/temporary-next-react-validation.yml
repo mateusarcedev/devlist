@@ -1,0 +1,50 @@
+name: Temporary Next React Upgrade Validation
+
+on:
+  push:
+    branches:
+      - chore/upgrade-next-react
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/upgrade-next-react
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Regenerate lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Commit lockfile if changed
+        shell: bash
+        run: |
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pnpm-lock.yaml
+            git commit -m "chore(web): regenerate lockfile for Next.js 16"
+            git push origin HEAD:chore/upgrade-next-react
+          fi
+
+      - name: Lint web
+        run: pnpm --filter @tools4tech/web lint
+
+      - name: Build web
+        run: pnpm --filter @tools4tech/web build
