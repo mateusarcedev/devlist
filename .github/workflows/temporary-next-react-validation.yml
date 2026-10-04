@@ -6,7 +6,7 @@ on:
       - chore/upgrade-next-react
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -29,19 +29,8 @@ jobs:
           version: 12.9.1
           run_install: false
 
-      - name: Regenerate lockfile
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Commit lockfile if changed
-        shell: bash
-        run: |
-          if ! git diff --quiet -- pnpm-lock.yaml; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add pnpm-lock.yaml
-            git commit -m "chore(web): regenerate lockfile for Next.js 16"
-            git push origin HEAD:chore/upgrade-next-react
-          fi
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Lint web
         run: pnpm --filter @tools4tech/web lint
