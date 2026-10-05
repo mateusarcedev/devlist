@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Favorite } from '@prisma/client'
+import type { Favorite } from 'src/generated/prisma/client'
 
 export class FavoriteEntity implements Favorite {
   @ApiProperty()
