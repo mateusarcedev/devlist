@@ -6,8 +6,8 @@
       "jest"
     ],
     "esModuleInterop": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "target": "ES2022",
     "isolatedModules": true,
     "rootDir": ".",
