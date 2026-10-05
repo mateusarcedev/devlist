@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AnchorHTMLAttributes } from 'react'
 import Navbar from '../src/components/Navbar'
 
 const push = vi.fn()
@@ -18,7 +19,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('next/link', () => ({
-  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  default: ({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a href={String(href)} {...props}>{children}</a>
   ),
 }))
@@ -43,7 +44,7 @@ describe('Navbar', () => {
   it('warns anonymous users instead of navigating to favorites', () => {
     render(<Navbar />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Favorites' }))
+    fireEvent.click(screen.getByRole('button', { name: /Favorites/ }))
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Log in to access your favorites!',
@@ -54,7 +55,7 @@ describe('Navbar', () => {
   it('links anonymous users to GitHub OAuth on the API host', () => {
     render(<Navbar />)
 
-    expect(screen.getByRole('link', { name: 'Log in with GitHub' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Log in with GitHub/ })).toHaveAttribute(
       'href',
       'https://api.tools4.tech/auth/github',
     )
@@ -89,7 +90,7 @@ describe('Navbar', () => {
     }
 
     render(<Navbar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest a tool' }))
+    fireEvent.click(screen.getByRole('button', { name: /Suggest a tool/ }))
 
     expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
   })
