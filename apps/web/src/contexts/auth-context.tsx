@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(res => setUser(res.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
-  }, [router])
+  }, [])
 
   const logout = useCallback(async () => {
     try {
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       router.replace('/')
     }
-  }, [])
+  }, [router])
 
   return (
     <AuthContext.Provider value={{ user, loading, logout }}>
