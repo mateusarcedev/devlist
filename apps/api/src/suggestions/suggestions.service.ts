@@ -3,7 +3,7 @@ import { ResultAsync, ok, err } from 'neverthrow';
 import { AppError } from 'src/common/errors/app-error';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SuggestionStatus } from '@prisma/client';
+import { SuggestionStatus } from 'src/generated/prisma/client';
 import { UpdateSuggestionDto } from './dto/update-suggestion.dto';
 
 @Injectable()
