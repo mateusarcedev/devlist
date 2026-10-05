@@ -10,6 +10,11 @@ interface ToastState {
   type: 'success' | 'error'
 }
 
+interface FavoriteState {
+  toolId: string
+  value: boolean
+}
+
 interface UseFavoriteToggleReturn {
   isFavorite: boolean
   toast: ToastState | null
@@ -23,31 +28,41 @@ export function useFavoriteToggle(
   initialIsFavorite = false,
 ): UseFavoriteToggleReturn {
   const { user, loading } = useAuth()
-  const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
+  const [favoriteState, setFavoriteState] = useState<FavoriteState | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
 
-  useEffect(() => {
-    setIsFavorite(initialIsFavorite)
-  }, [initialIsFavorite])
+  const isFavorite = !user
+    ? false
+    : favoriteState?.toolId === tool.id
+      ? favoriteState.value
+      : initialIsFavorite
 
   useEffect(() => {
-    if (!loading && user && !initialIsFavorite) {
-      const fetchFavoriteStatus = async () => {
-        try {
-          const response = await AxiosConfig.get<{ isFavorite: boolean }>(
-            '/favorites/check',
-            { params: { toolId: tool.id } },
-          )
-          setIsFavorite(response.data.isFavorite)
-        } catch (error) {
-          console.error('Error checking favorite', error)
-        }
-      }
-      fetchFavoriteStatus()
+    if (loading || !user || initialIsFavorite) {
+      return
     }
 
-    if (!loading && !user) {
-      setIsFavorite(false)
+    let cancelled = false
+
+    const fetchFavoriteStatus = async () => {
+      try {
+        const response = await AxiosConfig.get<{ isFavorite: boolean }>(
+          '/favorites/check',
+          { params: { toolId: tool.id } },
+        )
+
+        if (!cancelled) {
+          setFavoriteState({ toolId: tool.id, value: response.data.isFavorite })
+        }
+      } catch (error) {
+        console.error('Error checking favorite', error)
+      }
+    }
+
+    void fetchFavoriteStatus()
+
+    return () => {
+      cancelled = true
     }
   }, [user, loading, initialIsFavorite, tool.id])
 
@@ -61,7 +76,7 @@ export function useFavoriteToggle(
 
     try {
       const newFavoriteStatus = !previousFavoriteStatus
-      setIsFavorite(newFavoriteStatus)
+      setFavoriteState({ toolId: tool.id, value: newFavoriteStatus })
 
       await AxiosConfig.post('/favorites/toggle', { toolId: tool.id })
 
@@ -72,7 +87,7 @@ export function useFavoriteToggle(
 
       onFavoriteChange?.(tool.id, newFavoriteStatus)
     } catch (error: unknown) {
-      setIsFavorite(previousFavoriteStatus)
+      setFavoriteState({ toolId: tool.id, value: previousFavoriteStatus })
       const message =
         error instanceof Error &&
         'response' in error &&

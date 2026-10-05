@@ -33,6 +33,11 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
   const [categoryId, setCategoryId] = useState('')
   const [isSelectOpen, setIsSelectOpen] = useState(false)
 
+  const handleClose = () => {
+    setIsSelectOpen(false)
+    onClose()
+  }
+
   const {
     data: categories,
     isLoading,
@@ -49,7 +54,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
       setLink('')
       setDescription('')
       setCategoryId('')
-      onClose()
+      handleClose()
       onSubmit?.({ status: 'success', data })
     },
     onError: (error: unknown) => {
@@ -79,7 +84,6 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
-      setIsSelectOpen(false)
     }
     return () => {
       document.body.style.overflow = 'unset'
@@ -97,7 +101,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
             You need to be logged in to submit a suggestion.
           </p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className='px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-md transition-colors'
           >
             Close
@@ -113,7 +117,7 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
         <div className='sticky top-0 flex justify-between items-center p-6 border-b border-zinc-700 bg-zinc-900'>
           <h2 className='text-xl font-semibold text-white'>Add Suggestion</h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className='p-2 hover:bg-zinc-800 rounded-lg transition-colors'
           >
             <X className='h-6 w-6 text-zinc-400' />
