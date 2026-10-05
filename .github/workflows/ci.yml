@@ -85,6 +85,9 @@ jobs:
       - name: Lint web
         run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
 
+      - name: Run web tests
+        run: pnpm --filter @tools4tech/web test
+
       - name: Typecheck web
         run: pnpm --filter @tools4tech/web typecheck
 
