@@ -49,8 +49,17 @@ jobs:
       - name: Build images without cache
         run: docker compose build --no-cache api web
 
+      - name: Create CI Compose override
+        run: |
+          cat > docker-compose.ci.yml <<'YAML'
+          services:
+            postgres:
+              ports:
+                - "127.0.0.1:5432:5432"
+          YAML
+
       - name: Start PostgreSQL
-        run: docker compose up -d postgres
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d postgres
 
       - name: Install workspace dependencies for migration smoke
         run: pnpm install --frozen-lockfile
@@ -60,11 +69,10 @@ jobs:
           DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
           DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
         run: |
-          docker compose port postgres 5432
           pnpm --filter @tools4tech/api exec prisma migrate deploy
 
       - name: Start API and web
-        run: docker compose up -d api web
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d api web
 
       - name: Wait for API HTTP
         shell: bash
@@ -75,7 +83,7 @@ jobs:
             fi
             sleep 2
           done
-          docker compose logs api
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs api
           exit 1
 
       - name: Wait for web HTTP
@@ -87,12 +95,12 @@ jobs:
             fi
             sleep 2
           done
-          docker compose logs web api
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs web api
           exit 1
 
       - name: Show container status
-        run: docker compose ps
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
 
       - name: Cleanup
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
