@@ -14,7 +14,7 @@ import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { UpdateSuggestionDto } from './dto/update-suggestion.dto';
 import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { AuthenticatedUser } from 'src/common/interfaces/authenticated-user.interface';
+import type { AuthenticatedUser } from 'src/common/interfaces/authenticated-user.interface';
 import { ApiTags } from '@nestjs/swagger';
 import { toHttpException } from 'src/common/errors/to-http-exception';
 
