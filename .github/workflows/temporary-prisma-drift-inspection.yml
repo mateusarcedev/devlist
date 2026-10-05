@@ -1,0 +1,68 @@
+name: Temporary Prisma Drift Inspection
+
+on:
+  push:
+    branches:
+      - fix/prisma-migration-drift
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-drift:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devlist
+          POSTGRES_PASSWORD: devlist
+          POSTGRES_DB: devlist
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devlist -d devlist"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/prisma-migration-drift
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply current migration history
+        run: pnpm --filter @tools4tech/api exec prisma migrate deploy
+
+      - name: Print migration drift against schema
+        working-directory: apps/api
+        shell: bash
+        run: |
+          pnpm exec prisma migrate diff \
+            --from-config-datasource \
+            --to-schema prisma/schema.prisma \
+            --script \
+            --output /tmp/prisma-drift.sql
+
+          echo "===== PRISMA DRIFT SQL ====="
+          cat /tmp/prisma-drift.sql
+          echo "===== END PRISMA DRIFT SQL ====="
