@@ -14,6 +14,9 @@ const TOOL_ID = '22222222-2222-4222-8222-222222222222';
 const ADMIN_CATEGORY_NAME = 'E2E Admin Category';
 const ADMIN_CATEGORY_UPDATED_NAME = 'E2E Admin Category Updated';
 const ADMIN_TOOL_LINK = 'https://example.com/e2e-admin-tool';
+const FORBIDDEN_TOOL_LINK = 'https://example.com/forbidden-tool';
+const UNAUTHORIZED_CATEGORY_NAME = 'Unauthorized Category';
+const FORBIDDEN_CATEGORY_NAME = 'Forbidden Category';
 
 describe('Devlist API (e2e)', () => {
   let app: INestApplication;
@@ -121,7 +124,11 @@ describe('Devlist API (e2e)', () => {
     });
     await prisma?.tool.deleteMany({
       where: {
-        OR: [{ id: TOOL_ID }, { link: ADMIN_TOOL_LINK }],
+        OR: [
+          { id: TOOL_ID },
+          { link: ADMIN_TOOL_LINK },
+          { link: FORBIDDEN_TOOL_LINK },
+        ],
       },
     });
     await prisma?.category.deleteMany({
@@ -130,6 +137,8 @@ describe('Devlist API (e2e)', () => {
           { id: CATEGORY_ID },
           { name: ADMIN_CATEGORY_NAME },
           { name: ADMIN_CATEGORY_UPDATED_NAME },
+          { name: UNAUTHORIZED_CATEGORY_NAME },
+          { name: FORBIDDEN_CATEGORY_NAME },
         ],
       },
     });
@@ -237,13 +246,13 @@ describe('Devlist API (e2e)', () => {
   it('blocks unauthenticated and non-admin users from administrative mutations', async () => {
     await request(app.getHttpServer())
       .post('/categories')
-      .send({ name: 'Unauthorized Category' })
+      .send({ name: UNAUTHORIZED_CATEGORY_NAME })
       .expect(401);
 
     await request(app.getHttpServer())
       .post('/categories')
       .set('Authorization', `Bearer ${userToken}`)
-      .send({ name: 'Forbidden Category' })
+      .send({ name: FORBIDDEN_CATEGORY_NAME })
       .expect(403);
 
     await request(app.getHttpServer())
@@ -262,7 +271,7 @@ describe('Devlist API (e2e)', () => {
       .set('Authorization', `Bearer ${userToken}`)
       .send({
         name: 'Forbidden Tool',
-        link: 'https://example.com/forbidden-tool',
+        link: FORBIDDEN_TOOL_LINK,
         description: 'Must not be created by a regular user',
         categoryId: CATEGORY_ID,
       })
