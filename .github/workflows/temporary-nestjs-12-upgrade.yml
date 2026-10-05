@@ -52,7 +52,10 @@ jobs:
             typescript@^6 \
             jest@^30 \
             @types/jest@^30 \
-            ts-jest@latest
+            ts-jest@latest \
+            @rspack/core@latest \
+            webpack-node-externals@latest \
+            tsconfig-paths-webpack-plugin@latest
 
       - name: Remove legacy direct Webpack dependency
         run: pnpm --filter @tools4tech/api remove webpack || true
