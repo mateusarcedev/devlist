@@ -63,9 +63,10 @@ cd api && npx prisma studio
 2. `passport-github2` handles the callback at `/auth/callback/github`
 3. The API upserts the GitHub user and issues an access JWT plus a rotating refresh token
 4. In production, frontend and API use sibling hosts (for example `yourdomain.com` and `api.yourdomain.com`)
-5. The API sets HTTP-only cookies with `Domain=COOKIE_DOMAIN`, `Secure`, and `SameSite=Lax`, so the frontend SSR can read `access_token` while JavaScript cannot
-6. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
-7. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`; the refresh cookie is scoped to that path
+5. The API sets `access_token` as HTTP-only with `Domain=COOKIE_DOMAIN`, `Secure`, and `SameSite=Lax`, so frontend SSR can read the session while JavaScript cannot
+6. The `refresh_token` stays host-only on the API and is scoped to `/auth`, so it is available to refresh and logout but is never shared with the frontend host
+7. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
+8. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`
 
 ### API Module Structure
 
