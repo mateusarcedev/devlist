@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- GitHub OAuth avatars use remote user URLs and intentionally remain unoptimized. */
+
 import {
   FolderHeartIcon,
   LogOut,
@@ -124,7 +126,7 @@ export default function Navbar() {
             </>
           ) : !loading ? (
             <button
-              onClick={() => { window.location.href = `${process.env.NEXT_PUBLIC_URL_API}/auth/github` }}
+              onClick={() => { window.location.assign(`${process.env.NEXT_PUBLIC_URL_API}/auth/github`) }}
               className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'
             >
               <User2Icon className='h-5 w-5 text-white' />
