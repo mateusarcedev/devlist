@@ -4,13 +4,13 @@ services:
     container_name: devlist-db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER is required} -d ${POSTGRES_DB:?POSTGRES_DB is required}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,8 +23,8 @@ services:
     container_name: devlist-migrate
     restart: "no"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DIRECT_URL: ${DIRECT_URL:?DIRECT_URL is required}
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,8 +37,8 @@ services:
       target: seeder
     restart: "no"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DIRECT_URL: ${DIRECT_URL:?DIRECT_URL is required}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -50,13 +50,14 @@ services:
     container_name: devlist-api
     restart: always
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      GITHUB_ID: ${GITHUB_ID}
-      GITHUB_SECRET: ${GITHUB_SECRET}
-      API_URL: ${API_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DIRECT_URL: ${DIRECT_URL:?DIRECT_URL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      GITHUB_ID: ${GITHUB_ID:?GITHUB_ID is required}
+      GITHUB_SECRET: ${GITHUB_SECRET:?GITHUB_SECRET is required}
+      API_URL: ${API_URL:?API_URL is required}
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
       PORT: 3001
     ports:
       - "127.0.0.1:3001:3001"
@@ -69,13 +70,14 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API}
+        NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API:?NEXT_PUBLIC_URL_API is required}
     container_name: devlist-web
     restart: always
     environment:
-      URL_API: ${URL_API}
-      JWT_SECRET: ${JWT_SECRET}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      NODE_ENV: production
+      URL_API: ${URL_API:?URL_API is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     ports:
       - "3000:3000"
     depends_on:

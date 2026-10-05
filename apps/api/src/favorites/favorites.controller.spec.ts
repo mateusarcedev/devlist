@@ -28,7 +28,7 @@ describe('FavoritesController (HTTP)', () => {
     };
 
     beforeAll(async () => {
-      process.env.NEXTAUTH_SECRET = secret;
+      process.env.JWT_SECRET = secret;
 
       moduleRef = await Test.createTestingModule({
         controllers: [FavoritesController],
@@ -49,7 +49,7 @@ describe('FavoritesController (HTTP)', () => {
     afterAll(async () => {
       await app.close();
       await moduleRef.close();
-      delete process.env.NEXTAUTH_SECRET;
+      delete process.env.JWT_SECRET;
     });
 
     beforeEach(() => {
@@ -167,7 +167,7 @@ describe('FavoritesController (HTTP)', () => {
     const toolId = '00000000-0000-4000-8000-000000000001';
 
     beforeEach(async () => {
-      process.env.NEXTAUTH_SECRET = secret;
+      process.env.JWT_SECRET = secret;
 
       prisma = new FakePrismaService();
       prisma.seedUser(userId);
@@ -191,7 +191,7 @@ describe('FavoritesController (HTTP)', () => {
     afterEach(async () => {
       await app.close();
       await moduleRef.close();
-      delete process.env.NEXTAUTH_SECRET;
+      delete process.env.JWT_SECRET;
     });
 
     it('should respond successfully when concurrent requests favorite the same tool', async () => {

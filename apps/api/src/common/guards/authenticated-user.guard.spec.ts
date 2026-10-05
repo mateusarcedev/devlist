@@ -24,7 +24,6 @@ describe('AuthenticatedUserGuard', () => {
 
   afterEach(() => {
     delete process.env.JWT_SECRET;
-    delete process.env.NEXTAUTH_SECRET;
   });
 
   describe('Bearer header auth (legacy)', () => {
@@ -77,19 +76,9 @@ describe('AuthenticatedUserGuard', () => {
     });
   });
 
-  describe('secret fallback', () => {
-    it('should fall back to NEXTAUTH_SECRET when JWT_SECRET is not set', () => {
+  describe('JWT secret configuration', () => {
+    it('should throw when JWT_SECRET is not set', () => {
       delete process.env.JWT_SECRET;
-      process.env.NEXTAUTH_SECRET = TEST_SECRET;
-      const token = makeToken({ sub: 42 });
-      const req: any = { cookies: {}, headers: { authorization: `Bearer ${token}` } };
-      const result = guard.canActivate(makeContext(req));
-      expect(result).toBe(true);
-    });
-
-    it('should throw when neither JWT_SECRET nor NEXTAUTH_SECRET is set', () => {
-      delete process.env.JWT_SECRET;
-      delete process.env.NEXTAUTH_SECRET;
       const req: any = { cookies: {}, headers: { authorization: 'Bearer anything' } };
       expect(() => guard.canActivate(makeContext(req))).toThrow(UnauthorizedException);
     });

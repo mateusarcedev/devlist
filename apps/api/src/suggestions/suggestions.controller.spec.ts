@@ -21,7 +21,7 @@ describe('SuggestionsController', () => {
   const secret = 'test-secret';
 
   beforeAll(async () => {
-    process.env.NEXTAUTH_SECRET = secret;
+    process.env.JWT_SECRET = secret;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SuggestionsController],
@@ -41,7 +41,7 @@ describe('SuggestionsController', () => {
 
   afterAll(async () => {
     await app.close();
-    delete process.env.NEXTAUTH_SECRET;
+    delete process.env.JWT_SECRET;
   });
 
   beforeEach(() => {
