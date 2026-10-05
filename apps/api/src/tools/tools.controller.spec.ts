@@ -1,6 +1,7 @@
+import { jest } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import { okAsync, errAsync } from 'neverthrow';
 import { ToolsController } from './tools.controller';
 import { ToolsService } from './tools.service';

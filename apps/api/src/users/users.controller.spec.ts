@@ -1,6 +1,7 @@
+import { jest } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import { sign } from 'jsonwebtoken';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';

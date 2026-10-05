@@ -23,7 +23,7 @@ import { CreateFavoriteDto } from "./dto/create-favorite.dto";
 import { FavoritesService } from "./favorites.service";
 import { AuthenticatedUserGuard } from "src/common/guards/authenticated-user.guard";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
-import { AuthenticatedUser } from "src/common/interfaces/authenticated-user.interface";
+import type { AuthenticatedUser } from "src/common/interfaces/authenticated-user.interface";
 
 @ApiTags("Favorites")
 @ApiBearerAuth()
