@@ -88,7 +88,8 @@
       "^.+\\.(t|j)s$": [
         "ts-jest",
         {
-          "tsconfig": "<rootDir>/../tsconfig.spec.json"
+          "tsconfig": "<rootDir>/../tsconfig.spec.json",
+          "useESM": true
         }
       ]
     },
@@ -96,6 +97,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ]
   }
 }
