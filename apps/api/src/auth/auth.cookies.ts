@@ -27,7 +27,7 @@ export function refreshCookieOptions(): CookieOptions {
   return {
     ...sharedCookieBase(),
     maxAge: REFRESH_COOKIE_MAX_AGE,
-    path: '/auth/refresh',
+    path: '/auth',
   };
 }
 
@@ -41,6 +41,6 @@ export function accessCookieClearOptions(): CookieOptions {
 export function refreshCookieClearOptions(): CookieOptions {
   return {
     ...sharedCookieBase(),
-    path: '/auth/refresh',
+    path: '/auth',
   };
 }
