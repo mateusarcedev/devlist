@@ -12,10 +12,10 @@ permissions:
   contents: read
 
 jobs:
-  api:
-    name: API
+  quality:
+    name: Quality Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -43,6 +43,9 @@ jobs:
       GITHUB_SECRET: ci-github-secret
       API_URL: http://localhost:3001
       FRONTEND_URL: http://localhost:3000
+      URL_API: http://localhost:3001
+      NEXT_PUBLIC_URL_API: http://localhost:3001
+      NEXT_TELEMETRY_DISABLED: 1
 
     steps:
       - name: Checkout
@@ -78,38 +81,6 @@ jobs:
 
       - name: Run API E2E tests
         run: pnpm --filter @tools4tech/api test:e2e
-
-  web:
-    name: Web
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    env:
-      CI: true
-      NEXT_TELEMETRY_DISABLED: 1
-      URL_API: http://localhost:3001
-      NEXT_PUBLIC_URL_API: http://localhost:3001
-      JWT_SECRET: ci-jwt-secret
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 12.9.1
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.21.0
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Lint web
         run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
