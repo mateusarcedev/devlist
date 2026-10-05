@@ -77,8 +77,8 @@ export class AuthController {
     if (rawToken) {
       await this.authService.logout(rawToken);
     }
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
+    res.clearCookie('access_token', accessCookieClearOptions());
+    res.clearCookie('refresh_token', refreshCookieClearOptions());
     res.json({ ok: true });
   }
 
