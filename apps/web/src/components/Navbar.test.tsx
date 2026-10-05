@@ -43,7 +43,7 @@ describe('Navbar', () => {
   it('asks a guest to log in instead of opening favorites', () => {
     render(<Navbar />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Favorites' }))
+    fireEvent.click(screen.getByRole('button', { name: /Favorites/ }))
 
     expect(screen.getByText('Log in to access your favorites!')).not.toBeNull()
     expect(pushMock).not.toHaveBeenCalled()
@@ -63,7 +63,7 @@ describe('Navbar', () => {
 
     render(<Navbar />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Favorites' }))
+    fireEvent.click(screen.getByRole('button', { name: /Favorites/ }))
 
     expect(pushMock).toHaveBeenCalledWith('/favorites')
   })
@@ -71,7 +71,7 @@ describe('Navbar', () => {
   it('exposes GitHub OAuth as a normal external navigation for guests', () => {
     render(<Navbar />)
 
-    const loginLink = screen.getByRole('link', { name: 'Log in with GitHub' })
+    const loginLink = screen.getByRole('link', { name: /Log in with GitHub/ })
 
     expect(loginLink.getAttribute('href')).toBe(
       'http://localhost:3001/auth/github',
