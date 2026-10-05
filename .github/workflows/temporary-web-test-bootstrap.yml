@@ -1,12 +1,12 @@
 name: Temporary Web Test Bootstrap
 
 on:
-  push:
+  pull_request:
     branches:
-      - test/web-critical-flows
+      - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   bootstrap:
@@ -21,10 +21,8 @@ jobs:
       JWT_SECRET: test-jwt-secret
 
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v7
-        with:
-          ref: test/web-critical-flows
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -48,15 +46,14 @@ jobs:
           @testing-library/jest-dom
           @testing-library/user-event
 
-      - name: Commit generated dependency metadata
-        run: |
-          if ! git diff --quiet -- apps/web/package.json pnpm-lock.yaml; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/web/package.json pnpm-lock.yaml
-            git commit -m "test(web): add testing dependencies [skip ci]"
-            git push origin HEAD:test/web-critical-flows
-          fi
+      - name: Export generated package metadata
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-test-dependency-metadata
+          path: |
+            apps/web/package.json
+            pnpm-lock.yaml
+          retention-days: 1
 
       - name: Run frontend tests
         run: pnpm --filter @tools4tech/web test
