@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import AxiosConfig from '@/utils/axiosConfig'
+import { useRouter } from 'next/navigation'
 
 export interface AuthUser {
   githubId: number
@@ -19,6 +20,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -27,14 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(res => setUser(res.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
-  }, [])
+  }, [router])
 
   const logout = useCallback(async () => {
     try {
       await AxiosConfig.post('/auth/logout')
     } finally {
       setUser(null)
-      window.location.href = '/'
+      router.replace('/')
     }
   }, [])
 
