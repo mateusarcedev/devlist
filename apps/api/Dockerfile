@@ -12,6 +12,13 @@ COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
+FROM deps AS migrator
+COPY apps/api/prisma ./apps/api/prisma
+COPY apps/api/prisma7.config.ts ./apps/api/prisma7.config.ts
+WORKDIR /app/apps/api
+
+CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
+
 FROM deps AS builder
 COPY apps/api ./apps/api
 RUN pnpm --filter @tools4tech/api exec prisma generate
