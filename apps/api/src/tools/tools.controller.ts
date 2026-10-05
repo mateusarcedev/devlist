@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ToolsService } from './tools.service';
 import { CreateToolDto } from './dto/create-tool.dto';
 import { UpdateToolDto } from './dto/update-tool.dto';
 import {
   ApiAcceptedResponse,
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -12,6 +22,8 @@ import {
 } from '@nestjs/swagger';
 import { ToolEntity } from './entities/tool.entity';
 import { toHttpException } from 'src/common/errors/to-http-exception';
+import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
+import { AdminGuard } from 'src/common/guards/admin.guard';
 
 @Controller('tools')
 @ApiTags('Tools')
@@ -19,7 +31,11 @@ export class ToolsController {
   constructor(private readonly toolsService: ToolsService) {}
 
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(AuthenticatedUserGuard, AdminGuard)
   @ApiAcceptedResponse({ type: ToolEntity, isArray: true })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Administrator access required.' })
   create(@Body() createToolDto: CreateToolDto | CreateToolDto[]) {
     if (Array.isArray(createToolDto)) {
       return this.toolsService.create(createToolDto);
@@ -54,7 +70,11 @@ export class ToolsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthenticatedUserGuard, AdminGuard)
   @ApiOkResponse({ type: ToolEntity })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Administrator access required.' })
   async update(@Param('id') id: string, @Body() updateToolDto: UpdateToolDto) {
     const result = await this.toolsService.update(id, updateToolDto);
     if (result.isErr()) return toHttpException(result.error);
@@ -62,7 +82,11 @@ export class ToolsController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthenticatedUserGuard, AdminGuard)
   @ApiOkResponse({ type: ToolEntity })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Administrator access required.' })
   async remove(@Param('id') id: string) {
     const result = await this.toolsService.remove(id);
     if (result.isErr()) return toHttpException(result.error);
