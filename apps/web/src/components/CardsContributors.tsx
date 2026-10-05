@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- Contributor avatars are remote GitHub URLs and intentionally remain unoptimized. */
+
 import type { Contributor } from '@/types'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'

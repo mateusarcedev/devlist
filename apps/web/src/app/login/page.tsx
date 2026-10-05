@@ -7,10 +7,6 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
-  const handleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_URL_API}/auth/github`
-  }
-
   return (
     <div className='flex flex-col justify-center items-center h-screen gap-6'>
       <h1 className='text-2xl font-bold text-white'>Sign in to Tools4.tech</h1>
@@ -21,12 +17,12 @@ function LoginContent() {
         </p>
       )}
 
-      <button
-        onClick={handleLogin}
+      <a
+        href={`${process.env.NEXT_PUBLIC_URL_API}/auth/github`}
         className='flex items-center gap-2 px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors'
       >
         Continue with GitHub
-      </button>
+      </a>
     </div>
   )
 }

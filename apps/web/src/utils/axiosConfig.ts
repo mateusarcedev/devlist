@@ -62,7 +62,7 @@ AxiosConfig.interceptors.response.use(
     } catch {
       notifyQueue(false)
       if (typeof window !== 'undefined') {
-        window.location.href = '/login'
+        window.location.assign(new URL('/login', window.location.origin).toString())
       }
       return Promise.reject(error)
     } finally {

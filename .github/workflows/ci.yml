@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devlist
+          POSTGRES_PASSWORD: devlist
+          POSTGRES_DB: devlist
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devlist -d devlist"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      CI: true
+      NODE_ENV: test
+      PORT: 3001
+      DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+      JWT_SECRET: ci-jwt-secret
+      GITHUB_ID: ci-github-id
+      GITHUB_SECRET: ci-github-secret
+      API_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:3000
+      URL_API: http://localhost:3001
+      NEXT_PUBLIC_URL_API: http://localhost:3001
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply database migrations
+        run: pnpm --filter @tools4tech/api exec prisma migrate deploy
+
+      - name: Lint API
+        run: pnpm --filter @tools4tech/api exec eslint "src/**/*.ts" "test/**/*.ts" --max-warnings=0
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Run API unit tests
+        run: pnpm --filter @tools4tech/api test --runInBand
+
+      - name: Run API E2E tests
+        run: pnpm --filter @tools4tech/api test:e2e
+
+      - name: Lint web
+        run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
+
+      - name: Typecheck web
+        run: pnpm --filter @tools4tech/web typecheck
+
+      - name: Build web
+        run: pnpm --filter @tools4tech/web build
