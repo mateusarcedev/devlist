@@ -62,9 +62,11 @@ cd api && npx prisma studio
 1. User starts GitHub OAuth through the Nest API at `/auth/github`
 2. `passport-github2` handles the callback at `/auth/callback/github`
 3. The API upserts the GitHub user and issues an access JWT plus a rotating refresh token
-4. Browser sessions use HTTP-only cookies; server-side/API requests may also use `Authorization: Bearer <token>`
-5. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
-6. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`
+4. In production, frontend and API use sibling hosts (for example `yourdomain.com` and `api.yourdomain.com`)
+5. The API sets `access_token` as HTTP-only with `Domain=COOKIE_DOMAIN`, `Secure`, and `SameSite=Lax`, so frontend SSR can read the session while JavaScript cannot
+6. The `refresh_token` stays host-only on the API and is scoped to `/auth`, so it is available to refresh and logout but is never shared with the frontend host
+7. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
+8. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`
 
 ### API Module Structure
 
@@ -105,6 +107,7 @@ GITHUB_ID=
 GITHUB_SECRET=
 API_URL=http://localhost:3001
 FRONTEND_URL=http://localhost:3000
+# COOKIE_DOMAIN is intentionally unset on localhost
 ```
 
 **Web local development (`apps/web/.env.local`):**
@@ -115,7 +118,7 @@ JWT_SECRET=          # must exactly match the API JWT_SECRET
 GITHUB_TOKEN=        # optional, for contributor stats
 ```
 
-Production startup validates the API environment before Nest initializes. `JWT_SECRET`, GitHub OAuth credentials, database URL, and public API/frontend URLs are required. Production `API_URL` and `FRONTEND_URL` must use HTTPS.
+Production startup validates the API environment before Nest initializes. `JWT_SECRET`, GitHub OAuth credentials, database URL, public API/frontend URLs, and `COOKIE_DOMAIN` are required. Production `API_URL` and `FRONTEND_URL` must use HTTPS and must be distinct sibling hosts covered by `COOKIE_DOMAIN`.
 
 ## Data Model (Prisma)
 

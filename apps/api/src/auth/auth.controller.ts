@@ -5,24 +5,12 @@ import { AuthService } from './auth.service';
 import { GithubOAuthGuard } from './guards/github-oauth.guard';
 import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
 import { GithubUser } from './strategies/github.strategy';
-
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-
-const ACCESS_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: IS_PRODUCTION,
-  sameSite: 'strict' as const,
-  maxAge: 15 * 60 * 1000,
-  path: '/',
-};
-
-const REFRESH_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: IS_PRODUCTION,
-  sameSite: 'strict' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/auth/refresh',
-};
+import {
+  accessCookieClearOptions,
+  accessCookieOptions,
+  refreshCookieClearOptions,
+  refreshCookieOptions,
+} from './auth.cookies';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -50,8 +38,8 @@ export class AuthController {
         dbUser.role,
       );
 
-      res.cookie('access_token', accessToken, ACCESS_COOKIE_OPTIONS);
-      res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.cookie('access_token', accessToken, accessCookieOptions());
+      res.cookie('refresh_token', refreshToken, refreshCookieOptions());
       res.redirect(process.env.FRONTEND_URL!);
     } catch {
       res.redirect(
@@ -72,12 +60,12 @@ export class AuthController {
 
     try {
       const { accessToken, refreshToken } = await this.authService.refresh(rawToken);
-      res.cookie('access_token', accessToken, ACCESS_COOKIE_OPTIONS);
-      res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.cookie('access_token', accessToken, accessCookieOptions());
+      res.cookie('refresh_token', refreshToken, refreshCookieOptions());
       res.json({ ok: true });
     } catch {
-      res.clearCookie('access_token', { path: '/' });
-      res.clearCookie('refresh_token', { path: '/auth/refresh' });
+      res.clearCookie('access_token', accessCookieClearOptions());
+      res.clearCookie('refresh_token', refreshCookieClearOptions());
       res.status(401).json({ message: 'Invalid or expired session' });
     }
   }
@@ -89,8 +77,8 @@ export class AuthController {
     if (rawToken) {
       await this.authService.logout(rawToken);
     }
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
+    res.clearCookie('access_token', accessCookieClearOptions());
+    res.clearCookie('refresh_token', refreshCookieClearOptions());
     res.json({ ok: true });
   }
 
