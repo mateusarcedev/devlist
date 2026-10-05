@@ -1,4 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { HealthService } from './health.service';
 
 describe('HealthService', () => {
@@ -34,14 +33,18 @@ describe('HealthService', () => {
     expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
   });
 
-  it('returns service unavailable when the database is down', async () => {
+  it('reports degraded readiness when the database is down', async () => {
     const prisma = {
       $queryRaw: jest.fn().mockRejectedValue(new Error('database unavailable')),
     } as any;
     const service = new HealthService(prisma);
 
-    await expect(service.ready()).rejects.toBeInstanceOf(
-      ServiceUnavailableException,
-    );
+    await expect(service.ready()).resolves.toEqual({
+      status: 'error',
+      service: 'api',
+      checks: {
+        database: 'down',
+      },
+    });
   });
 });
