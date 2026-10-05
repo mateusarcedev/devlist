@@ -10,9 +10,10 @@ import { SuggestionsModule } from 'src/suggestions/suggestions.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { HealthModule } from 'src/health/health.module';
 
 @Module({
-  imports: [PrismaModule, CategoriesModule, ToolsModule, UsersModule, FavoritesModule, SuggestionsModule, AuthModule,
+  imports: [PrismaModule, CategoriesModule, ToolsModule, UsersModule, FavoritesModule, SuggestionsModule, AuthModule, HealthModule,
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 10,
