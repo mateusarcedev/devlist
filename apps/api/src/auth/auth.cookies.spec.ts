@@ -30,9 +30,10 @@ describe('auth cookie options', () => {
       }),
     );
     expect(accessCookieOptions()).not.toHaveProperty('domain');
+    expect(refreshCookieOptions()).not.toHaveProperty('domain');
   });
 
-  it('shares production cookies across sibling subdomains', () => {
+  it('shares only the access cookie with sibling frontend hosts in production', () => {
     process.env.NODE_ENV = 'production';
     process.env.COOKIE_DOMAIN = 'example.com';
 
@@ -51,13 +52,13 @@ describe('auth cookie options', () => {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
-        domain: 'example.com',
         path: '/auth',
       }),
     );
+    expect(refreshCookieOptions()).not.toHaveProperty('domain');
   });
 
-  it('clears cookies with the same domain and paths used when setting them', () => {
+  it('clears cookies with the same scopes used when setting them', () => {
     process.env.NODE_ENV = 'production';
     process.env.COOKIE_DOMAIN = 'example.com';
 
@@ -73,7 +74,6 @@ describe('auth cookie options', () => {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      domain: 'example.com',
       path: '/auth',
     });
   });
