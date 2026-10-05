@@ -54,8 +54,10 @@ jobs:
             swr \
             tailwind-merge \
             tailwindcss \
-            zod \
-            typescript@^6
+            zod
+
+      - name: Keep TypeScript on latest compatible 6.x
+        run: pnpm --filter @tools4tech/web add -D typescript@^6
 
       - name: Commit dependency updates
         shell: bash
