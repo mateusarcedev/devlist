@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  docker-build:
+  docker-build-and-smoke:
     runs-on: ubuntu-latest
     env:
       POSTGRES_USER: devlist
@@ -32,11 +32,67 @@ jobs:
         with:
           ref: fix/docker-monorepo-builds
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
       - name: Validate Compose config
         run: docker compose config --quiet
 
-      - name: Build API image without cache
-        run: docker compose build --no-cache api
+      - name: Build images without cache
+        run: docker compose build --no-cache api web
 
-      - name: Build web image without cache
-        run: docker compose build --no-cache web
+      - name: Start PostgreSQL
+        run: docker compose up -d postgres
+
+      - name: Install workspace dependencies for migration smoke
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply existing migrations to clean PostgreSQL
+        env:
+          DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+          DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+        run: |
+          docker compose port postgres 5432
+          pnpm --filter @tools4tech/api exec prisma migrate deploy
+
+      - name: Start API and web
+        run: docker compose up -d api web
+
+      - name: Wait for API HTTP
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3001/api >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs api
+          exit 1
+
+      - name: Wait for web HTTP
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3000 >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs web api
+          exit 1
+
+      - name: Show container status
+        run: docker compose ps
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
