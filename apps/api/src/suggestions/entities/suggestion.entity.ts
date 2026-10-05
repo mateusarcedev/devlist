@@ -1,4 +1,4 @@
-import { Suggestion, SuggestionStatus } from '@prisma/client';
+import type { Suggestion, SuggestionStatus } from 'src/generated/prisma/client';
 
 export class SuggestionEntity implements Suggestion {
   id: string;
