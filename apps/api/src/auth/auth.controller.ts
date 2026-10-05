@@ -52,10 +52,10 @@ export class AuthController {
 
       res.cookie('access_token', accessToken, ACCESS_COOKIE_OPTIONS);
       res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
-      res.redirect(process.env.FRONTEND_URL ?? 'http://localhost:3000');
+      res.redirect(process.env.FRONTEND_URL!);
     } catch {
       res.redirect(
-        `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/login?error=auth_failed`,
+        `${process.env.FRONTEND_URL!}/login?error=auth_failed`,
       );
     }
   }
