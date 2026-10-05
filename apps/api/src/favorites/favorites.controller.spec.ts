@@ -62,7 +62,7 @@ describe('FavoritesController (HTTP)', () => {
     it('should reject toggle without authorization header', async () => {
       await request(app.getHttpServer())
         .post('/favorites/toggle')
-        .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+        .send({ toolId: '11111111-1111-4111-8111-111111111111' })
         .expect(401);
 
       expect(favoritesService.toggleFavorite).not.toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('FavoritesController (HTTP)', () => {
       await request(app.getHttpServer())
         .post('/favorites/toggle')
         .set('Authorization', 'Bearer invalid-token')
-        .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+        .send({ toolId: '11111111-1111-4111-8111-111111111111' })
         .expect(401);
 
       expect(favoritesService.toggleFavorite).not.toHaveBeenCalled();
@@ -86,13 +86,13 @@ describe('FavoritesController (HTTP)', () => {
       await request(app.getHttpServer())
         .post('/favorites/toggle')
         .set('Authorization', `Bearer ${token}`)
-        .send({ toolId: '11111111-1111-1111-1111-111111111111' })
+        .send({ toolId: '11111111-1111-4111-8111-111111111111' })
         .expect(200)
         .expect({ isFavorite: true });
 
       expect(favoritesService.toggleFavorite).toHaveBeenCalledWith(
         123,
-        '11111111-1111-1111-1111-111111111111',
+        '11111111-1111-4111-8111-111111111111',
       );
     });
 
@@ -163,7 +163,7 @@ describe('FavoritesController (HTTP)', () => {
     let prisma: FakePrismaService;
 
     const userId = 123;
-    const toolId = '00000000-0000-0000-0000-000000000001';
+    const toolId = '00000000-0000-4000-8000-000000000001';
 
     beforeEach(async () => {
       process.env.NEXTAUTH_SECRET = secret;
