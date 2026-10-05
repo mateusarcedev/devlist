@@ -58,6 +58,7 @@ services:
       GITHUB_SECRET: ${GITHUB_SECRET:?GITHUB_SECRET is required}
       API_URL: ${API_URL:?API_URL is required}
       FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:?COOKIE_DOMAIN is required}
       PORT: 3001
     ports:
       - "127.0.0.1:3001:3001"
