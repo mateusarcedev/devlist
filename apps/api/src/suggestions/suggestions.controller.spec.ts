@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
@@ -6,10 +7,6 @@ import { okAsync, errAsync } from 'neverthrow';
 import { SuggestionsController } from './suggestions.controller';
 import { SuggestionsService } from './suggestions.service';
 
-jest.mock('./suggestions.service', () => {
-  class SuggestionsServiceMock {}
-  return { SuggestionsService: SuggestionsServiceMock };
-});
 
 describe('SuggestionsController', () => {
   let app: INestApplication;
