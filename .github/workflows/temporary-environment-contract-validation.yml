@@ -1,0 +1,158 @@
+name: Temporary Environment Contract Validation
+
+on:
+  push:
+    branches:
+      - fix/environment-contract
+
+permissions:
+  contents: read
+
+jobs:
+  validate-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/environment-contract
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint API
+        run: pnpm --filter @tools4tech/api lint
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Run API unit tests
+        run: pnpm --filter @tools4tech/api test --runInBand
+
+      - name: Verify API fails fast with missing environment
+        shell: bash
+        run: |
+          set +e
+          output="$(
+            env -u DATABASE_URL -u JWT_SECRET -u GITHUB_ID -u GITHUB_SECRET -u API_URL -u FRONTEND_URL               NODE_ENV=production PORT=3001 node apps/api/dist/main.js 2>&1
+          )"
+          status=$?
+          set -e
+
+          echo "$output"
+
+          if [ "$status" -eq 0 ]; then
+            echo "API unexpectedly started without required environment variables."
+            exit 1
+          fi
+
+          echo "$output" | grep -q "Invalid API environment configuration:"
+          echo "$output" | grep -q "DATABASE_URL is required"
+          echo "$output" | grep -q "JWT_SECRET is required"
+          echo "$output" | grep -q "GITHUB_ID is required"
+
+      - name: Verify production rejects insecure URLs and weak JWT secret
+        shell: bash
+        run: |
+          set +e
+          output="$(
+            NODE_ENV=production             PORT=3001             DATABASE_URL=postgresql://devlist:devlist@localhost:5432/devlist             JWT_SECRET=short-secret             GITHUB_ID=test-id             GITHUB_SECRET=test-secret             API_URL=http://api.example.test             FRONTEND_URL=http://example.test             node apps/api/dist/main.js 2>&1
+          )"
+          status=$?
+          set -e
+
+          echo "$output"
+
+          if [ "$status" -eq 0 ]; then
+            echo "API unexpectedly accepted insecure production configuration."
+            exit 1
+          fi
+
+          echo "$output" | grep -q "JWT_SECRET must contain at least 32 characters in production"
+          echo "$output" | grep -q "API_URL must use https in production"
+          echo "$output" | grep -q "FRONTEND_URL must use https in production"
+
+  validate-compose:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist-password
+      POSTGRES_DB: devlist
+      DATABASE_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GITHUB_ID: test-github-id
+      GITHUB_SECRET: test-github-secret
+      GITHUB_TOKEN: ""
+      API_URL: https://api.example.test
+      FRONTEND_URL: https://example.test
+      NEXT_PUBLIC_URL_API: https://api.example.test
+      URL_API: http://api:3001
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/environment-contract
+
+      - name: Verify Compose rejects missing required variables
+        shell: bash
+        run: |
+          set +e
+          output="$(
+            env -u POSTGRES_USER -u POSTGRES_PASSWORD -u POSTGRES_DB                 -u DATABASE_URL -u DIRECT_URL -u JWT_SECRET                 -u GITHUB_ID -u GITHUB_SECRET -u API_URL -u FRONTEND_URL                 -u NEXT_PUBLIC_URL_API -u URL_API                 docker compose config --quiet 2>&1
+          )"
+          status=$?
+          set -e
+
+          echo "$output"
+
+          if [ "$status" -eq 0 ]; then
+            echo "Compose unexpectedly accepted a missing environment contract."
+            exit 1
+          fi
+
+      - name: Validate complete Compose contract
+        run: docker compose config --quiet
+
+      - name: Verify production NODE_ENV is explicit
+        shell: bash
+        run: |
+          docker compose config > /tmp/compose.yml
+          grep -A20 "^  api:" /tmp/compose.yml | grep -q "NODE_ENV: production"
+          grep -A20 "^  web:" /tmp/compose.yml | grep -q "NODE_ENV: production"
+
+      - name: Build and start API through migrations
+        run: docker compose up -d --build api
+
+      - name: Wait for API
+        shell: bash
+        run: |
+          for attempt in {1..40}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3001/api >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs api migrate postgres
+          exit 1
+
+      - name: Verify API container environment
+        shell: bash
+        run: |
+          test "$(docker compose exec -T api sh -c 'printf %s "$NODE_ENV"')" = "production"
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
