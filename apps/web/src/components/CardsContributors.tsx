@@ -3,7 +3,10 @@
 /* eslint-disable @next/next/no-img-element -- Contributor avatars are remote GitHub URLs and intentionally remain unoptimized. */
 
 import type { Contributor } from '@/types'
-import { filterAndSortContributors, type ContributorSortKey } from '@/lib/contributors'
+import {
+  filterAndSortContributors,
+  type ContributorSortKey,
+} from '@/lib/contributors'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -12,13 +15,16 @@ interface Props {
   data: Contributor[]
 }
 
-
 export default function CardsContributors({ data }: Props) {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<ContributorSortKey>('contributions')
   const MotionLink = motion(Link)
 
-  const filteredAndSortedContributors = filterAndSortContributors(data, search, sortBy)
+  const filteredAndSortedContributors = filterAndSortContributors(
+    data,
+    search,
+    sortBy,
+  )
 
   return (
     <>
