@@ -5,6 +5,8 @@ import request from 'supertest';
 import { okAsync, errAsync } from 'neverthrow';
 import { ToolsController } from './tools.controller';
 import { ToolsService } from './tools.service';
+import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
+import { AdminGuard } from 'src/common/guards/admin.guard';
 
 const NOT_FOUND = { type: 'NOT_FOUND' as const, message: 'Not found' };
 
@@ -24,7 +26,12 @@ describe('ToolsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ToolsController],
       providers: [{ provide: ToolsService, useValue: mockToolsService }],
-    }).compile();
+    })
+      .overrideGuard(AuthenticatedUserGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(AdminGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = module.createNestApplication();
     await app.init();
