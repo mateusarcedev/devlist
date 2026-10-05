@@ -52,7 +52,7 @@ describe('auth cookie options', () => {
         secure: true,
         sameSite: 'lax',
         domain: 'example.com',
-        path: '/auth/refresh',
+        path: '/auth',
       }),
     );
   });
@@ -74,7 +74,7 @@ describe('auth cookie options', () => {
       secure: true,
       sameSite: 'lax',
       domain: 'example.com',
-      path: '/auth/refresh',
+      path: '/auth',
     });
   });
 });
