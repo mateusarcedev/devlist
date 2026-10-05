@@ -34,8 +34,8 @@ jobs:
 
       - name: Upgrade Prisma to latest stable v7
         run: |
-          pnpm --filter @tools4tech/api add @prisma/client@^7.10.0 @prisma/adapter-pg@^7.10.0 pg@latest
-          pnpm --filter @tools4tech/api add -D prisma@^7.10.0 @types/pg@latest
+          pnpm --filter @tools4tech/api add @prisma/client@^7.10.0 @prisma/adapter-pg@^7.10.0 pg@latest --ignore-scripts
+          pnpm --filter @tools4tech/api add -D prisma@^7.10.0 @types/pg@latest --ignore-scripts
 
       - name: Generate Prisma Client
         run: pnpm --filter @tools4tech/api exec prisma generate
