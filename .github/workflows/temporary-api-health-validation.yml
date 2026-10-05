@@ -100,10 +100,16 @@ jobs:
         run: |
           test "$(docker inspect -f '{{.State.Health.Status}}' devlist-api)" = "healthy"
 
-          web_status="$(docker inspect -f '{{.State.Status}}' devlist-web)"
-          test "$web_status" = "running"
+          for attempt in {1..30}; do
+            web_status="$(docker inspect -f '{{.State.Status}}' devlist-web)"
+            if [ "$web_status" = "running" ] && curl --fail --silent http://127.0.0.1:3000 >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
 
-          curl --fail --silent http://127.0.0.1:3000 >/dev/null
+          docker compose -f docker-compose.yml -f docker-compose.health-ci.yml logs web api
+          exit 1
 
       - name: Stop PostgreSQL
         run: docker compose -f docker-compose.yml -f docker-compose.health-ci.yml stop postgres
