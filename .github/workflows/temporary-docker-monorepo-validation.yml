@@ -1,0 +1,42 @@
+name: Temporary Docker Monorepo Validation
+
+on:
+  push:
+    branches:
+      - fix/docker-monorepo-builds
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist
+      POSTGRES_DB: devlist
+      DATABASE_URL: postgresql://devlist:devlist@postgres:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist@postgres:5432/devlist?schema=public
+      JWT_SECRET: test-jwt-secret
+      GITHUB_ID: test-github-id
+      GITHUB_SECRET: test-github-secret
+      GITHUB_TOKEN: test-github-token
+      API_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:3000
+      NEXT_PUBLIC_URL_API: http://localhost:3001
+      URL_API: http://api:3001
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/docker-monorepo-builds
+
+      - name: Validate Compose config
+        run: docker compose config --quiet
+
+      - name: Build API image without cache
+        run: docker compose build --no-cache api
+
+      - name: Build web image without cache
+        run: docker compose build --no-cache web
