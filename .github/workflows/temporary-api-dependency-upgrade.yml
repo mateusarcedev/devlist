@@ -30,8 +30,8 @@ jobs:
           version: 12.9.1
           run_install: false
 
-      - name: Install current dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Sync dependency graph for upgrade
+        run: pnpm install --no-frozen-lockfile
 
       - name: Upgrade remaining API runtime dependencies
         run: |
