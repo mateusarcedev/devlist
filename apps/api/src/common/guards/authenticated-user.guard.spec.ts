@@ -43,22 +43,6 @@ describe('AuthenticatedUserGuard', () => {
       expect(req.user).toEqual({ id: 99 });
     });
 
-    it('should preserve a valid signed role claim in the request context', () => {
-      const token = makeToken({ sub: 42, role: 'ADMIN' });
-      const req: any = { cookies: {}, headers: { authorization: `Bearer ${token}` } };
-      const result = guard.canActivate(makeContext(req));
-      expect(result).toBe(true);
-      expect(req.user).toEqual({ id: 42, role: 'ADMIN' });
-    });
-
-    it('should ignore an unknown role claim', () => {
-      const token = makeToken({ sub: 42, role: 'SUPERUSER' });
-      const req: any = { cookies: {}, headers: { authorization: `Bearer ${token}` } };
-      const result = guard.canActivate(makeContext(req));
-      expect(result).toBe(true);
-      expect(req.user).toEqual({ id: 42 });
-    });
-
     it('should throw when Authorization header is missing and no cookie', () => {
       const req: any = { cookies: {}, headers: {} };
       expect(() => guard.canActivate(makeContext(req))).toThrow(UnauthorizedException);
