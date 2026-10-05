@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import { sign } from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FavoritesController } from './favorites.controller';
