@@ -83,4 +83,4 @@ jobs:
         run: pnpm exec eslint "{src,apps,libs,test}/**/*.ts"
 
       - name: Run API unit tests
-        run: pnpm --filter @tools4tech/api test -- --runInBand
+        run: pnpm --filter @tools4tech/api exec jest --runInBand
