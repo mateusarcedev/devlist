@@ -1,0 +1,73 @@
+name: Temporary API E2E Validation
+
+on:
+  push:
+    branches:
+      - test/api-e2e
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devlist
+          POSTGRES_PASSWORD: devlist
+          POSTGRES_DB: devlist
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devlist -d devlist"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+      JWT_SECRET: e2e-jwt-secret
+      GITHUB_ID: e2e-github-id
+      GITHUB_SECRET: e2e-github-secret
+      API_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: test/api-e2e
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm --filter @tools4tech/api exec prisma migrate deploy
+
+      - name: Lint API
+        run: pnpm --filter @tools4tech/api lint
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Run unit tests
+        run: pnpm --filter @tools4tech/api test --runInBand
+
+      - name: Run E2E tests
+        run: pnpm --filter @tools4tech/api test:e2e
