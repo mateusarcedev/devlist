@@ -5,7 +5,7 @@ const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 function sharedCookieBase(): CookieOptions {
   const production = process.env.NODE_ENV === 'production';
-  const domain = process.env.COOKIE_DOMAIN?.trim();
+  const domain = process.env.COOKIE_DOMAIN?.trim().replace(/^\\./, '');
 
   return {
     httpOnly: true,
