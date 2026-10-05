@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- GitHub OAuth avatars use remote user URLs and intentionally remain unoptimized. */
+
 import { useSubmitSuggestion } from '@/hooks/useSubmitSuggestion'
 import type { Category, Suggestion } from '@/types'
 import { AxiosConfig } from '@/utils'
