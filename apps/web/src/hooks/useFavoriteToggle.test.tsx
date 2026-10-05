@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import AxiosConfig from '@/utils'
+import { AxiosConfig } from '@/utils'
 import type { Tool } from '@/types'
 import { useFavoriteToggle } from './useFavoriteToggle'
 
