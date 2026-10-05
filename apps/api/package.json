@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
-    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "seed:demo": "prisma db seed"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",
@@ -74,7 +75,8 @@
     "tsconfig-paths-webpack-plugin": "^4.2.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "tsx": "^4.23.15"
   },
   "jest": {
     "moduleNameMapper": {

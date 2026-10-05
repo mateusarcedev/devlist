@@ -19,6 +19,11 @@ WORKDIR /app/apps/api
 
 CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
+FROM migrator AS seeder
+RUN pnpm exec prisma generate
+
+CMD ["pnpm", "exec", "prisma", "db", "seed"]
+
 FROM deps AS builder
 COPY apps/api ./apps/api
 RUN pnpm --filter @tools4tech/api exec prisma generate
