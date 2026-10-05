@@ -20,7 +20,7 @@ export class AuthenticatedUserGuard implements CanActivate {
     >();
 
     const token = this.extractToken(request);
-    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET;
+    const secret = process.env.JWT_SECRET;
 
     if (!secret) {
       throw new UnauthorizedException('Authentication is not configured');
