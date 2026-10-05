@@ -3,6 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
+import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
+import { AdminGuard } from 'src/common/guards/admin.guard';
 
 const mockCategoriesService = {
   create: jest.fn(),
@@ -19,7 +21,12 @@ describe('CategoriesController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CategoriesController],
       providers: [{ provide: CategoriesService, useValue: mockCategoriesService }],
-    }).compile();
+    })
+      .overrideGuard(AuthenticatedUserGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(AdminGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = module.createNestApplication();
     await app.init();
