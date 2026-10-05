@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { Barrier } from 'src/common/testing/barrier';
 
 type FavoriteRecord = { id: string; userId: number; toolId: string };
