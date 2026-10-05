@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { verify, JwtPayload } from 'jsonwebtoken';
-import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
+import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 
 type NextAuthJwtPayload = JwtPayload & {
   githubId?: number | string;
