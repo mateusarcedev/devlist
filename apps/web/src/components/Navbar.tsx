@@ -125,8 +125,8 @@ export default function Navbar() {
               </button>
             </>
           ) : !loading ? (
-            <button
-              onClick={() => { window.location.assign(`${process.env.NEXT_PUBLIC_URL_API}/auth/github`) }}
+            <a
+              href={`${process.env.NEXT_PUBLIC_URL_API}/auth/github`}
               className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'
             >
               <User2Icon className='h-5 w-5 text-white' />
@@ -134,7 +134,7 @@ export default function Navbar() {
               <span className='absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-sm py-1 px-2 top-full left-1/2 transform -translate-x-1/2 mt-2'>
                 Log in with GitHub
               </span>
-            </button>
+            </a>
           ) : null}
         </div>
       </nav>
