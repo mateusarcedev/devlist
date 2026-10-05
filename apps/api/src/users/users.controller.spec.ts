@@ -18,7 +18,7 @@ describe('UsersController', () => {
   const secret = 'test-secret';
 
   beforeAll(async () => {
-    process.env.NEXTAUTH_SECRET = secret;
+    process.env.JWT_SECRET = secret;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -37,7 +37,7 @@ describe('UsersController', () => {
 
   afterAll(async () => {
     await app.close();
-    delete process.env.NEXTAUTH_SECRET;
+    delete process.env.JWT_SECRET;
   });
 
   beforeEach(() => {
