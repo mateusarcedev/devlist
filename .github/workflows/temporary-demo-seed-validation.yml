@@ -6,7 +6,7 @@ on:
       - feat/demo-seed
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate-seed:
@@ -48,18 +48,7 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Commit refreshed lockfile
-        shell: bash
-        run: |
-          if ! git diff --quiet -- pnpm-lock.yaml; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add pnpm-lock.yaml
-            git commit -m "chore(api): update lockfile for seed tooling"
-            git push origin HEAD:feat/demo-seed
-          fi
+        run: pnpm install --frozen-lockfile
 
       - name: Apply migrations
         run: pnpm --filter @tools4tech/api exec prisma migrate deploy
@@ -71,6 +60,7 @@ jobs:
         run: pnpm --filter @tools4tech/api seed:demo
 
       - name: Verify initial seed counts
+        working-directory: apps/api
         shell: bash
         run: |
           node <<'NODE'
@@ -102,6 +92,7 @@ jobs:
           NODE
 
       - name: Simulate user edits and custom data
+        working-directory: apps/api
         shell: bash
         run: |
           node <<'NODE'
@@ -143,6 +134,7 @@ jobs:
         run: pnpm --filter @tools4tech/api seed:demo
 
       - name: Verify seed is idempotent and non-destructive
+        working-directory: apps/api
         shell: bash
         run: |
           node <<'NODE'
