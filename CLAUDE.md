@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tools4.tech is a full-stack monorepo for a developer tools discovery platform with GitHub OAuth, user favorites, and community tool suggestions.
 
-- **`/api`** — NestJS 10 backend (TypeScript, Prisma + PostgreSQL)
-- **`/web`** — Next.js 15 frontend (React 19, TanStack Query, NextAuth v4)
+- **`apps/api`** — NestJS 12 backend (TypeScript, Prisma 7 + PostgreSQL)
+- **`apps/web`** — Next.js 16 frontend (React 19, TanStack Query)
 
 ## Commands
 
@@ -59,11 +59,12 @@ cd api && npx prisma studio
 
 ### Authentication Flow
 
-1. User signs in via GitHub OAuth (NextAuth v4 in `/web/src/app/api/auth`)
-2. `signIn` callback POSTs to `/users` to create/sync user in the DB
-3. NextAuth issues a JWT containing `githubId` and `avatar_url`
-4. Frontend sends `Authorization: Bearer <token>` on requests to protected endpoints
-5. Backend `AuthenticatedUserGuard` (`/api/src/common/guards/`) validates the JWT using `NEXTAUTH_SECRET`
+1. User starts GitHub OAuth through the Nest API at `/auth/github`
+2. `passport-github2` handles the callback at `/auth/callback/github`
+3. The API upserts the GitHub user and issues an access JWT plus a rotating refresh token
+4. Browser sessions use HTTP-only cookies; server-side/API requests may also use `Authorization: Bearer <token>`
+5. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
+6. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`
 
 ### API Module Structure
 
@@ -91,24 +92,30 @@ Swagger UI: `http://localhost:3001/api`
 
 ## Environment Variables
 
-**API (`/api/.env`):**
+The canonical Docker Compose contract is documented in the root `.env.example`.
+
+**API local development (`apps/api/.env`):**
 ```
-DATABASE_URL=
-DIRECT_URL=          # used for Prisma migrations
-NEXTAUTH_SECRET=     # must match the frontend secret
+NODE_ENV=development
 PORT=3001
+DATABASE_URL=
+DIRECT_URL=
+JWT_SECRET=
+GITHUB_ID=
+GITHUB_SECRET=
+API_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
 ```
 
-**Web (`/web/.env.local`):**
+**Web local development (`apps/web/.env.local`):**
 ```
 URL_API=http://localhost:3001
 NEXT_PUBLIC_URL_API=http://localhost:3001
-GITHUB_ID=
-GITHUB_SECRET=
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=
+JWT_SECRET=          # must exactly match the API JWT_SECRET
 GITHUB_TOKEN=        # optional, for contributor stats
 ```
+
+Production startup validates the API environment before Nest initializes. `JWT_SECRET`, GitHub OAuth credentials, database URL, and public API/frontend URLs are required. Production `API_URL` and `FRONTEND_URL` must use HTTPS.
 
 ## Data Model (Prisma)
 
