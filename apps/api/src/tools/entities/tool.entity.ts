@@ -1,4 +1,4 @@
-import { Tool } from '@prisma/client';
+import type { Tool } from 'src/generated/prisma/client';
 
 export class ToolEntity implements Tool {
   id: string;

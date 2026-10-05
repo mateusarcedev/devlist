@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { $Enums, User } from '@prisma/client'
+import type { $Enums, User } from 'src/generated/prisma/client'
 
 
 export class UserEntity implements User {

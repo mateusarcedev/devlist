@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GithubUser } from './strategies/github.strategy';
-import { UserRole } from '@prisma/client';
+import type { UserRole } from 'src/generated/prisma/client';
 
 const REFRESH_TOKEN_TTL_DAYS = 7;
 

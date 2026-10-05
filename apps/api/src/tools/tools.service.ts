@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ResultAsync, ok, err } from 'neverthrow';
-import { Tool } from '@prisma/client';
+import type { Tool } from 'src/generated/prisma/client';
 import { AppError } from 'src/common/errors/app-error';
 import { CreateToolDto } from './dto/create-tool.dto';
 import { UpdateToolDto } from './dto/update-tool.dto';

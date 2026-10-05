@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SuggestionsService } from './suggestions.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SuggestionStatus } from '@prisma/client';
+import { SuggestionStatus } from 'src/generated/prisma/client';
 
 const mockPrisma = {
   user: { findUnique: jest.fn() },
