@@ -9,6 +9,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "rootDir": ".",
+    "ignoreDeprecations": "6.0"
   }
 }
