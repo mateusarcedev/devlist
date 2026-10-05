@@ -6,10 +6,14 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { verify, JwtPayload } from 'jsonwebtoken';
-import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
+import type {
+  AuthenticatedUser,
+  AuthenticatedUserRole,
+} from '../interfaces/authenticated-user.interface';
 
 type NextAuthJwtPayload = JwtPayload & {
   githubId?: number | string;
+  role?: string;
 };
 
 @Injectable()
@@ -40,7 +44,8 @@ export class AuthenticatedUserGuard implements CanActivate {
       throw new UnauthorizedException('Invalid authentication token');
     }
 
-    request.user = { id: userId };
+    const role = this.extractRole(decodedToken);
+    request.user = role ? { id: userId, role } : { id: userId };
 
     return true;
   }
@@ -100,5 +105,11 @@ export class AuthenticatedUserGuard implements CanActivate {
     }
 
     return null;
+  }
+
+  private extractRole(payload: NextAuthJwtPayload): AuthenticatedUserRole | undefined {
+    return payload.role === 'ADMIN' || payload.role === 'USER'
+      ? payload.role
+      : undefined;
   }
 }
