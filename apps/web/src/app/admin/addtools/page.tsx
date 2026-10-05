@@ -4,7 +4,7 @@ import { AxiosConfig } from '@/utils'
 import type { Category } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 interface ToolFormData {
   name: string
@@ -22,7 +22,7 @@ const CreateToolPage = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
+    control,
   } = useForm<ToolFormData>({
     defaultValues: {
       name: '',
@@ -32,7 +32,11 @@ const CreateToolPage = () => {
     },
   })
 
-  const descriptionValue = watch('description') ?? ''
+  const descriptionValue = useWatch({
+    control,
+    name: 'description',
+    defaultValue: '',
+  })
   const remainingChars = 230 - descriptionValue.length
 
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
