@@ -1,0 +1,79 @@
+name: Temporary NestJS 12 Upgrade
+
+on:
+  push:
+    branches:
+      - chore/upgrade-nestjs-12
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/upgrade-nestjs-12
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install current lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Upgrade NestJS packages
+        run: |
+          pnpm --filter @tools4tech/api update --latest \
+            @nestjs/common \
+            @nestjs/core \
+            @nestjs/jwt \
+            @nestjs/passport \
+            @nestjs/platform-express \
+            @nestjs/swagger \
+            @nestjs/throttler \
+            @nestjs/cli \
+            @nestjs/schematics \
+            @nestjs/testing
+
+      - name: Upgrade NestJS-compatible TypeScript and Jest
+        run: |
+          pnpm --filter @tools4tech/api add -D \
+            typescript@^6 \
+            jest@^30 \
+            @types/jest@^30 \
+            ts-jest@latest
+
+      - name: Commit dependency updates
+        shell: bash
+        run: |
+          if ! git diff --quiet -- apps/api/package.json pnpm-lock.yaml; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/api/package.json pnpm-lock.yaml
+            git commit -m "chore(api): upgrade NestJS 12 dependencies"
+            git push origin HEAD:chore/upgrade-nestjs-12
+          fi
+
+      - name: Check peer dependencies
+        run: pnpm peers check
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Lint API
+        working-directory: apps/api
+        run: pnpm exec eslint "{src,apps,libs,test}/**/*.ts"
+
+      - name: Run API unit tests
+        run: pnpm --filter @tools4tech/api test -- --runInBand
