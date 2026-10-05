@@ -52,16 +52,18 @@ jobs:
             typescript@^6 \
             jest@^30 \
             @types/jest@^30 \
-            ts-jest@latest \
-            webpack@^5.105.4
+            ts-jest@latest
+
+      - name: Remove legacy direct Webpack dependency
+        run: pnpm --filter @tools4tech/api remove webpack || true
 
       - name: Commit dependency updates
         shell: bash
         run: |
-          if ! git diff --quiet -- apps/api/package.json pnpm-lock.yaml; then
+          if ! git diff --quiet -- apps/api/package.json apps/api/nest-cli.json pnpm-lock.yaml; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/api/package.json pnpm-lock.yaml
+            git add apps/api/package.json apps/api/nest-cli.json pnpm-lock.yaml
             git commit -m "chore(api): upgrade NestJS 12 dependencies"
             git push origin HEAD:chore/upgrade-nestjs-12
           fi
