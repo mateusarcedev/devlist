@@ -8,7 +8,7 @@ function LoginContent() {
   const error = searchParams.get('error')
 
   const handleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_URL_API}/auth/github`
+    window.location.assign(`${process.env.NEXT_PUBLIC_URL_API}/auth/github`)
   }
 
   return (
