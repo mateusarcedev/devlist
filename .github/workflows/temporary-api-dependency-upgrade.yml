@@ -1,5 +1,4 @@
-name: Temporary API Dependency Upgrade
-# transient validation workflow
+name: Temporary API Dependency Validation
 
 on:
   push:
@@ -7,17 +6,16 @@ on:
       - chore/upgrade-api-dependencies
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  upgrade-and-validate:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
           ref: chore/upgrade-api-dependencies
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,53 +28,8 @@ jobs:
           version: 12.9.1
           run_install: false
 
-      - name: Sync dependency graph for upgrade
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Upgrade remaining API runtime dependencies
-        run: |
-          pnpm --filter @tools4tech/api update --latest \
-            class-transformer \
-            class-validator \
-            cookie-parser \
-            dotenv \
-            jsonwebtoken \
-            neverthrow \
-            passport \
-            passport-github2 \
-            reflect-metadata \
-            rxjs \
-            swagger-ui-express
-
-      - name: Upgrade API lint and support tooling
-        run: |
-          pnpm --filter @tools4tech/api update --latest \
-            @eslint/js \
-            typescript-eslint \
-            eslint \
-            eslint-config-prettier \
-            prettier \
-            @types/cookie-parser \
-            @types/jsonwebtoken \
-            @types/passport-github2 \
-            @types/supertest \
-            source-map-support \
-            supertest \
-            ts-node \
-            tsconfig-paths \
-            tsconfig-paths-webpack-plugin \
-            webpack-node-externals
-
-      - name: Commit dependency updates
-        shell: bash
-        run: |
-          if ! git diff --quiet -- apps/api/package.json pnpm-lock.yaml; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/api/package.json pnpm-lock.yaml
-            git commit -m "chore(api): update remaining dependencies"
-            git push origin HEAD:chore/upgrade-api-dependencies
-          fi
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Lint API
         run: pnpm --filter @tools4tech/api lint
