@@ -46,6 +46,11 @@ jobs:
             @nestjs/swagger \
             @nestjs/throttler
 
+      - name: Add explicit Express dependency
+        run: |
+          pnpm --filter @tools4tech/api add express@latest
+          pnpm --filter @tools4tech/api add -D @types/express@latest
+
       - name: Commit dependency updates
         shell: bash
         run: |
