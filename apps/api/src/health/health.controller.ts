@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { HealthService } from './health.service';
@@ -17,7 +18,13 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({ summary: 'Readiness probe with database check' })
-  ready() {
-    return this.healthService.ready();
+  async ready(@Res({ passthrough: true }) res: Response) {
+    const payload = await this.healthService.ready();
+
+    if (payload.status === 'error') {
+      res.status(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    return payload;
   }
 }
