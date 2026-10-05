@@ -1,0 +1,200 @@
+name: Temporary API Health Validation
+
+on:
+  push:
+    branches:
+      - feat/api-health-readiness
+
+permissions:
+  contents: read
+
+jobs:
+  validate-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/api-health-readiness
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint API
+        run: pnpm --filter @tools4tech/api lint
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Run API tests
+        run: pnpm --filter @tools4tech/api test --runInBand
+
+  validate-runtime:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist-password
+      POSTGRES_DB: devlist
+      DATABASE_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GITHUB_ID: test-github-id
+      GITHUB_SECRET: test-github-secret
+      GITHUB_TOKEN: ""
+      API_URL: https://api.example.test
+      FRONTEND_URL: https://app.example.test
+      COOKIE_DOMAIN: example.test
+      NEXT_PUBLIC_URL_API: https://api.example.test
+      URL_API: http://api:3001
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/api-health-readiness
+
+      - name: Speed up health checks for CI
+        run: |
+          cat > docker-compose.health-ci.yml <<'YAML'
+          services:
+            api:
+              healthcheck:
+                interval: 2s
+                timeout: 2s
+                start_period: 2s
+                retries: 2
+          YAML
+
+      - name: Validate Compose config
+        run: docker compose -f docker-compose.yml -f docker-compose.health-ci.yml config --quiet
+
+      - name: Start web through full dependency chain
+        run: docker compose -f docker-compose.yml -f docker-compose.health-ci.yml up -d --build web
+
+      - name: Verify API health endpoints
+        shell: bash
+        run: |
+          live="$(curl --fail --silent http://127.0.0.1:3001/health/live)"
+          ready="$(curl --fail --silent http://127.0.0.1:3001/health/ready)"
+
+          echo "$live"
+          echo "$ready"
+
+          echo "$live" | grep -q '"status":"ok"'
+          echo "$live" | grep -q '"database":"not-required"'
+          echo "$ready" | grep -q '"database":"up"'
+
+      - name: Verify API container is healthy and web started after it
+        shell: bash
+        run: |
+          test "$(docker inspect -f '{{.State.Health.Status}}' devlist-api)" = "healthy"
+
+          web_status="$(docker inspect -f '{{.State.Status}}' devlist-web)"
+          test "$web_status" = "running"
+
+          curl --fail --silent http://127.0.0.1:3000 >/dev/null
+
+      - name: Stop PostgreSQL
+        run: docker compose -f docker-compose.yml -f docker-compose.health-ci.yml stop postgres
+
+      - name: Verify liveness stays up while readiness fails
+        shell: bash
+        run: |
+          curl --fail --silent http://127.0.0.1:3001/health/live | grep -q '"status":"ok"'
+
+          set +e
+          status="$(curl --silent --output /tmp/ready.json --write-out '%{http_code}' http://127.0.0.1:3001/health/ready)"
+          set -e
+
+          cat /tmp/ready.json
+          test "$status" = "503"
+          grep -q '"database":"down"' /tmp/ready.json
+
+      - name: Verify Docker marks API unhealthy when database is unavailable
+        shell: bash
+        run: |
+          for attempt in {1..15}; do
+            status="$(docker inspect -f '{{.State.Health.Status}}' devlist-api)"
+            echo "health=$status"
+            if [ "$status" = "unhealthy" ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.yml -f docker-compose.health-ci.yml logs api
+          exit 1
+
+      - name: Cleanup first scenario
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.health-ci.yml down -v || true
+
+  validate-web-gate:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist-password
+      POSTGRES_DB: devlist
+      DATABASE_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GITHUB_ID: test-github-id
+      GITHUB_SECRET: test-github-secret
+      GITHUB_TOKEN: ""
+      API_URL: https://api.example.test
+      FRONTEND_URL: https://app.example.test
+      COOKIE_DOMAIN: example.test
+      NEXT_PUBLIC_URL_API: https://api.example.test
+      URL_API: http://api:3001
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/api-health-readiness
+
+      - name: Force API healthcheck failure
+        run: |
+          cat > docker-compose.unhealthy-ci.yml <<'YAML'
+          services:
+            api:
+              healthcheck:
+                test: ["CMD", "node", "-e", "process.exit(1)"]
+                interval: 1s
+                timeout: 1s
+                start_period: 1s
+                retries: 2
+          YAML
+
+      - name: Verify unhealthy API blocks web startup
+        shell: bash
+        run: |
+          set +e
+          docker compose -f docker-compose.yml -f docker-compose.unhealthy-ci.yml up -d --build web
+          status=$?
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            echo "Compose unexpectedly started web with an unhealthy API"
+            docker compose -f docker-compose.yml -f docker-compose.unhealthy-ci.yml ps
+            exit 1
+          fi
+
+          if docker compose -f docker-compose.yml -f docker-compose.unhealthy-ci.yml ps --status running --services | grep -qx web; then
+            echo "Web is running even though API never became healthy"
+            exit 1
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.unhealthy-ci.yml down -v || true
