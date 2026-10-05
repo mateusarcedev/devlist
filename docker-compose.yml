@@ -16,7 +16,9 @@ services:
       retries: 5
 
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: devlist-api
     restart: always
     environment:
@@ -36,7 +38,8 @@ services:
 
   web:
     build:
-      context: ./apps/web
+      context: .
+      dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API}
     container_name: devlist-web
