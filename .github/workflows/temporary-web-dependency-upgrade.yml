@@ -55,7 +55,7 @@ jobs:
             tailwind-merge \
             tailwindcss \
             zod \
-            typescript
+            typescript@^6
 
       - name: Commit dependency updates
         shell: bash
