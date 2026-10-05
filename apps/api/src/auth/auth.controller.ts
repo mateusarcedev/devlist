@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GithubOAuthGuard } from './guards/github-oauth.guard';
 import { AuthenticatedUserGuard } from 'src/common/guards/authenticated-user.guard';
-import { GithubUser } from './strategies/github.strategy';
+import type { GithubUser } from './strategies/github.strategy';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
