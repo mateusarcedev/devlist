@@ -56,7 +56,7 @@ describe('AuthProvider', () => {
 
     expect(screen.getByText('loading')).not.toBeNull()
     expect(await screen.findByText('Mateus')).not.toBeNull()
-    expect(screen.getByText('ready')).not.toBeNull()
+    expect(await screen.findByText('ready')).not.toBeNull()
     expect(getMock).toHaveBeenCalledWith('/auth/me')
   })
 
@@ -69,8 +69,8 @@ describe('AuthProvider', () => {
       </AuthProvider>,
     )
 
-    expect(await screen.findByText('guest')).not.toBeNull()
-    expect(screen.getByText('ready')).not.toBeNull()
+    expect(await screen.findByText('ready')).not.toBeNull()
+    expect(screen.getByText('guest')).not.toBeNull()
   })
 
   it('logs out through the API and returns to the home page', async () => {
