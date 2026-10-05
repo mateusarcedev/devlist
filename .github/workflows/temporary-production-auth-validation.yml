@@ -1,0 +1,141 @@
+name: Temporary Production Auth Validation
+
+on:
+  push:
+    branches:
+      - fix/production-auth-cookies
+
+permissions:
+  contents: read
+
+jobs:
+  validate-code:
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: test-secret
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/production-auth-cookies
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint API
+        run: pnpm --filter @tools4tech/api lint
+
+      - name: Build API
+        run: pnpm --filter @tools4tech/api build
+
+      - name: Run API unit tests
+        run: pnpm --filter @tools4tech/api test --runInBand
+
+      - name: Build web
+        env:
+          URL_API: http://localhost:3001
+          NEXT_PUBLIC_URL_API: https://api.example.test
+          JWT_SECRET: test-secret
+        run: pnpm --filter @tools4tech/web build
+
+  validate-production-topology:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist-password
+      POSTGRES_DB: devlist
+      DATABASE_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      DIRECT_URL: postgresql://devlist:devlist-password@postgres:5432/devlist?schema=public
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GITHUB_ID: test-github-id
+      GITHUB_SECRET: test-github-secret
+      GITHUB_TOKEN: ""
+      API_URL: https://api.example.test
+      FRONTEND_URL: https://app.example.test
+      COOKIE_DOMAIN: example.test
+      NEXT_PUBLIC_URL_API: https://api.example.test
+      URL_API: http://api:3001
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/production-auth-cookies
+
+      - name: Validate Compose contract
+        run: docker compose config --quiet
+
+      - name: Verify COOKIE_DOMAIN is mandatory in Compose
+        shell: bash
+        run: |
+          set +e
+          output="$(env -u COOKIE_DOMAIN docker compose config --quiet 2>&1)"
+          status=$?
+          set -e
+          echo "$output"
+          if [ "$status" -eq 0 ]; then
+            echo "Compose unexpectedly accepted missing COOKIE_DOMAIN"
+            exit 1
+          fi
+          echo "$output" | grep -q "COOKIE_DOMAIN is required"
+
+      - name: Build and start API through migrations
+        run: docker compose up -d --build api
+
+      - name: Wait for API
+        shell: bash
+        run: |
+          for attempt in {1..40}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3001/api >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs api migrate postgres
+          exit 1
+
+      - name: Verify credentialed CORS for frontend origin
+        shell: bash
+        run: |
+          headers="$(
+            curl --silent --show-error --dump-header - --output /dev/null               -X OPTIONS               -H 'Origin: https://app.example.test'               -H 'Access-Control-Request-Method: POST'               http://127.0.0.1:3001/auth/refresh
+          )"
+          echo "$headers"
+          echo "$headers" | grep -i -q '^access-control-allow-origin: https://app.example.test'
+          echo "$headers" | grep -i -q '^access-control-allow-credentials: true'
+
+      - name: Reject unrelated CORS origin
+        shell: bash
+        run: |
+          headers="$(
+            curl --silent --show-error --dump-header - --output /dev/null               -X OPTIONS               -H 'Origin: https://evil.example.net'               -H 'Access-Control-Request-Method: POST'               http://127.0.0.1:3001/auth/refresh
+          )"
+          echo "$headers"
+          if echo "$headers" | grep -i -q '^access-control-allow-origin: https://evil.example.net'; then
+            echo "Unexpectedly allowed unrelated origin"
+            exit 1
+          fi
+
+      - name: Verify runtime auth environment
+        shell: bash
+        run: |
+          test "$(docker compose exec -T api sh -c 'printf %s "$NODE_ENV"')" = "production"
+          test "$(docker compose exec -T api sh -c 'printf %s "$COOKIE_DOMAIN"')" = "example.test"
+          test "$(docker compose exec -T api sh -c 'printf %s "$FRONTEND_URL"')" = "https://app.example.test"
+          test "$(docker compose exec -T api sh -c 'printf %s "$API_URL"')" = "https://api.example.test"
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
