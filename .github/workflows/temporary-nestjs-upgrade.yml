@@ -56,6 +56,10 @@ jobs:
           pnpm --filter @tools4tech/api add -D typescript@^6
           pnpm --filter @tools4tech/api update --latest jest @types/jest ts-jest @types/node
 
+      - name: Install Rspack builder dependencies
+        run: |
+          pnpm --filter @tools4tech/api add -D @rspack/core@latest webpack-node-externals@latest tsconfig-paths-webpack-plugin@latest
+
       - name: Commit dependency updates
         shell: bash
         run: |
