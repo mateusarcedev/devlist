@@ -1,0 +1,17 @@
+.git
+.github
+.turbo
+.worktrees
+
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/.turbo
+
+**/.env
+**/.env.*
+!**/.env.example
+
+**/*.log
+.DS_Store

@@ -1,24 +1,39 @@
-FROM node:24.21.0-alpine AS builder
+# syntax=docker/dockerfile:1.7
+
+FROM node:24.21.0-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@12.9.1 --activate
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-COPY prisma ./prisma
-RUN npx prisma generate
+FROM deps AS builder
+COPY apps/api ./apps/api
+RUN pnpm --filter @tools4tech/api exec prisma generate
+RUN pnpm --filter @tools4tech/api build
 
-COPY . .
-RUN npm run build
+FROM base AS prod-deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+RUN pnpm install --frozen-lockfile --prod --filter @tools4tech/api... --ignore-scripts
 
-RUN npm prune --omit=dev
-
-# ---- runner ----
 FROM node:24.21.0-alpine AS runner
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+ENV NODE_ENV=production
+ENV PORT=3001
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+
+CMD ["node", "apps/api/dist/main.js"]
