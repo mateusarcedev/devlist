@@ -9,6 +9,7 @@ export interface ApiEnvironment {
   GITHUB_SECRET: string;
   API_URL: string;
   FRONTEND_URL: string;
+  COOKIE_DOMAIN?: string;
 }
 
 const REQUIRED_KEYS = [
@@ -25,8 +26,8 @@ function parseUrl(
   value: string,
   allowedProtocols: string[],
   errors: string[],
-): void {
-  if (!value) return;
+): URL | null {
+  if (!value) return null;
 
   try {
     const url = new URL(value);
@@ -36,9 +37,25 @@ function parseUrl(
         `${name} must use one of these protocols: ${allowedProtocols.join(', ')}`,
       );
     }
+
+    return url;
   } catch {
     errors.push(`${name} must be a valid URL`);
+    return null;
   }
+}
+
+function isOriginOnly(url: URL): boolean {
+  return url.pathname === '/' && !url.search && !url.hash;
+}
+
+function normalizeCookieDomain(value: string | undefined): string {
+  return (value?.trim() ?? '').replace(/^\./, '').toLowerCase();
+}
+
+function hostMatchesCookieDomain(hostname: string, cookieDomain: string): boolean {
+  const host = hostname.toLowerCase();
+  return host === cookieDomain || host.endsWith(`.${cookieDomain}`);
 }
 
 export function validateApiEnvironment(
@@ -72,37 +89,85 @@ export function validateApiEnvironment(
   const jwtSecret = values.get('JWT_SECRET') ?? '';
   const apiUrl = values.get('API_URL') ?? '';
   const frontendUrl = values.get('FRONTEND_URL') ?? '';
+  const cookieDomain = normalizeCookieDomain(source.COOKIE_DOMAIN);
 
   parseUrl('DATABASE_URL', databaseUrl, ['postgres:', 'postgresql:'], errors);
-  parseUrl('API_URL', apiUrl, ['http:', 'https:'], errors);
-  parseUrl('FRONTEND_URL', frontendUrl, ['http:', 'https:'], errors);
+  const parsedApiUrl = parseUrl('API_URL', apiUrl, ['http:', 'https:'], errors);
+  const parsedFrontendUrl = parseUrl(
+    'FRONTEND_URL',
+    frontendUrl,
+    ['http:', 'https:'],
+    errors,
+  );
+
+  for (const [name, parsed] of [
+    ['API_URL', parsedApiUrl],
+    ['FRONTEND_URL', parsedFrontendUrl],
+  ] as const) {
+    if (parsed && !isOriginOnly(parsed)) {
+      errors.push(`${name} must be an origin without path, query, or hash`);
+    }
+  }
 
   if (nodeEnv === 'production') {
     if (jwtSecret.length < 32) {
       errors.push('JWT_SECRET must contain at least 32 characters in production');
     }
 
-    for (const [name, value] of [
-      ['API_URL', apiUrl],
-      ['FRONTEND_URL', frontendUrl],
+    for (const [name, parsed] of [
+      ['API_URL', parsedApiUrl],
+      ['FRONTEND_URL', parsedFrontendUrl],
     ] as const) {
-      if (value) {
-        try {
-          if (new URL(value).protocol !== 'https:') {
-            errors.push(`${name} must use https in production`);
-          }
-        } catch {
-          // The generic URL validation above already reports this.
-        }
+      if (parsed && parsed.protocol !== 'https:') {
+        errors.push(`${name} must use https in production`);
       }
+    }
+
+    if (!cookieDomain) {
+      errors.push('COOKIE_DOMAIN is required in production');
+    } else {
+      if (
+        cookieDomain.includes('/') ||
+        cookieDomain.includes(':') ||
+        cookieDomain === 'localhost'
+      ) {
+        errors.push(
+          'COOKIE_DOMAIN must be a bare parent domain such as example.com',
+        );
+      }
+
+      if (
+        parsedApiUrl &&
+        !hostMatchesCookieDomain(parsedApiUrl.hostname, cookieDomain)
+      ) {
+        errors.push('COOKIE_DOMAIN must cover the API_URL hostname');
+      }
+
+      if (
+        parsedFrontendUrl &&
+        !hostMatchesCookieDomain(parsedFrontendUrl.hostname, cookieDomain)
+      ) {
+        errors.push('COOKIE_DOMAIN must cover the FRONTEND_URL hostname');
+      }
+    }
+
+    if (
+      parsedApiUrl &&
+      parsedFrontendUrl &&
+      parsedApiUrl.hostname === parsedFrontendUrl.hostname
+    ) {
+      errors.push(
+        'API_URL and FRONTEND_URL must use distinct sibling hosts for the configured production auth architecture',
+      );
     }
   }
 
   if (errors.length > 0) {
     throw new Error(
-      ['Invalid API environment configuration:', ...errors.map((error) => `- ${error}`)].join(
-        '\n',
-      ),
+      [
+        'Invalid API environment configuration:',
+        ...errors.map((error) => `- ${error}`),
+      ].join('\n'),
     );
   }
 
@@ -115,5 +180,6 @@ export function validateApiEnvironment(
     GITHUB_SECRET: values.get('GITHUB_SECRET') ?? '',
     API_URL: apiUrl,
     FRONTEND_URL: frontendUrl,
+    ...(cookieDomain ? { COOKIE_DOMAIN: cookieDomain } : {}),
   };
 }
