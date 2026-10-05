@@ -145,10 +145,13 @@ describe('AuthController', () => {
         expect.objectContaining({
           secure: true,
           sameSite: 'lax',
-          domain: 'example.com',
           path: '/auth',
         }),
       );
+      const refreshCookieOptions = (res.cookie as jest.Mock).mock.calls.find(
+        ([name]) => name === 'refresh_token',
+      )?.[2];
+      expect(refreshCookieOptions).not.toHaveProperty('domain');
       expect(res.redirect).toHaveBeenCalledWith('https://app.example.com');
     });
   });
@@ -190,7 +193,6 @@ describe('AuthController', () => {
       expect(res.clearCookie).toHaveBeenCalledWith(
         'refresh_token',
         expect.objectContaining({
-          domain: 'example.com',
           secure: true,
           sameSite: 'lax',
           path: '/auth',
@@ -232,7 +234,6 @@ describe('AuthController', () => {
       expect(res.clearCookie).toHaveBeenCalledWith(
         'refresh_token',
         expect.objectContaining({
-          domain: 'example.com',
           path: '/auth',
         }),
       );
