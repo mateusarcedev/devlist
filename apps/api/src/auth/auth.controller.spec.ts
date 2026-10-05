@@ -101,7 +101,7 @@ describe('AuthController', () => {
           httpOnly: true,
           secure: false,
           sameSite: 'lax',
-          path: '/auth/refresh',
+          path: '/auth',
         }),
       );
       expect(res.redirect).toHaveBeenCalledWith('http://localhost:3000');
@@ -146,7 +146,7 @@ describe('AuthController', () => {
           secure: true,
           sameSite: 'lax',
           domain: 'example.com',
-          path: '/auth/refresh',
+          path: '/auth',
         }),
       );
       expect(res.redirect).toHaveBeenCalledWith('https://app.example.com');
@@ -193,7 +193,7 @@ describe('AuthController', () => {
           domain: 'example.com',
           secure: true,
           sameSite: 'lax',
-          path: '/auth/refresh',
+          path: '/auth',
         }),
       );
       expect(res.status).toHaveBeenCalledWith(401);
@@ -233,7 +233,7 @@ describe('AuthController', () => {
         'refresh_token',
         expect.objectContaining({
           domain: 'example.com',
-          path: '/auth/refresh',
+          path: '/auth',
         }),
       );
       expect(res.json).toHaveBeenCalledWith({ ok: true });
