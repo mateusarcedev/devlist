@@ -75,4 +75,6 @@ jobs:
         run: pnpm --filter @tools4tech/api build
 
       - name: Run API unit tests
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
         run: pnpm --filter @tools4tech/api test --runInBand
