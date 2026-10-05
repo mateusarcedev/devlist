@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Profile } from 'passport-github2';
+import { Strategy } from 'passport-github2';
+import type { Profile } from 'passport-github2';
 
 export interface GithubUser {
   githubId: number;
