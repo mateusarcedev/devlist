@@ -1,4 +1,4 @@
-name: Temporary Prisma 7 Upgrade
+name: Temporary Prisma 7 Validation
 
 on:
   push:
@@ -6,17 +6,16 @@ on:
       - chore/upgrade-prisma7
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  upgrade-and-validate:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
           ref: chore/upgrade-prisma7
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,30 +28,14 @@ jobs:
           version: 12.9.1
           run_install: false
 
-      - name: Install current dependencies without lifecycle scripts
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Upgrade Prisma to latest stable v7
-        run: |
-          pnpm --filter @tools4tech/api add @prisma/client@^7.10.0 @prisma/adapter-pg@^7.10.0 pg@latest --ignore-scripts
-          pnpm --filter @tools4tech/api add -D prisma@^7.10.0 @types/pg@latest --ignore-scripts
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
         run: pnpm --filter @tools4tech/api exec prisma generate
 
       - name: Validate Prisma schema
         run: pnpm --filter @tools4tech/api exec prisma validate
-
-      - name: Commit dependency updates
-        shell: bash
-        run: |
-          if ! git diff --quiet -- apps/api/package.json pnpm-lock.yaml; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/api/package.json pnpm-lock.yaml
-            git commit -m "chore(api): upgrade Prisma to v7"
-            git push origin HEAD:chore/upgrade-prisma7
-          fi
 
       - name: Build API
         run: pnpm --filter @tools4tech/api build
