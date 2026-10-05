@@ -2,11 +2,11 @@
 
 import {
   FolderHeartIcon,
-  Github,
   LogOut,
   PlusCircle,
   User2Icon,
 } from 'lucide-react'
+import { FaGithub } from 'react-icons/fa'
 import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -83,7 +83,7 @@ export default function Navbar() {
             rel='noopener noreferrer'
             className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'
           >
-            <Github className='h-5 w-5 text-white' />
+            <FaGithub className='h-5 w-5 text-white' />
             <span className='sr-only'>Github</span>
             <span className='absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-sm py-1 px-2 top-full left-1/2 transform -translate-x-1/2 mt-2'>
               Github
