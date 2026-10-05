@@ -75,4 +75,4 @@ jobs:
         run: pnpm --filter @tools4tech/api build
 
       - name: Run API unit tests
-        run: pnpm --filter @tools4tech/api test -- --runInBand
+        run: pnpm --filter @tools4tech/api test --runInBand
