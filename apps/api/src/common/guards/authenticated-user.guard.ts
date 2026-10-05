@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { verify, JwtPayload } from 'jsonwebtoken';
 import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 
