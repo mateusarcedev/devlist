@@ -1,0 +1,71 @@
+name: Temporary Web Test Bootstrap
+
+on:
+  push:
+    branches:
+      - test/web-critical-flows
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      URL_API: http://localhost:3001
+      NEXT_PUBLIC_URL_API: http://localhost:3001
+      JWT_SECRET: test-jwt-secret
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          ref: test/web-critical-flows
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.9.1
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Add frontend testing dependencies
+        run: >-
+          pnpm --filter @tools4tech/web add -D
+          vitest
+          jsdom
+          @testing-library/react
+          @testing-library/jest-dom
+          @testing-library/user-event
+
+      - name: Commit generated dependency metadata
+        run: |
+          if ! git diff --quiet -- apps/web/package.json pnpm-lock.yaml; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/web/package.json pnpm-lock.yaml
+            git commit -m "test(web): add testing dependencies [skip ci]"
+            git push origin HEAD:test/web-critical-flows
+          fi
+
+      - name: Run frontend tests
+        run: pnpm --filter @tools4tech/web test
+
+      - name: Lint web
+        run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
+
+      - name: Typecheck web
+        run: pnpm --filter @tools4tech/web typecheck
+
+      - name: Build web
+        run: pnpm --filter @tools4tech/web build
