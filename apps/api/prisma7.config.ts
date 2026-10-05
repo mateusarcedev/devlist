@@ -5,6 +5,7 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'node prisma/seed.cjs',
   },
   datasource: {
     // Prisma CLI should use the direct connection when available.
