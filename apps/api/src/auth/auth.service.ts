@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { GithubUser } from './strategies/github.strategy';
+import type { GithubUser } from './strategies/github.strategy';
 import { UserRole } from '@prisma/client';
 
 const REFRESH_TOKEN_TTL_DAYS = 7;
