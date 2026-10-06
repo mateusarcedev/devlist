@@ -1,8 +1,6 @@
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Navbar'
 import { cn } from '@/utils'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Geist_Mono, Inter } from 'next/font/google'
 import { type Metadata, type Viewport } from 'next'
 import './globals.css'
@@ -15,6 +13,7 @@ const siteDescription =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: 'Tools4.tech',
+  manifest: '/manifest.webmanifest',
   title: {
     default: 'Tools4.tech — Curated developer tools',
     template: '%s | Tools4.tech',
@@ -94,8 +93,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <Footer />
             </div>
-            <Analytics />
-            <SpeedInsights />
           </QueryProvider>
         </AuthProvider>
       </body>
