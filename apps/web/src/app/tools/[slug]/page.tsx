@@ -1,23 +1,47 @@
-import Card from '@/components/Card'
+import CategoryToolsContent from './CategoryToolsContent'
 import type { Tool } from '@/types'
+import { getApiBaseUrl } from '@/utils'
 import { type Metadata } from 'next'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const categoryName = decodeURIComponent(slug)
+
   return {
-    title: `${decodeURIComponent(slug)} tools`,
-    description: `Discover developer tools in the ${decodeURIComponent(slug)} category on Tools4.tech.`,
+    title: `${categoryName} tools`,
+    description: `Discover developer tools in the ${categoryName} category on Tools4.tech.`,
   }
 }
 
-const getToolsByCategory = async (nameCategory: string): Promise<Tool[]> => {
-  const response = await fetch(
-    `${process.env.URL_API}/tools/category/${nameCategory}`,
-    { method: 'GET' },
-  )
+interface CategoryToolsResult {
+  tools: Tool[]
+  loadError: boolean
+}
 
-  const data: Tool[] = await response.json()
-  return data
+async function getToolsByCategory(
+  categoryName: string,
+): Promise<CategoryToolsResult> {
+  try {
+    const baseUrl = getApiBaseUrl()
+    if (!baseUrl) return { tools: [], loadError: true }
+
+    const response = await fetch(
+      `${baseUrl}/tools/category/${encodeURIComponent(categoryName)}`,
+      { method: 'GET', cache: 'no-store' },
+    )
+
+    if (!response.ok) {
+      return { tools: [], loadError: true }
+    }
+
+    return {
+      tools: (await response.json()) as Tool[],
+      loadError: false,
+    }
+  } catch (error) {
+    console.error('Failed to load tools by category', error)
+    return { tools: [], loadError: true }
+  }
 }
 
 interface PageProps {
@@ -25,23 +49,14 @@ interface PageProps {
 }
 
 export default async function ToolsPage({ params }: PageProps) {
-  const nameCategory = decodeURIComponent((await params).slug)
-  const tools = await getToolsByCategory(nameCategory)
+  const categoryName = decodeURIComponent((await params).slug)
+  const result = await getToolsByCategory(categoryName)
 
   return (
-    <div className='w-4/5 mx-auto py-8'>
-      <h1 className='text-2xl font-bold mb-6 text-center'>
-        {nameCategory}
-      </h1>
-      {tools?.length > 0 ? (
-        <div className='flex flex-wrap items-center justify-center gap-6'>
-          {tools.map(tool => (
-            <Card key={tool.name} tool={tool} />
-          ))}
-        </div>
-      ) : (
-        <p className='text-center'>No tools found for this category.</p>
-      )}
-    </div>
+    <CategoryToolsContent
+      categoryName={categoryName}
+      tools={result.tools}
+      loadError={result.loadError}
+    />
   )
 }

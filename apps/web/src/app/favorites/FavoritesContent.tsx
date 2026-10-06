@@ -1,7 +1,8 @@
 'use client'
 
-import Card from '@/components/Card'
+import DirectoryToolCard from '@/components/DirectoryToolCard'
 import type { Favorite } from '@/types'
+import Link from 'next/link'
 import { useState } from 'react'
 
 interface Props {
@@ -13,35 +14,50 @@ export default function FavoritesContent({ initialFavorites }: Props) {
 
   const handleFavoriteChange = (toolId: string, isFavorite: boolean) => {
     if (!isFavorite) {
-      setFavorites(prev => prev.filter(favorite => favorite.toolId !== toolId))
+      setFavorites(previous =>
+        previous.filter(favorite => favorite.toolId !== toolId),
+      )
     }
   }
 
-  if (!favorites.length) {
-    return (
-      <div className='flex flex-col justify-center items-center h-screen'>
-        <h2 className='text-xl font-semibold mb-4'>No favorites found</h2>
-        <p className='text-gray-600'>
-          You haven&apos;t added any tools to your favorites yet.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className='w-4/5 mx-auto py-8'>
-      <h1 className='text-2xl font-bold mb-6'>My Favorites</h1>
-      <div className='grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-5 gap-5'>
-        {favorites.map(favorite => (
-          <div key={favorite.id}>
-            <Card
-              tool={favorite.tool!}
-              initialIsFavorite
-              onFavoriteChange={handleFavoriteChange}
-            />
-          </div>
-        ))}
+    <main className='dl-page'>
+      <h1 className='text-2xl font-semibold tracking-[-0.01em] text-white'>
+        My favorites
+      </h1>
+      <div className='mb-6 mt-1 text-[13px] text-subtle'>
+        {favorites.length} saved tool{favorites.length === 1 ? '' : 's'}
       </div>
-    </div>
+
+      {favorites.length === 0 ? (
+        <div className='border-t border-border px-4 py-16 text-center'>
+          <div className='mb-1.5 text-[15px] font-medium text-text'>
+            No favorites yet
+          </div>
+          <p className='mb-5 text-[13px] text-subtle'>
+            Save tools you want to come back to.
+          </p>
+          <Link
+            href='/'
+            className='inline-flex rounded-[6px] bg-white px-4 py-2 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
+          >
+            Discover tools
+          </Link>
+        </div>
+      ) : (
+        <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
+          {favorites.map(favorite =>
+            favorite.tool ? (
+              <DirectoryToolCard
+                key={favorite.id}
+                tool={favorite.tool}
+                initialIsFavorite
+                onFavoriteChange={handleFavoriteChange}
+              />
+            ) : null,
+          )}
+        </div>
+      )}
+    </main>
   )
 }
