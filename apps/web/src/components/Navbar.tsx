@@ -5,11 +5,14 @@
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { useI18n } from '@/contexts/i18n-context'
+import { useTheme } from '@/contexts/theme-context'
 import {
   Heart,
   LogOut,
   Menu,
+  Moon,
   Plus,
+  Sun,
   UserRound,
   Users,
   X,
@@ -34,6 +37,7 @@ interface SubmitResult {
 export default function Navbar() {
   const { user, loading, logout } = useAuth()
   const { locale, setLocale, t } = useI18n()
+  const { theme, toggleTheme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -158,6 +162,9 @@ export default function Navbar() {
           </div>
 
           <div className='hidden items-center gap-2 tablet:flex'>
+            <button type='button' onClick={toggleTheme} aria-label={theme === 'dark' ? t('lightTheme') : t('darkTheme')} title={theme === 'dark' ? t('lightTheme') : t('darkTheme')} className='flex h-9 w-9 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-surface-hover hover:text-text'>
+              {theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+            </button>
             <button type='button' onClick={() => setLocale(locale === 'en' ? 'pt-BR' : 'en')} aria-label={t('language')} className='rounded-[6px] px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-surface-hover hover:text-text'>{locale === 'en' ? 'PT' : 'EN'}</button>
             <Link
               href='https://github.com/mateusarcedev/devlist'
@@ -328,6 +335,10 @@ export default function Navbar() {
                 </Link>
               )}
 
+              <button type='button' onClick={toggleTheme} className='flex items-center gap-2 rounded-[6px] px-2 py-3 text-left text-[15px] font-medium text-text hover:bg-surface-hover'>
+                {theme === 'dark' ? <Sun className='h-4 w-4 text-subtle' /> : <Moon className='h-4 w-4 text-subtle' />}
+                {theme === 'dark' ? t('lightTheme') : t('darkTheme')}
+              </button>
               <button type='button' onClick={() => setLocale(locale === 'en' ? 'pt-BR' : 'en')} className='rounded-[6px] px-2 py-3 text-left text-[15px] font-medium text-text hover:bg-surface-hover'>{t('language')}: {locale === 'en' ? 'Português' : 'English'}</button>
 
               <div className='my-2 h-px bg-border' />
