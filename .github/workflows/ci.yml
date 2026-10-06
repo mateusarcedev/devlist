@@ -40,6 +40,9 @@ jobs:
       CI: true
       NODE_ENV: test
       PORT: 3001
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist
+      POSTGRES_DB: devlist
       DATABASE_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
       DIRECT_URL: postgresql://devlist:devlist@localhost:5432/devlist?schema=public
       JWT_SECRET: ci-jwt-secret
@@ -49,6 +52,13 @@ jobs:
       FRONTEND_URL: http://localhost:3000
       URL_API: http://localhost:3001
       NEXT_PUBLIC_URL_API: http://localhost:3001
+      COOKIE_DOMAIN: localhost
+      ROOT_DOMAIN: localhost
+      WEB_DOMAIN: www.localhost
+      API_DOMAIN: api.localhost
+      ACME_EMAIL: ci@example.invalid
+      IMAGE_REGISTRY: ghcr.io/mateusarcedev
+      IMAGE_TAG: ci
       NEXT_TELEMETRY_DISABLED: 1
 
     steps:
@@ -70,6 +80,20 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Validate production Compose
+        run: docker compose config --quiet
+
+      - name: Validate Caddyfile
+        run: >-
+          docker run --rm
+          -e ACME_EMAIL=ci@example.invalid
+          -e ROOT_DOMAIN=tools4.tech
+          -e WEB_DOMAIN=www.tools4.tech
+          -e API_DOMAIN=api.tools4.tech
+          -v "$PWD/ops/Caddyfile:/etc/caddy/Caddyfile:ro"
+          caddy:2.11.6-alpine
+          caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 
       - name: Apply database migrations
         run: pnpm --filter @tools4tech/api exec prisma migrate deploy
