@@ -20,4 +20,4 @@ fi
 echo "Rolling application images back to: $ROLLBACK_TAG"
 echo "Database restore is NOT automatic. See docs/deployment.md for migration caveats."
 
-SKIP_BACKUP=1 ./ops/deploy.sh "$ROLLBACK_TAG"
+SKIP_BACKUP=1 sh ./ops/deploy.sh "$ROLLBACK_TAG"
