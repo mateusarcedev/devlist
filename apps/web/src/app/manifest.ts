@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Tools4.tech — Curated developer tools',
-    short_name: 'Tools4.tech',
+    name: 'Devlist — Curated developer tools',
+    short_name: 'Devlist',
     description:
       'Discover, save, and suggest useful developer tools in a community-driven catalog.',
     start_url: '/',
