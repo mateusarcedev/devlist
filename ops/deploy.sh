@@ -46,7 +46,7 @@ do
 done
 
 if [ "${SKIP_BACKUP:-0}" != "1" ]; then
-  ./ops/backup-postgres.sh >/dev/null
+  sh ./ops/backup-postgres.sh >/dev/null
 fi
 
 echo "Applying database migrations..."
