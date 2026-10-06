@@ -211,6 +211,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      dotenv:
+        specifier: ^18.0.5
+        version: 18.0.5
       express:
         specifier: ^5.2.1
         version: 5.2.1(supports-color@11.0.0)
