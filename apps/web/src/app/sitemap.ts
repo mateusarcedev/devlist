@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.tools4.tech'
+  const baseUrl = 'https://devlist.mateusarce.dev'
 
   return [
     {
