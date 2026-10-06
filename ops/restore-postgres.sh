@@ -25,9 +25,15 @@ set -a
 . ./.env
 set +a
 
+echo "Stopping public application services before restore..."
+docker compose stop caddy web api
+
 echo "Restoring PostgreSQL from: $BACKUP_FILE"
 echo "Existing database objects may be replaced."
 
 docker compose exec -T postgres   pg_restore   --clean   --if-exists   --no-owner   --no-privileges   --username "$POSTGRES_USER"   --dbname "$POSTGRES_DB"   < "$BACKUP_FILE"
 
 echo "Restore completed."
+echo "Application services remain stopped intentionally."
+echo "Deploy a database-compatible application tag with:"
+echo "  sh ./ops/deploy.sh <git-sha-or-image-tag>"
