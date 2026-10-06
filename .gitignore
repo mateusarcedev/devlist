@@ -50,3 +50,7 @@ Thumbs.db
 
 # Superpowers plugin generated docs
 docs/superpowers/
+
+# Production operations
+backups/
+.deploy/

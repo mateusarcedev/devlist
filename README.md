@@ -191,18 +191,28 @@ Every pull request to `main` is validated by the GitHub Actions **Quality Gate**
 
 ## Production topology
 
-The production Docker Compose stack includes PostgreSQL, a migration job, an optional demo seed profile, the API with readiness health checks, and the web app gated on API health.
+The self-hosted production stack is now defined in the repository:
 
-The production auth topology uses sibling HTTPS hosts under the same parent domain:
+- Caddy 2.11.6 as the only public entry point on ports 80/443;
+- automatic HTTPS for `tools4.tech`, `www.tools4.tech`, and `api.tools4.tech`;
+- web and API on private Docker networks;
+- PostgreSQL isolated from the public host network;
+- immutable API/migrator/web images published to GHCR after `main` passes CI;
+- deploy by full Git SHA;
+- PostgreSQL backup/guarded restore;
+- application image rollback;
+- public smoke checks after deploy.
+
+Production URLs:
 
 ```text
 https://www.tools4.tech
 https://api.tools4.tech
 ```
 
-The stack is prepared to run behind a reverse proxy / TLS terminator. See [`.env.example`](./.env.example) for the complete production environment contract.
+See [`docs/deployment.md`](./docs/deployment.md) for DNS, GitHub OAuth, VPS setup, deploy, backup, restore, rollback, and smoke-test procedures.
 
-The application is currently in the **pre-production deployment phase**. VPS provisioning, reverse proxy, DNS, TLS, OAuth production configuration, backups, rollback, and operational documentation are the final delivery steps.
+The infrastructure is **deployment-ready but not claimed as live yet**. The remaining operational step is provisioning/configuring the actual VPS and executing the runbook.
 
 ## Open source
 
