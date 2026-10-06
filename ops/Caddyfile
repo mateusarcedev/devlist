@@ -1,0 +1,28 @@
+{
+	email {$ACME_EMAIL}
+}
+
+(common) {
+	encode zstd gzip
+
+	header {
+		-Server
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+}
+
+{$ROOT_DOMAIN} {
+	redir https://{$WEB_DOMAIN}{uri} permanent
+}
+
+{$WEB_DOMAIN} {
+	import common
+	reverse_proxy web:3000
+}
+
+{$API_DOMAIN} {
+	import common
+	reverse_proxy api:3001
+}
