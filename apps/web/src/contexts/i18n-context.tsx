@@ -31,7 +31,7 @@ const messages = {
 
 type MessageKey = keyof typeof messages.en
 interface I18nValue { locale: Locale; setLocale: (locale: Locale) => void; t: (key: MessageKey) => string }
-const I18nContext = createContext<I18nValue | null>(null)
+const I18nContext = createContext<I18nValue>({ locale: 'en', setLocale: () => undefined, t: key => messages.en[key] })
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en')
@@ -61,6 +61,5 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
 export function useI18n() {
   const context = useContext(I18nContext)
-  if (!context) throw new Error('useI18n must be used inside I18nProvider')
   return context
 }
