@@ -46,7 +46,7 @@ vi.mock('../src/components/DirectoryToolCard', () => ({
 const favorites = [
   {
     id: 'fav-1',
-    userId: 1,
+    userId: '1',
     toolId: 'tool-react',
     tool: {
       id: 'tool-react',
@@ -58,7 +58,7 @@ const favorites = [
   },
   {
     id: 'fav-2',
-    userId: 1,
+    userId: '1',
     toolId: 'tool-playwright',
     tool: {
       id: 'tool-playwright',
