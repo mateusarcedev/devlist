@@ -1,129 +1,165 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides repository-specific guidance for coding agents working on **Tools4.tech**.
 
-## Project Overview
+## Project overview
 
-Tools4.tech is a full-stack monorepo for a developer tools discovery platform with GitHub OAuth, user favorites, and community tool suggestions.
+Tools4.tech is a full-stack monorepo for a community-driven developer tools catalog with GitHub OAuth, favorites, suggestions, and admin-managed tools/categories.
 
-- **`apps/api`** — NestJS 12 backend (TypeScript, Prisma 7 + PostgreSQL)
-- **`apps/web`** — Next.js 16 frontend (React 19, TanStack Query)
+- `apps/api` — NestJS 12, Prisma 7, PostgreSQL 16
+- `apps/web` — Next.js 16, React 19, Tailwind CSS 4, TanStack Query
+- package manager — pnpm 12
+- runtime — Node.js 24
+- orchestration — Turborepo + Docker Compose
+
+The repository is named `devlist` for historical reasons. Public product branding is **Tools4.tech**.
 
 ## Commands
 
-### API (backend)
+Run commands from the repository root unless noted otherwise.
+
+### Monorepo
 
 ```bash
-cd api
-npm install
-npm run dev          # dev server with watch mode
-npm run build
-npm run start:prod
-npm run test         # unit tests (Jest)
-npm run test:watch
-npm run test:cov
-npm run test:e2e
-npm run lint
-npm run format
-```
-
-Run a single test file:
-```bash
-cd api && npx jest src/favorites/favorites.controller.spec.ts
-```
-
-### Web (frontend)
-
-```bash
-cd web
-pnpm install
-pnpm dev             # Next.js with Turbo
+pnpm install --frozen-lockfile
+pnpm dev
 pnpm build
 pnpm lint
 ```
 
-### Database
+### API
 
 ```bash
-# From repo root — starts postgres, api, and web (requires Infisical)
-infisical run -- docker compose up -d
+pnpm --filter @tools4tech/api dev
+pnpm --filter @tools4tech/api build
+pnpm --filter @tools4tech/api lint
+pnpm --filter @tools4tech/api test --runInBand
+pnpm --filter @tools4tech/api test:e2e
+pnpm --filter @tools4tech/api test:cov
+pnpm --filter @tools4tech/api seed:demo
+```
 
-# Migrations (run from api/ with production DATABASE_URL in Infisical)
-cd api && infisical run -- npx prisma migrate deploy
+### Web
 
-# Visual DB explorer (requires DATABASE_URL in local .env)
-cd api && npx prisma studio
+```bash
+pnpm --filter @tools4tech/web dev
+pnpm --filter @tools4tech/web build
+pnpm --filter @tools4tech/web lint
+pnpm --filter @tools4tech/web test
+pnpm --filter @tools4tech/web test:watch
+pnpm --filter @tools4tech/web typecheck
+```
+
+### Local PostgreSQL
+
+```bash
+docker compose -f docker-compose.dev.yml up -d postgres
+pnpm --filter @tools4tech/api exec prisma migrate deploy
 ```
 
 ## Architecture
 
-### Authentication Flow
+### Authentication
 
-1. User starts GitHub OAuth through the Nest API at `/auth/github`
-2. `passport-github2` handles the callback at `/auth/callback/github`
-3. The API upserts the GitHub user and issues an access JWT plus a rotating refresh token
-4. In production, frontend and API use sibling hosts (for example `yourdomain.com` and `api.yourdomain.com`)
-5. The API sets `access_token` as HTTP-only with `Domain=COOKIE_DOMAIN`, `Secure`, and `SameSite=Lax`, so frontend SSR can read the session while JavaScript cannot
-6. The `refresh_token` stays host-only on the API and is scoped to `/auth`, so it is available to refresh and logout but is never shared with the frontend host
-7. `AuthenticatedUserGuard` validates access JWTs using the single canonical `JWT_SECRET`
-8. Refresh token hashes are persisted in PostgreSQL and rotated by `/auth/refresh`
+1. The user starts GitHub OAuth at `/auth/github` on the NestJS API.
+2. `passport-github2` handles `/auth/callback/github`.
+3. The API upserts the GitHub user.
+4. The API issues a signed access JWT and rotating refresh token.
+5. In production, web and API use sibling HTTPS hosts.
+6. `access_token` is HTTP-only and may use `Domain=COOKIE_DOMAIN` so frontend SSR can read it.
+7. `refresh_token` stays host-only on the API and is scoped to `/auth`.
+8. `AuthenticatedUserGuard` validates identity.
+9. `AdminGuard` checks the current user role from PostgreSQL before catalog mutations.
 
-### API Module Structure
+Do not reintroduce NextAuth; the current auth flow is owned by the NestJS API.
 
-NestJS follows a strict layered pattern: **Controller → Service → PrismaService**. Each feature module lives in its own directory under `/api/src/`:
+### API
 
-| Module | Key notes |
-|--------|-----------|
-| `tools` | CRUD + filter by category |
-| `categories` | Basic CRUD |
-| `users` | Upsert on GitHub login (githubId is PK) |
-| `favorites` | Toggle endpoint with atomic/concurrency-safe execution |
-| `suggestions` | User-submitted tools; statuses: PENDING / APPROVED / REJECTED |
-| `prisma` | Shared `PrismaService` injected into all modules |
+Feature modules follow Controller → Service → PrismaService.
 
-Global rate limiting: 10 requests per 60 seconds (`@nestjs/throttler`).
-Swagger UI: `http://localhost:3001/api`
+Key modules:
 
-### Frontend Architecture
+- tools
+- categories
+- users
+- favorites
+- suggestions
+- auth
+- health
+- prisma
 
-- **App Router** with Server Components by default; interactive parts use `"use client"`
-- **TanStack React Query** manages all server state (tools, favorites, suggestions)
-- **Axios** instance configured in `/web/src/utils/` with base URL and auth headers
-- **NextAuth session** provides user identity; middleware protects auth-required routes
-- Categories are static JSON (`/web/src/data/categories.json`)
+Public reads for tools/categories remain public. Catalog writes require ADMIN authorization.
 
-## Environment Variables
+Swagger: `http://localhost:3001/api`
 
-The canonical Docker Compose contract is documented in the root `.env.example`.
+Health:
 
-**API local development (`apps/api/.env`):**
-```
+- `GET /health/live`
+- `GET /health/ready`
+
+### Web
+
+- App Router
+- Server Components by default
+- client components only where interaction is required
+- TanStack Query for client-side server state
+- Axios for browser API calls
+- HTTP-only auth cookie; no JavaScript-readable access token
+- Vitest + Testing Library for frontend tests
+
+## Environment
+
+Canonical production contract: root `.env.example`.
+
+Local API:
+
+```dotenv
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=
-DIRECT_URL=
+DATABASE_URL=postgresql://devlist:devlist@localhost:5432/devlist?schema=public
+DIRECT_URL=postgresql://devlist:devlist@localhost:5432/devlist?schema=public
 JWT_SECRET=
 GITHUB_ID=
 GITHUB_SECRET=
 API_URL=http://localhost:3001
 FRONTEND_URL=http://localhost:3000
-# COOKIE_DOMAIN is intentionally unset on localhost
 ```
 
-**Web local development (`apps/web/.env.local`):**
-```
+Local web:
+
+```dotenv
 URL_API=http://localhost:3001
 NEXT_PUBLIC_URL_API=http://localhost:3001
-JWT_SECRET=          # must exactly match the API JWT_SECRET
-GITHUB_TOKEN=        # optional, for contributor stats
+JWT_SECRET=
+GITHUB_TOKEN=
 ```
 
-Production startup validates the API environment before Nest initializes. `JWT_SECRET`, GitHub OAuth credentials, database URL, public API/frontend URLs, and `COOKIE_DOMAIN` are required. Production `API_URL` and `FRONTEND_URL` must use HTTPS and must be distinct sibling hosts covered by `COOKIE_DOMAIN`.
+`JWT_SECRET` must match between API and web.
 
-## Data Model (Prisma)
+## CI expectations
 
-- `Tool` — name, link (unique), description, categoryId
-- `Category` — name (unique)
-- `User` — githubId (PK), name, email, avatar, role (USER/ADMIN)
-- `Favorite` — userId + toolId (composite unique)
-- `Suggestion` — links a user to a proposed tool, with status lifecycle
+Every PR to `main` must preserve the Quality Gate:
+
+- PostgreSQL migrations
+- API lint/build/unit/E2E
+- web lint/tests/typecheck/build
+
+Do not weaken a failing gate to make a PR pass; fix the underlying issue.
+
+## Data model
+
+- `Tool`
+- `Category`
+- `User` with `USER | ADMIN`
+- `Favorite`
+- `Suggestion`
+- persisted refresh tokens
+
+## Production assumptions
+
+Production URLs must be HTTPS sibling hosts covered by `COOKIE_DOMAIN`, for example:
+
+- `https://www.tools4.tech`
+- `https://api.tools4.tech`
+
+The Docker stack is intended to run behind a reverse proxy/TLS terminator.
