@@ -46,11 +46,6 @@ export default function Navbar() {
   const isContributors = pathname === '/contributors'
 
   useEffect(() => {
-    setMobileMenuOpen(false)
-    setUserMenuOpen(false)
-  }, [pathname])
-
-  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false)
@@ -69,6 +64,7 @@ export default function Navbar() {
   const handleFavoritesClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setMobileMenuOpen(false)
+    setUserMenuOpen(false)
 
     if (!user) {
       showToast('Log in to access your favorites!', 'warning')
@@ -129,6 +125,7 @@ export default function Navbar() {
             <div className='hidden items-center gap-1 tablet:flex'>
               <Link
                 href='/'
+                onClick={() => setUserMenuOpen(false)}
                 aria-current={isDiscover ? 'page' : undefined}
                 className={`rounded-[6px] px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-hover ${
                   isDiscover ? 'bg-surface-hover text-text' : 'text-muted hover:text-text'
@@ -147,6 +144,7 @@ export default function Navbar() {
               </button>
               <Link
                 href='/contributors'
+                onClick={() => setUserMenuOpen(false)}
                 aria-current={isContributors ? 'page' : undefined}
                 className={`rounded-[6px] px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-hover ${
                   isContributors ? 'bg-surface-hover text-text' : 'text-muted hover:text-text'
