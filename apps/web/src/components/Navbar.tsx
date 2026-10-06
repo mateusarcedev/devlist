@@ -4,6 +4,7 @@
 
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { useI18n } from '@/contexts/i18n-context'
 import {
   Heart,
   LogOut,
@@ -32,6 +33,7 @@ interface SubmitResult {
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth()
+  const { locale, setLocale, t } = useI18n()
   const pathname = usePathname()
   const router = useRouter()
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -67,7 +69,7 @@ export default function Navbar() {
     setUserMenuOpen(false)
 
     if (!user) {
-      showToast('Log in to access your favorites!', 'warning')
+      showToast(t('loginFavorites'), 'warning')
       return
     }
 
@@ -81,12 +83,12 @@ export default function Navbar() {
 
   const handleModalSubmit = (result: SubmitResult) => {
     if (result.status === 'success') {
-      showToast('Suggestion sent successfully!', 'success')
+      showToast(t('suggestionSent'), 'success')
       return
     }
 
     showToast(
-      result.message ?? 'Error sending suggestion. Please try again.',
+      result.message ?? t('suggestionError'),
       'error',
     )
   }
@@ -156,11 +158,12 @@ export default function Navbar() {
           </div>
 
           <div className='hidden items-center gap-2 tablet:flex'>
+            <button type='button' onClick={() => setLocale(locale === 'en' ? 'pt-BR' : 'en')} aria-label={t('language')} className='rounded-[6px] px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-surface-hover hover:text-text'>{locale === 'en' ? 'PT' : 'EN'}</button>
             <Link
               href='https://github.com/mateusarcedev/devlist'
               target='_blank'
               rel='noopener noreferrer'
-              aria-label='GitHub repository'
+              aria-label={t('repository')}
               className='flex h-9 w-9 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-surface-hover hover:text-text'
             >
               <FaGithub className='h-[18px] w-[18px]' />
@@ -176,7 +179,7 @@ export default function Navbar() {
                 <button
                   type='button'
                   onClick={() => setUserMenuOpen(open => !open)}
-                  aria-label='Account menu'
+                  aria-label={t('accountMenu')}
                   aria-expanded={userMenuOpen}
                   aria-haspopup='menu'
                   className='flex h-[34px] w-[34px] items-center justify-center overflow-hidden rounded-full border border-border-strong bg-surface text-xs font-semibold text-text transition-colors hover:border-zinc-600'
@@ -198,7 +201,7 @@ export default function Navbar() {
                         {user.name}
                       </div>
                       <div className='mt-0.5 font-mono text-[11px] text-subtle'>
-                        {user.role === 'ADMIN' ? 'Administrator' : 'Member'}
+                        {user.role === 'ADMIN' ? t('administrator') : t('member')}
                       </div>
                     </div>
 
@@ -242,7 +245,7 @@ export default function Navbar() {
           <button
             type='button'
             onClick={() => setMobileMenuOpen(open => !open)}
-            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-label={mobileMenuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileMenuOpen}
             aria-controls='mobile-navigation'
             className='flex h-9 w-9 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-surface-hover hover:text-text tablet:hidden'
@@ -324,6 +327,8 @@ export default function Navbar() {
                   Add a tool (admin)
                 </Link>
               )}
+
+              <button type='button' onClick={() => setLocale(locale === 'en' ? 'pt-BR' : 'en')} className='rounded-[6px] px-2 py-3 text-left text-[15px] font-medium text-text hover:bg-surface-hover'>{t('language')}: {locale === 'en' ? 'Português' : 'English'}</button>
 
               <div className='my-2 h-px bg-border' />
 

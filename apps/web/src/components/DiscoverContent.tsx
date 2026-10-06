@@ -2,6 +2,7 @@
 
 import DirectoryToolCard from '@/components/DirectoryToolCard'
 import type { Category, Tool } from '@/types'
+import { useI18n } from '@/contexts/i18n-context'
 import { Search, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -19,6 +20,7 @@ export default function DiscoverContent({
   categories,
   loadError = false,
 }: Props) {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const router = useRouter()
@@ -59,7 +61,7 @@ export default function DiscoverContent({
 
   const resultsLabel =
     activeCategory === 'all' && !query.trim()
-      ? 'All tools'
+      ? t('allTools')
       : `${visibleTools.length} result${visibleTools.length === 1 ? '' : 's'}`
 
   return (
@@ -81,8 +83,8 @@ export default function DiscoverContent({
               type='search'
               value={query}
               onChange={event => setQuery(event.target.value)}
-              placeholder='Search tools, categories, technologies...'
-              aria-label='Search tools'
+              placeholder={t('searchTools')}
+              aria-label={t('searchTools')}
               className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
             />
           </div>
