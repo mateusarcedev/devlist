@@ -81,9 +81,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <AuthProvider>
           <QueryProvider>
+            <a
+              href='#main-content'
+              className='fixed left-4 top-4 z-[300] -translate-y-24 rounded-[6px] bg-white px-3 py-2 text-sm font-medium text-black transition-transform focus:translate-y-0'
+            >
+              Skip to content
+            </a>
             <div className='flex min-h-screen flex-col'>
               <Navbar />
-              <div className='flex-1'>{children}</div>
+              <div id='main-content' tabIndex={-1} className='flex-1 outline-none'>
+                {children}
+              </div>
               <Footer />
             </div>
             <Analytics />
