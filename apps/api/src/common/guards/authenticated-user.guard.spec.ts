@@ -26,7 +26,7 @@ describe('AuthenticatedUserGuard', () => {
     delete process.env.JWT_SECRET;
   });
 
-  describe('Bearer header auth (legacy)', () => {
+  describe('Bearer header auth', () => {
     it('should authenticate via Authorization: Bearer header with sub claim', () => {
       const token = makeToken({ sub: 42 });
       const req: any = { cookies: {}, headers: { authorization: `Bearer ${token}` } };
