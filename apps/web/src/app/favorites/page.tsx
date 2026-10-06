@@ -1,9 +1,10 @@
+import FavoritesAccessState from './FavoritesAccessState'
+import FavoritesContent from './FavoritesContent'
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import { getApiBaseUrl } from '@/utils'
 import type { Favorite } from '@/types'
 import { type Metadata } from 'next'
-import FavoritesContent from './FavoritesContent'
 
 export const metadata: Metadata = {
   title: 'Favorites',
@@ -15,21 +16,32 @@ async function getUserIdFromToken(token: string): Promise<number | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     const sub = payload.sub
+
     if (typeof sub === 'number') return sub
+
     if (typeof sub === 'string') {
       const parsed = parseInt(sub, 10)
       return isNaN(parsed) ? null : parsed
     }
+
     return null
   } catch {
     return null
   }
 }
 
-async function getFavorites(userId: number, token: string): Promise<Favorite[]> {
+type FavoritesLoadResult =
+  | { status: 'ok'; favorites: Favorite[] }
+  | { status: 'invalid-session' }
+  | { status: 'error' }
+
+async function getFavorites(
+  userId: number,
+  token: string,
+): Promise<FavoritesLoadResult> {
   try {
     const baseUrl = getApiBaseUrl()
-    if (!baseUrl) return []
+    if (!baseUrl) return { status: 'error' }
 
     const response = await fetch(`${baseUrl}/favorites/user/${userId}`, {
       method: 'GET',
@@ -39,12 +51,20 @@ async function getFavorites(userId: number, token: string): Promise<Favorite[]> 
       },
     })
 
-    if (!response.ok) return []
+    if (response.status === 401 || response.status === 403) {
+      return { status: 'invalid-session' }
+    }
 
-    const data: Favorite[] = await response.json()
-    return data
+    if (!response.ok) {
+      return { status: 'error' }
+    }
+
+    return {
+      status: 'ok',
+      favorites: (await response.json()) as Favorite[],
+    }
   } catch {
-    return []
+    return { status: 'error' }
   }
 }
 
@@ -53,28 +73,24 @@ export default async function Favorites() {
   const token = cookieStore.get('access_token')?.value
 
   if (!token) {
-    return (
-      <div className='flex flex-col justify-center items-center h-screen'>
-        <h2 className='text-xl font-semibold mb-4'>You need to sign in first!</h2>
-        <p className='text-gray-600'>Please log in to view your favorites.</p>
-      </div>
-    )
+    return <FavoritesAccessState state='signed-out' />
   }
 
   const userId = await getUserIdFromToken(token)
 
   if (!userId) {
-    return (
-      <div className='flex flex-col justify-center items-center h-screen'>
-        <h2 className='text-xl font-semibold mb-4'>
-          We couldn&apos;t load your favorites
-        </h2>
-        <p className='text-gray-600'>Try signing out and back in again.</p>
-      </div>
-    )
+    return <FavoritesAccessState state='invalid-session' />
   }
 
-  const favorites = await getFavorites(userId, token)
+  const result = await getFavorites(userId, token)
 
-  return <FavoritesContent initialFavorites={favorites} />
+  if (result.status === 'invalid-session') {
+    return <FavoritesAccessState state='invalid-session' />
+  }
+
+  if (result.status === 'error') {
+    return <FavoritesAccessState state='load-error' />
+  }
+
+  return <FavoritesContent initialFavorites={result.favorites} />
 }
