@@ -207,6 +207,7 @@ export default function Navbar() {
                     {user.role === 'ADMIN' && (
                       <Link
                         href='/admin/addtools'
+                        role='menuitem'
                         onClick={() => setUserMenuOpen(false)}
                         className='block rounded-[6px] px-2.5 py-2 text-[13px] text-text transition-colors hover:bg-border'
                       >
@@ -216,6 +217,7 @@ export default function Navbar() {
 
                     <button
                       type='button'
+                      role='menuitem'
                       onClick={handleLogout}
                       className='flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-left text-[13px] text-text transition-colors hover:bg-border'
                     >
@@ -226,14 +228,14 @@ export default function Navbar() {
                 )}
               </div>
             ) : !loading ? (
-              <a
-                href={`${process.env.NEXT_PUBLIC_URL_API}/auth/github`}
-                aria-label='Log in with GitHub'
+              <Link
+                href='/login'
+                aria-label='Sign in'
                 className='inline-flex h-8 items-center gap-2 rounded-[6px] bg-white px-3 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
               >
                 <UserRound className='h-3.5 w-3.5' />
                 Sign in
-              </a>
+              </Link>
             ) : (
               <div className='h-[34px] w-[34px] animate-pulse rounded-full border border-border bg-surface' />
             )}
@@ -337,12 +339,13 @@ export default function Navbar() {
                   Sign out ({user.name})
                 </button>
               ) : !loading ? (
-                <a
-                  href={`${process.env.NEXT_PUBLIC_URL_API}/auth/github`}
+                <Link
+                  href='/login'
+                  onClick={() => setMobileMenuOpen(false)}
                   className='rounded-[6px] px-2 py-3 text-[15px] font-semibold text-white hover:bg-surface-hover'
                 >
-                  Sign in with GitHub
-                </a>
+                  Sign in
+                </Link>
               ) : null}
             </div>
           </div>
