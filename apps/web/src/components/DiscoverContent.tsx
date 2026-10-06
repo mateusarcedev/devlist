@@ -74,86 +74,91 @@ export default function DiscoverContent({
         </p>
       </div>
 
-      <div className='relative mb-4'>
-        <Search className='pointer-events-none absolute left-3.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-faint' />
-        <input
-          type='search'
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          placeholder='Search tools, categories, technologies...'
-          aria-label='Search tools'
-          className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
-        />
-      </div>
-
-      <div className='mb-7 flex flex-wrap gap-2'>
-        <button
-          type='button'
-          onClick={() => setActiveCategory('all')}
-          aria-pressed={activeCategory === 'all'}
-          className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
-            activeCategory === 'all'
-              ? 'border-white bg-white text-black'
-              : 'border-border-strong bg-transparent text-muted hover:border-zinc-600 hover:text-text'
-          }`}
-        >
-          All
-        </button>
-
-        {categories.map(category => (
+      {!loadError && (
+        <>
+        <div className='relative mb-4'>
+          <Search className='pointer-events-none absolute left-3.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-faint' />
+          <input
+            type='search'
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder='Search tools, categories, technologies...'
+            aria-label='Search tools'
+            className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
+          />
+        </div>
+  
+        <div className='mb-7 flex flex-wrap gap-2'>
           <button
             type='button'
-            key={category.id}
-            onClick={() => setActiveCategory(category.id)}
-            aria-pressed={activeCategory === category.id}
+            onClick={() => setActiveCategory('all')}
+            aria-pressed={activeCategory === 'all'}
             className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
-              activeCategory === category.id
+              activeCategory === 'all'
                 ? 'border-white bg-white text-black'
                 : 'border-border-strong bg-transparent text-muted hover:border-zinc-600 hover:text-text'
             }`}
           >
-            {category.name}
+            All
           </button>
-        ))}
-      </div>
-
-      {selectedCategory && (
-        <Link
-          href={`/tools/${encodeURIComponent(selectedCategory.name)}`}
-          className='mb-6 -mt-3 inline-flex text-[12.5px] text-subtle transition-colors hover:text-text'
-        >
-          View {selectedCategory.name} as a full category page →
-        </Link>
-      )}
-
-      <section className='mb-8 flex flex-wrap items-center gap-x-7 gap-y-4 rounded-[10px] border border-border px-5 py-4'>
-        <div className='min-w-[180px] flex-1'>
-          <div className='mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-accent'>
-            Community maintained
-          </div>
-          <div className='text-[13px] text-muted'>
-            Built and maintained with contributions from developers.
-          </div>
+  
+          {categories.map(category => (
+            <button
+              type='button'
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              aria-pressed={activeCategory === category.id}
+              className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
+                activeCategory === category.id
+                  ? 'border-white bg-white text-black'
+                  : 'border-border-strong bg-transparent text-muted hover:border-zinc-600 hover:text-text'
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
         </div>
-
-        <Link
-          href='https://github.com/mateusarcedev/devlist'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
-        >
-          <FaGithub className='h-[15px] w-[15px]' />
-          GitHub repository →
-        </Link>
-
-        <Link
-          href='/contributors'
-          className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
-        >
-          <Users className='h-[15px] w-[15px]' />
-          Contributors →
-        </Link>
-      </section>
+  
+        {selectedCategory && (
+          <Link
+            href={`/tools/${encodeURIComponent(selectedCategory.name)}`}
+            className='mb-6 -mt-3 inline-flex text-[12.5px] text-subtle transition-colors hover:text-text'
+          >
+            View {selectedCategory.name} as a full category page →
+          </Link>
+        )}
+  
+        <section className='mb-8 flex flex-wrap items-center gap-x-7 gap-y-4 rounded-[10px] border border-border px-5 py-4'>
+          <div className='min-w-[180px] flex-1'>
+            <div className='mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-accent'>
+              Community maintained
+            </div>
+            <div className='text-[13px] text-muted'>
+              Built and maintained with contributions from developers.
+            </div>
+          </div>
+  
+          <Link
+            href='https://github.com/mateusarcedev/devlist'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
+          >
+            <FaGithub className='h-[15px] w-[15px]' />
+            GitHub repository →
+          </Link>
+  
+          <Link
+            href='/contributors'
+            className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
+          >
+            <Users className='h-[15px] w-[15px]' />
+            Contributors →
+          </Link>
+        </section>
+  
+        </>
+      )}
 
       {loadError ? (
         <div className='border-t border-border px-4 py-16 text-center'>
