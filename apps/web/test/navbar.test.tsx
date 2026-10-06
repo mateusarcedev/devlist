@@ -55,12 +55,12 @@ describe('Navbar', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('links anonymous users to GitHub OAuth on the API host', () => {
+  it('routes anonymous users through the redesigned login page', () => {
     render(<Navbar />)
 
-    expect(screen.getByRole('link', { name: /Log in with GitHub/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
       'href',
-      'https://api.tools4.tech/auth/github',
+      '/login',
     )
   })
 
