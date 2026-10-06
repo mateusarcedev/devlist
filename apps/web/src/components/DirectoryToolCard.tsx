@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Tool favicons are remote site assets and intentionally remain unoptimized. */
 
 import { useFavoriteToggle } from '@/hooks/useFavoriteToggle'
-import type { Tool } from '@/types'
+import type { OnFavoriteChange, Tool } from '@/types'
 import { withReferral } from '@/lib/tool-url'
 import { ExternalLink, Heart } from 'lucide-react'
 import { Toast } from './Toast'
@@ -11,6 +11,8 @@ import { Toast } from './Toast'
 interface Props {
   tool: Tool
   categoryName?: string
+  initialIsFavorite?: boolean
+  onFavoriteChange?: OnFavoriteChange
 }
 
 function domainOf(link: string) {
@@ -21,9 +23,14 @@ function domainOf(link: string) {
   }
 }
 
-export default function DirectoryToolCard({ tool, categoryName }: Props) {
+export default function DirectoryToolCard({
+  tool,
+  categoryName,
+  initialIsFavorite = false,
+  onFavoriteChange,
+}: Props) {
   const { isFavorite, toast, setToast, toggle, isAuthLoading } =
-    useFavoriteToggle(tool)
+    useFavoriteToggle(tool, initialIsFavorite)
 
   const domain = domainOf(tool.link)
   const tags = categoryName ? [categoryName] : []
@@ -34,7 +41,7 @@ export default function DirectoryToolCard({ tool, categoryName }: Props) {
   ) => {
     event.preventDefault()
     event.stopPropagation()
-    await toggle()
+    await toggle(onFavoriteChange)
   }
 
   return (
