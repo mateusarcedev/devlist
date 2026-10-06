@@ -106,6 +106,37 @@ describe('Navbar', () => {
     expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
   })
 
+  it('marks the current navigation item as active', () => {
+    pathname = '/contributors'
+
+    render(<Navbar />)
+
+    expect(screen.getByRole('link', { name: 'Contributors' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('link', { name: 'Discover' })).not.toHaveAttribute(
+      'aria-current',
+    )
+  })
+
+  it('closes the mobile menu with Escape', () => {
+    render(<Navbar />)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open navigation menu' }),
+    )
+    expect(
+      screen.getByRole('button', { name: 'Close navigation menu' }),
+    ).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(
+      screen.getByRole('button', { name: 'Open navigation menu' }),
+    ).toHaveAttribute('aria-expanded', 'false')
+  })
+
   it('shows the minimal brand header on the login page', () => {
     pathname = '/login'
 
