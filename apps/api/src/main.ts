@@ -23,9 +23,9 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   const config = new DocumentBuilder()
-    .setTitle('Tools4.tech API')
+    .setTitle('Devlist API')
     .setDescription(
-      'API for Tools4.tech, a community-driven developer tools catalog with GitHub authentication, favorites, suggestions, and catalog administration.',
+      'API for Devlist, a community-driven developer tools catalog with GitHub authentication, favorites, suggestions, and catalog administration.',
     )
     .setVersion('1.0')
     .build();
