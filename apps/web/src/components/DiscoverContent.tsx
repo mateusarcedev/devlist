@@ -90,6 +90,7 @@ export default function DiscoverContent({
         <button
           type='button'
           onClick={() => setActiveCategory('all')}
+          aria-pressed={activeCategory === 'all'}
           className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
             activeCategory === 'all'
               ? 'border-white bg-white text-black'
@@ -104,6 +105,7 @@ export default function DiscoverContent({
             type='button'
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
+            aria-pressed={activeCategory === category.id}
             className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
               activeCategory === category.id
                 ? 'border-white bg-white text-black'
@@ -171,7 +173,10 @@ export default function DiscoverContent({
         </div>
       ) : (
         <>
-          <div className='mb-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-subtle'>
+          <div
+            aria-live='polite'
+            className='mb-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-subtle'
+          >
             {resultsLabel}
           </div>
 
