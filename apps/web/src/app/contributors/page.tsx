@@ -4,11 +4,11 @@ import { type Metadata } from 'next'
 import { BiErrorCircle } from 'react-icons/bi'
 
 export const metadata: Metadata = {
-  title: 'Project Contributors - Tools4.tech',
+  title: 'Contributors',
 }
 
 export default async function Contributors() {
-  const data = await getContributors('mateusarcedev', 'tools4.tech')
+  const data = await getContributors('mateusarcedev', 'devlist')
 
   if (!data) {
     return (

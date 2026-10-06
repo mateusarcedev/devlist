@@ -80,7 +80,7 @@ export default function Navbar() {
           </button>
 
           <Link
-            href='https://github.com/mateusarcedev/devlinks/'
+            href='https://github.com/mateusarcedev/devlist/'
             target='_blank'
             rel='noopener noreferrer'
             className='p-2 bg-black hover:bg-black/80 rounded-md transition-colors duration-200 group relative'

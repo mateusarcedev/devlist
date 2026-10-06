@@ -23,11 +23,11 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   const config = new DocumentBuilder()
-    .setTitle('DevLinks')
+    .setTitle('Tools4.tech API')
     .setDescription(
-      'Este é um projeto criado para ajudar programadores iniciantes a encontrar ferramentas úteis para o desenvolvimento de softwares. Aqui você encontrará materiais para desenvolvimento frontend, backend e estudo de estruturas de dados. Sinta-se livre para contribuir.',
+      'API for Tools4.tech, a community-driven developer tools catalog with GitHub authentication, favorites, suggestions, and catalog administration.',
     )
-    .setVersion('0.1')
+    .setVersion('1.0')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

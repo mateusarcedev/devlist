@@ -4,15 +4,15 @@ services:
     container_name: devlist-db-dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: tools4
-      POSTGRES_PASSWORD: tools4pass
-      POSTGRES_DB: tools4tech
+      POSTGRES_USER: devlist
+      POSTGRES_PASSWORD: devlist
+      POSTGRES_DB: devlist
     ports:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tools4 -d tools4tech"]
+      test: ["CMD-SHELL", "pg_isready -U devlist -d devlist"]
       interval: 5s
       timeout: 3s
       retries: 5

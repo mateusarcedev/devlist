@@ -73,7 +73,7 @@ describe('Navbar', () => {
     }
 
     render(<Navbar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Favorites' }))
+    fireEvent.click(screen.getByRole('button', { name: /Favorites/ }))
 
     expect(push).toHaveBeenCalledWith('/favorites')
   })

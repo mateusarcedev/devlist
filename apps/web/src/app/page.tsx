@@ -5,7 +5,7 @@ import { FaGithub } from 'react-icons/fa'
 import { FaUserGroup } from 'react-icons/fa6'
 
 export default async function Home() {
-  const stars = await GetRepoStars('mateusarcedev', 'tools4.tech')
+  const stars = await GetRepoStars('mateusarcedev', 'devlist')
 
   return (
     <>
