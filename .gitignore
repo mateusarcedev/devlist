@@ -19,6 +19,11 @@ coverage/
 .turbo/
 **/.turbo/
 *.tsbuildinfo
+next-env.d.ts
+out/
+**/out/
+.swc/
+**/.swc/
 
 # Generated Prisma Client
 apps/api/src/generated/prisma/
