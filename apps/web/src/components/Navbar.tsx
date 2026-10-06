@@ -5,7 +5,6 @@
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import {
-  Github,
   Heart,
   LogOut,
   Menu,
@@ -15,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import Link from 'next/link'
+import { FaGithub } from 'react-icons/fa'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import AddSuggestionModal from './AddSuggestionModal'
@@ -141,7 +141,7 @@ export default function Navbar() {
               aria-label='GitHub repository'
               className='flex h-9 w-9 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-surface-hover hover:text-text'
             >
-              <Github className='h-[18px] w-[18px]' />
+              <FaGithub className='h-[18px] w-[18px]' />
             </Link>
 
             <Button size='sm' onClick={handleSuggestionClick}>
@@ -261,7 +261,7 @@ export default function Navbar() {
                 rel='noopener noreferrer'
                 className='flex items-center gap-2 rounded-[6px] px-2 py-3 text-[15px] font-medium text-text hover:bg-surface-hover'
               >
-                <Github className='h-4 w-4 text-subtle' />
+                <FaGithub className='h-4 w-4 text-subtle' />
                 GitHub
               </Link>
 
