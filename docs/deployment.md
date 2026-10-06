@@ -194,7 +194,15 @@ Then:
 CONFIRM_RESTORE=YES sh ./ops/restore-postgres.sh ./backups/<file>.dump
 ```
 
+The restore script stops Caddy, web, and API before touching the database and leaves them stopped if the restore finishes or fails. This avoids serving traffic against a partially restored database.
+
 The restore uses `pg_restore --clean --if-exists`, so existing objects can be replaced.
+
+Afterward, deploy an application image tag that is compatible with that backup:
+
+```bash
+sh ./ops/deploy.sh <git-sha-or-image-tag>
+```
 
 ## Application rollback
 
