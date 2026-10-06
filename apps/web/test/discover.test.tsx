@@ -86,6 +86,17 @@ describe('DiscoverContent', () => {
     expect(screen.getByText(/React — Frontend/)).toBeInTheDocument()
   })
 
+  it('shows a retry state when the directory fails to load', () => {
+    render(
+      <DiscoverContent tools={[]} categories={[]} loadError />,
+    )
+
+    expect(
+      screen.getByText("We couldn't load the directory"),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+
   it('shows the empty state when no tool matches', () => {
     render(<DiscoverContent tools={tools} categories={categories} />)
 
