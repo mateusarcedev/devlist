@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AnchorHTMLAttributes } from 'react'
 import DiscoverContent from '../src/components/DiscoverContent'
 
+const refresh = vi.fn()
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh }),
+}))
+
 vi.mock('next/link', () => ({
   default: ({
     href,
