@@ -1,6 +1,6 @@
-# Tools4.tech API
+# Devlist API
 
-NestJS API for the Tools4.tech developer-tools catalog.
+NestJS API for the Devlist developer-tools catalog.
 
 For full project setup, architecture, and production notes, see the [root README](../../README.md).
 
@@ -21,8 +21,8 @@ From the repository root:
 pnpm install --frozen-lockfile
 docker compose -f docker-compose.dev.yml up -d postgres
 cp apps/api/.env.example apps/api/.env
-pnpm --filter @tools4tech/api exec prisma migrate deploy
-pnpm --filter @tools4tech/api dev
+pnpm --filter @devlist/api exec prisma migrate deploy
+pnpm --filter @devlist/api dev
 ```
 
 API: `http://localhost:3001`
@@ -32,10 +32,10 @@ Swagger: `http://localhost:3001/api`
 ## Quality checks
 
 ```bash
-pnpm --filter @tools4tech/api lint
-pnpm --filter @tools4tech/api build
-pnpm --filter @tools4tech/api test --runInBand
-pnpm --filter @tools4tech/api test:e2e
+pnpm --filter @devlist/api lint
+pnpm --filter @devlist/api build
+pnpm --filter @devlist/api test --runInBand
+pnpm --filter @devlist/api test:e2e
 ```
 
 ## Health
