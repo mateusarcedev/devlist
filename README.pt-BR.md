@@ -2,27 +2,49 @@
 
 > Um catálogo mantido pela comunidade para descobrir, salvar e sugerir ferramentas úteis para desenvolvedores.
 
+[![CI](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml/badge.svg)](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml)
+[![Licença: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/Node.js-24-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-black)
+
 [English](./README.md)
 
-## Sobre
+## O que é o Tools4.tech?
 
-O **Tools4.tech** ajuda desenvolvedores a encontrar ferramentas úteis sem depender de posts espalhados em redes sociais, favoritos do navegador e listas pessoais.
+O **Tools4.tech** é um diretório open source de ferramentas para desenvolvedores.
 
-A plataforma combina um catálogo público organizado por categorias com autenticação pelo GitHub, favoritos, sugestões da comunidade e um fluxo administrativo para manutenção do catálogo.
+Em vez de depender de favoritos espalhados, posts em redes sociais ou listas privadas, desenvolvedores podem navegar por um catálogo curado, filtrar por categoria, salvar favoritos, sugerir novas ferramentas e contribuir com o próprio projeto.
 
-> Nome do repositório: `devlist` é mantido por histórico do projeto. O nome do produto é **Tools4.tech**.
+> O repositório mantém o nome histórico `devlist`, mas o nome do produto é **Tools4.tech**.
 
-## Funcionalidades
+## Visão do produto
 
-- Explorar ferramentas por categoria
-- Abrir ferramentas com marcador de referência `tools4.tech`
-- Entrar com GitHub OAuth
-- Adicionar e remover favoritos
-- Sugerir novas ferramentas para avaliação
-- Ver contribuidores e estatísticas do projeto
-- Operações administrativas de ferramentas e categorias protegidas pela API
+| Área | O que faz |
+| --- | --- |
+| Discover | Explora e pesquisa o catálogo completo, com filtros por categoria |
+| Categorias | Abre diretórios específicos para cada categoria |
+| Favorites | Salva ferramentas em uma lista pessoal após login com GitHub |
+| Suggest a tool | Envia sugestões pelo fluxo autenticado da comunidade |
+| Contributors | Exibe pessoas que contribuem com o repositório |
+| Admin | Cria itens do catálogo por um fluxo administrativo protegido pela API |
+
+A interface atual usa um design escuro, compacto e focado em desenvolvedores, com navegação acessível, layouts responsivos, estados globais de loading/erro, suporte a teclado e preferência por redução de movimento.
+
+## Principais funcionalidades
+
+- Catálogo público organizado por categoria
+- Pesquisa e filtros por categoria
+- Autenticação com GitHub OAuth
+- Fluxo de access/refresh token com cookies HTTP-only
+- Favoritos pessoais
+- Sugestões da comunidade
+- Diretório de contribuidores com dados do GitHub
+- Mutações administrativas protegidas pela API
+- Migrations PostgreSQL e seed de demonstração
 - Endpoints de health/readiness para produção
-- Seed de demonstração para ambientes locais/staging
+- Quality Gate permanente no CI
+- Estados responsivos e acessíveis no frontend
+- Metadata Open Graph para compartilhamento
 
 ## Arquitetura
 
@@ -92,8 +114,6 @@ pnpm install --frozen-lockfile
 docker compose -f docker-compose.dev.yml up -d postgres
 ```
 
-O banco de desenvolvimento fica em `localhost:5432` e usa os mesmos valores padrão do exemplo de ambiente da API.
-
 ### 3. Configure a API
 
 ```bash
@@ -108,15 +128,14 @@ GITHUB_SECRET=seu-client-secret-do-github
 JWT_SECRET=troque-por-um-segredo-local
 ```
 
-No GitHub OAuth App local, use:
+No GitHub OAuth App local:
 
 ```text
-Homepage URL:        http://localhost:3000
-Authorization callback URL:
-http://localhost:3001/auth/callback/github
+Homepage URL: http://localhost:3000
+Authorization callback URL: http://localhost:3001/auth/callback/github
 ```
 
-### 4. Configure o web
+### 4. Configure o frontend
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
@@ -152,7 +171,7 @@ Serviços locais:
 
 ## Testes e Quality Gate
 
-Execute localmente:
+Execute os principais checks localmente:
 
 ```bash
 # API
@@ -168,45 +187,37 @@ pnpm --filter @tools4tech/web typecheck
 pnpm --filter @tools4tech/web build
 ```
 
-Toda pull request para `main` passa pelo **Quality Gate** do GitHub Actions, incluindo migrations PostgreSQL, testes/E2E da API, testes do frontend, lint, typecheck e builds.
+Toda pull request para `main` passa pelo **Quality Gate** do GitHub Actions, incluindo migrations PostgreSQL, testes/E2E da API, testes do frontend, lint, typecheck e builds de produção.
 
-## Produção
+## Topologia de produção
 
-O Docker Compose de produção inclui:
+O Docker Compose de produção inclui PostgreSQL, job de migrations, perfil opcional para seed demo, API com health check de readiness e frontend condicionado à saúde da API.
 
-- PostgreSQL
-- job de migrations
-- perfil opcional para seed demo
-- API com health check de readiness
-- web condicionado à saúde da API
-
-A autenticação em produção espera web e API em hosts HTTPS irmãos do mesmo domínio, por exemplo:
+A topologia de autenticação em produção usa hosts HTTPS irmãos sob o mesmo domínio:
 
 ```text
 https://www.tools4.tech
 https://api.tools4.tech
 ```
 
-A stack foi preparada para rodar atrás de um reverse proxy/terminador TLS. Consulte [`.env.example`](./.env.example) para o contrato completo de ambiente.
+A stack está preparada para rodar atrás de um reverse proxy / terminador TLS. Consulte [`.env.example`](./.env.example) para o contrato completo de ambiente.
 
-**O deploy de produção ainda não é documentado como ativo.** VPS, reverse proxy, DNS, backup e rollback fazem parte da etapa final de implantação.
+A aplicação está atualmente na **fase de implantação em produção**. Provisionamento da VPS, reverse proxy, DNS, TLS, OAuth de produção, backups, rollback e documentação operacional são as etapas finais.
 
-## Como contribuir
+## Open source
 
-1. Faça um fork do repositório
-2. Crie uma branch a partir de `main`
-3. Faça sua alteração
-4. Rode os checks relevantes
-5. Abra uma pull request explicando o que mudou e por quê
+O Tools4.tech é distribuído sob a [Licença MIT](./LICENSE).
 
-Veja [CONTRIBUTORS.md](./CONTRIBUTORS.md) para os contribuidores do projeto.
+Documentos úteis:
+
+- [Guia de contribuição](./CONTRIBUTING.md)
+- [Política de segurança](./SECURITY.md)
+- [Contribuidores](./CONTRIBUTORS.md)
 
 ## Estado do projeto
 
-A modernização da base está concluída: frameworks atuais, PostgreSQL, migrations, validação de ambiente de produção, hardening de autenticação, health checks, E2E da API, testes do frontend e CI permanente.
+A base da aplicação e o redesign do frontend estão concluídos.
 
-O trabalho restante está concentrado nos assets visuais finais e na implantação/operação em produção.
+Já foram finalizados: atualização dos frameworks, PostgreSQL, migrations, validação de ambiente, hardening de autenticação, autorização da API, health checks, E2E do backend, testes do frontend, CI, interface responsiva, estados de acessibilidade e documentação open source.
 
-## Licença
-
-Nenhuma licença foi publicada para este repositório até o momento. O código-fonte está publicamente visível, mas direitos de reutilização e redistribuição ainda não foram concedidos por uma licença open source.
+O trabalho restante está concentrado no deploy de produção e nas capturas/validações operacionais pós-deploy.
