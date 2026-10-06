@@ -41,7 +41,7 @@ describe('Navbar', () => {
     authState = { user: null, loading: false }
     push.mockReset()
     logout.mockReset()
-    process.env.NEXT_PUBLIC_URL_API = 'https://api.tools4.tech'
+    process.env.NEXT_PUBLIC_URL_API = 'https://api.devlist.mateusarce.dev'
   })
 
   it('warns anonymous users instead of navigating to favorites', () => {
@@ -142,7 +142,7 @@ describe('Navbar', () => {
 
     render(<Navbar />)
 
-    expect(screen.getByRole('link', { name: 'Tools4.tech' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Devlist' })).toHaveAttribute(
       'href',
       '/',
     )
