@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${categoryName} tools`,
-    description: `Discover developer tools in the ${categoryName} category on Tools4.tech.`,
+    description: `Discover developer tools in the ${categoryName} category on Devlist.`,
   }
 }
 

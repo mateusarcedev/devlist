@@ -115,7 +115,7 @@ export default function CreateToolPage() {
             href='/'
             className='inline-flex rounded-[6px] bg-white px-4 py-2 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
           >
-            Back to Tools4.tech
+            Back to Devlist
           </Link>
         </div>
       </main>

@@ -1,15 +1,14 @@
 # Production deployment
 
-This runbook deploys **Tools4.tech** on a single Linux VPS using Docker Compose, Caddy, PostgreSQL, and immutable GHCR images.
+This runbook deploys **Devlist** on a single Linux VPS using Docker Compose, Caddy, PostgreSQL, and immutable GHCR images.
 
 ## Target topology
 
 ```text
 Internet
   │
-  ├── tools4.tech ───────────────┐
-  ├── www.tools4.tech ──┐        │
-  └── api.tools4.tech ──┼────────┤
+  ├── devlist.mateusarce.dev ──┐        │
+  └── api.devlist.mateusarce.dev ──┼────────┤
                         ▼        │
                     Caddy :80/:443
                      │        │
@@ -46,9 +45,8 @@ Before the first public deploy, point these records to the VPS public IP:
 
 | Host | Type | Target |
 | --- | --- | --- |
-| `tools4.tech` | A/AAAA | VPS |
-| `www.tools4.tech` | A/AAAA | VPS |
-| `api.tools4.tech` | A/AAAA | VPS |
+| `devlist.mateusarce.dev` | A/AAAA | VPS |
+| `api.devlist.mateusarce.dev` | A/AAAA | VPS |
 
 Caddy obtains and renews TLS certificates automatically after DNS resolves and ports 80/443 are reachable.
 
@@ -58,10 +56,10 @@ Create or update the production GitHub OAuth App:
 
 ```text
 Homepage URL:
-https://www.tools4.tech
+https://devlist.mateusarce.dev
 
 Authorization callback URL:
-https://api.tools4.tech/auth/callback/github
+https://api.devlist.mateusarce.dev/auth/callback/github
 ```
 
 Use its client ID/secret in the VPS `.env`.
@@ -110,17 +108,16 @@ JWT_SECRET=<strong-random-secret>
 GITHUB_ID=<production-client-id>
 GITHUB_SECRET=<production-client-secret>
 
-API_URL=https://api.tools4.tech
-FRONTEND_URL=https://www.tools4.tech
-COOKIE_DOMAIN=tools4.tech
+API_URL=https://api.devlist.mateusarce.dev
+FRONTEND_URL=https://devlist.mateusarce.dev
+COOKIE_DOMAIN=.mateusarce.dev
 
-ROOT_DOMAIN=tools4.tech
-WEB_DOMAIN=www.tools4.tech
-API_DOMAIN=api.tools4.tech
+WEB_DOMAIN=devlist.mateusarce.dev
+API_DOMAIN=api.devlist.mateusarce.dev
 ACME_EMAIL=<real-email>
 ```
 
-The web image compiles `NEXT_PUBLIC_URL_API` at build time. The publish workflow defaults to `https://api.tools4.tech`. If the API hostname changes, set the repository variable `PRODUCTION_API_URL` before publishing the image.
+The web image compiles `NEXT_PUBLIC_URL_API` at build time. The publish workflow defaults to `https://api.devlist.mateusarce.dev`. If the API hostname changes, set the repository variable `PRODUCTION_API_URL` before publishing the image.
 
 ## First deploy
 
@@ -164,7 +161,7 @@ sh ./ops/backup-postgres.sh
 Default destination:
 
 ```text
-./backups/tools4tech-YYYYMMDDTHHMMSSZ.dump
+./backups/devlist-YYYYMMDDTHHMMSSZ.dump
 ```
 
 Defaults:
@@ -237,10 +234,10 @@ Never automatically restore a database as part of an application rollback.
 After each deployment:
 
 ```bash
-curl -fsS https://api.tools4.tech/health/live
-curl -fsS https://api.tools4.tech/health/ready
-curl -I https://www.tools4.tech
-curl -I https://tools4.tech
+curl -fsS https://api.devlist.mateusarce.dev/health/live
+curl -fsS https://api.devlist.mateusarce.dev/health/ready
+curl -I https://devlist.mateusarce.dev
+curl -I https://devlist.mateusarce.dev
 ```
 
 Also validate manually:

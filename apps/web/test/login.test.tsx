@@ -13,18 +13,18 @@ vi.mock('next/navigation', () => ({
 describe('LoginContent', () => {
   beforeEach(() => {
     errorParam = null
-    process.env.NEXT_PUBLIC_URL_API = 'https://api.tools4.tech'
+    process.env.NEXT_PUBLIC_URL_API = 'https://api.devlist.mateusarce.dev'
   })
 
   it('renders the GitHub OAuth action and privacy note', () => {
     render(<LoginContent />)
 
     expect(
-      screen.getByRole('heading', { name: 'Sign in to Tools4.tech' }),
+      screen.getByRole('heading', { name: 'Sign in to Devlist' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: /Continue with GitHub/ }),
-    ).toHaveAttribute('href', 'https://api.tools4.tech/auth/github')
+    ).toHaveAttribute('href', 'https://api.devlist.mateusarce.dev/auth/github')
     expect(
       screen.getByText(/We only request your public GitHub profile/),
     ).toBeInTheDocument()

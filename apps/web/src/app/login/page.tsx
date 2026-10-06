@@ -13,7 +13,7 @@ export function LoginContent() {
   return (
     <main className='mx-auto w-full max-w-[380px] px-6 pb-16 pt-[clamp(48px,10vw,120px)] text-center'>
       <h1 className='text-[26px] font-semibold tracking-[-0.02em] text-white'>
-        Sign in to Tools4.tech
+        Sign in to Devlist
       </h1>
       <p className='mx-auto mb-8 mt-2 max-w-[340px] text-sm leading-6 text-subtle'>
         Use your GitHub account to favorite tools and suggest new ones for the

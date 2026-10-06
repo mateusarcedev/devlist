@@ -104,7 +104,7 @@ export default function Navbar() {
           href='/'
           className='font-mono text-[18px] font-semibold tracking-[-0.02em] text-white'
         >
-          Tools4.tech
+          Devlist
         </Link>
       </header>
     )
@@ -119,7 +119,7 @@ export default function Navbar() {
               href='/'
               className='font-mono text-[17px] font-semibold tracking-[-0.02em] text-white'
             >
-              Tools4.tech
+              Devlist
             </Link>
 
             <div className='hidden items-center gap-1 tablet:flex'>

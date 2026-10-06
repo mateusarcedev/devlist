@@ -6,17 +6,17 @@ import { type Metadata, type Viewport } from 'next'
 import './globals.css'
 import { QueryProvider, AuthProvider } from './providers'
 
-const siteUrl = 'https://www.tools4.tech'
+const siteUrl = 'https://devlist.mateusarce.dev'
 const siteDescription =
   'Discover, save, and suggest useful developer tools in a community-driven catalog.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  applicationName: 'Tools4.tech',
+  applicationName: 'Devlist',
   manifest: '/manifest.webmanifest',
   title: {
-    default: 'Tools4.tech — Curated developer tools',
-    template: '%s | Tools4.tech',
+    default: 'Devlist — Curated developer tools',
+    template: '%s | Devlist',
   },
   description: siteDescription,
   keywords: [
@@ -29,21 +29,21 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Mateus Arce' }],
   creator: 'Mateus Arce',
-  publisher: 'Tools4.tech',
+  publisher: 'Devlist',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Tools4.tech — Curated developer tools',
+    title: 'Devlist — Curated developer tools',
     description: siteDescription,
     url: '/',
-    siteName: 'Tools4.tech',
+    siteName: 'Devlist',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tools4.tech — Curated developer tools',
+    title: 'Devlist — Curated developer tools',
     description: siteDescription,
   },
   robots: {

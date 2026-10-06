@@ -13,9 +13,6 @@
 	}
 }
 
-{$ROOT_DOMAIN} {
-	redir https://{$WEB_DOMAIN}{uri} permanent
-}
 
 {$WEB_DOMAIN} {
 	import common

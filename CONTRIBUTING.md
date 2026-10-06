@@ -1,6 +1,6 @@
-# Contributing to Tools4.tech
+# Contributing to Devlist
 
-Thanks for helping improve **Tools4.tech**. Contributions are welcome across the catalog, frontend, API, tests, documentation, and developer experience.
+Thanks for helping improve **Devlist**. Contributions are welcome across the catalog, frontend, API, tests, documentation, and developer experience.
 
 ## Before you start
 
@@ -39,7 +39,7 @@ cp apps/web/.env.example apps/web/.env.local
 Apply migrations:
 
 ```bash
-pnpm --filter @tools4tech/api exec prisma migrate deploy
+pnpm --filter @devlist/api exec prisma migrate deploy
 ```
 
 Start the monorepo:
@@ -72,16 +72,16 @@ Before opening a pull request, run the checks related to your change:
 
 ```bash
 # API
-pnpm --filter @tools4tech/api lint
-pnpm --filter @tools4tech/api build
-pnpm --filter @tools4tech/api test --runInBand
-pnpm --filter @tools4tech/api test:e2e
+pnpm --filter @devlist/api lint
+pnpm --filter @devlist/api build
+pnpm --filter @devlist/api test --runInBand
+pnpm --filter @devlist/api test:e2e
 
 # Web
-pnpm --filter @tools4tech/web lint
-pnpm --filter @tools4tech/web test
-pnpm --filter @tools4tech/web typecheck
-pnpm --filter @tools4tech/web build
+pnpm --filter @devlist/web lint
+pnpm --filter @devlist/web test
+pnpm --filter @devlist/web typecheck
+pnpm --filter @devlist/web build
 ```
 
 ## Catalog contributions

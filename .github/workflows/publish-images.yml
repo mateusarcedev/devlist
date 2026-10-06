@@ -81,7 +81,7 @@ jobs:
           target: runner
           push: true
           build-args: |
-            NEXT_PUBLIC_URL_API=${{ vars.PRODUCTION_API_URL || 'https://api.tools4.tech' }}
+            NEXT_PUBLIC_URL_API=${{ vars.PRODUCTION_API_URL || 'https://api.devlist.mateusarce.dev' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-web:${{ env.SOURCE_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-web:latest

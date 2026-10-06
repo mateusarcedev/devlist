@@ -1,4 +1,4 @@
-# Tools4.tech
+# Devlist
 
 > A community-driven catalog for discovering, saving, and suggesting useful developer tools.
 
@@ -9,13 +9,13 @@
 
 [Português (Brasil)](./README.pt-BR.md)
 
-## What is Tools4.tech?
+## What is Devlist?
 
-**Tools4.tech** is an open-source directory for developer tools.
+**Devlist** is an open-source directory for developer tools.
 
 Instead of relying on scattered bookmarks, social posts, or private lists, developers can browse a curated catalog, filter by category, save favorites, suggest new tools, and contribute back to the project.
 
-> The repository keeps the historical name `devlist`, but the product name is **Tools4.tech**.
+> The repository keeps the historical name `devlist`, but the product name is **Devlist**.
 
 ## Product tour
 
@@ -146,13 +146,13 @@ Use the **same `JWT_SECRET`** configured for the API.
 ### 5. Apply migrations
 
 ```bash
-pnpm --filter @tools4tech/api exec prisma migrate deploy
+pnpm --filter @devlist/api exec prisma migrate deploy
 ```
 
 Optional demo data:
 
 ```bash
-pnpm --filter @tools4tech/api seed:demo
+pnpm --filter @devlist/api seed:demo
 ```
 
 ### 6. Run the monorepo
@@ -175,16 +175,16 @@ Run the main checks locally:
 
 ```bash
 # API
-pnpm --filter @tools4tech/api lint
-pnpm --filter @tools4tech/api build
-pnpm --filter @tools4tech/api test --runInBand
-pnpm --filter @tools4tech/api test:e2e
+pnpm --filter @devlist/api lint
+pnpm --filter @devlist/api build
+pnpm --filter @devlist/api test --runInBand
+pnpm --filter @devlist/api test:e2e
 
 # Web
-pnpm --filter @tools4tech/web lint
-pnpm --filter @tools4tech/web test
-pnpm --filter @tools4tech/web typecheck
-pnpm --filter @tools4tech/web build
+pnpm --filter @devlist/web lint
+pnpm --filter @devlist/web test
+pnpm --filter @devlist/web typecheck
+pnpm --filter @devlist/web build
 ```
 
 Every pull request to `main` is validated by the GitHub Actions **Quality Gate**, including PostgreSQL migrations, API tests/E2E, frontend tests, lint, type checking, and production builds.
@@ -194,7 +194,7 @@ Every pull request to `main` is validated by the GitHub Actions **Quality Gate**
 The self-hosted production stack is now defined in the repository:
 
 - Caddy 2.11.6 as the only public entry point on ports 80/443;
-- automatic HTTPS for `tools4.tech`, `www.tools4.tech`, and `api.tools4.tech`;
+- automatic HTTPS for `devlist.mateusarce.dev`, `devlist.mateusarce.dev`, and `api.devlist.mateusarce.dev`;
 - web and API on private Docker networks;
 - PostgreSQL isolated from the public host network;
 - immutable API/migrator/web images published to GHCR after `main` passes CI;
@@ -206,8 +206,8 @@ The self-hosted production stack is now defined in the repository:
 Production URLs:
 
 ```text
-https://www.tools4.tech
-https://api.tools4.tech
+https://devlist.mateusarce.dev
+https://api.devlist.mateusarce.dev
 ```
 
 See [`docs/deployment.md`](./docs/deployment.md) for DNS, GitHub OAuth, VPS setup, deploy, backup, restore, rollback, and smoke-test procedures.
@@ -216,7 +216,7 @@ The infrastructure is **deployment-ready but not claimed as live yet**. The rema
 
 ## Open source
 
-Tools4.tech is released under the [MIT License](./LICENSE).
+Devlist is released under the [MIT License](./LICENSE).
 
 Useful project documents:
 

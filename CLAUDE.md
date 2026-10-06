@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides repository-specific guidance for coding agents working on **Tools4.tech**.
+This file provides repository-specific guidance for coding agents working on **Devlist**.
 
 ## Project overview
 
-Tools4.tech is a full-stack monorepo for a community-driven developer tools catalog with GitHub OAuth, favorites, suggestions, and admin-managed tools/categories.
+Devlist is a full-stack monorepo for a community-driven developer tools catalog with GitHub OAuth, favorites, suggestions, and admin-managed tools/categories.
 
 - `apps/api` — NestJS 12, Prisma 7, PostgreSQL 16
 - `apps/web` — Next.js 16, React 19, Tailwind CSS 4, TanStack Query
@@ -12,7 +12,7 @@ Tools4.tech is a full-stack monorepo for a community-driven developer tools cata
 - runtime — Node.js 24
 - orchestration — Turborepo + Docker Compose
 
-The repository is named `devlist` for historical reasons. Public product branding is **Tools4.tech**.
+The repository is named `devlist` for historical reasons. Public product branding is **Devlist**.
 
 ## Commands
 
@@ -30,31 +30,31 @@ pnpm lint
 ### API
 
 ```bash
-pnpm --filter @tools4tech/api dev
-pnpm --filter @tools4tech/api build
-pnpm --filter @tools4tech/api lint
-pnpm --filter @tools4tech/api test --runInBand
-pnpm --filter @tools4tech/api test:e2e
-pnpm --filter @tools4tech/api test:cov
-pnpm --filter @tools4tech/api seed:demo
+pnpm --filter @devlist/api dev
+pnpm --filter @devlist/api build
+pnpm --filter @devlist/api lint
+pnpm --filter @devlist/api test --runInBand
+pnpm --filter @devlist/api test:e2e
+pnpm --filter @devlist/api test:cov
+pnpm --filter @devlist/api seed:demo
 ```
 
 ### Web
 
 ```bash
-pnpm --filter @tools4tech/web dev
-pnpm --filter @tools4tech/web build
-pnpm --filter @tools4tech/web lint
-pnpm --filter @tools4tech/web test
-pnpm --filter @tools4tech/web test:watch
-pnpm --filter @tools4tech/web typecheck
+pnpm --filter @devlist/web dev
+pnpm --filter @devlist/web build
+pnpm --filter @devlist/web lint
+pnpm --filter @devlist/web test
+pnpm --filter @devlist/web test:watch
+pnpm --filter @devlist/web typecheck
 ```
 
 ### Local PostgreSQL
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d postgres
-pnpm --filter @tools4tech/api exec prisma migrate deploy
+pnpm --filter @devlist/api exec prisma migrate deploy
 ```
 
 ## Architecture
@@ -159,7 +159,7 @@ Do not weaken a failing gate to make a PR pass; fix the underlying issue.
 
 Production URLs must be HTTPS sibling hosts covered by `COOKIE_DOMAIN`, for example:
 
-- `https://www.tools4.tech`
-- `https://api.tools4.tech`
+- `https://devlist.mateusarce.dev`
+- `https://api.devlist.mateusarce.dev`
 
 The Docker stack is intended to run behind a reverse proxy/TLS terminator.

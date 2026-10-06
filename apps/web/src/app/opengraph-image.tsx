@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'Tools4.tech — Curated developer tools'
+export const alt = 'Devlist — Curated developer tools'
 export const size = {
   width: 1200,
   height: 630,
@@ -68,7 +68,7 @@ export default function OpenGraphImage() {
                   background: '#00dc82',
                 }}
               />
-              Tools4.tech
+              Devlist
             </div>
             <div
               style={{
