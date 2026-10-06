@@ -5,17 +5,24 @@ import type { Category, Tool } from '@/types'
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { FaGithub } from 'react-icons/fa'
 import { Users } from 'lucide-react'
 
 interface Props {
   tools: Tool[]
   categories: Category[]
+  loadError?: boolean
 }
 
-export default function DiscoverContent({ tools, categories }: Props) {
+export default function DiscoverContent({
+  tools,
+  categories,
+  loadError = false,
+}: Props) {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string>('all')
+  const router = useRouter()
 
   const categoriesById = useMemo(
     () => new Map(categories.map(category => [category.id, category.name])),
@@ -146,11 +153,29 @@ export default function DiscoverContent({ tools, categories }: Props) {
         </Link>
       </section>
 
-      <div className='mb-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-subtle'>
-        {resultsLabel}
-      </div>
+      {loadError ? (
+        <div className='border-t border-border px-4 py-16 text-center'>
+          <div className='mb-1.5 text-[15px] font-medium text-text'>
+            We couldn&apos;t load the directory
+          </div>
+          <p className='mb-5 text-[13px] text-subtle'>
+            The catalog is temporarily unavailable.
+          </p>
+          <button
+            type='button'
+            onClick={() => router.refresh()}
+            className='rounded-[6px] bg-white px-4 py-2 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className='mb-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-subtle'>
+            {resultsLabel}
+          </div>
 
-      {visibleTools.length === 0 ? (
+          {visibleTools.length === 0 ? (
         <div className='border-t border-border px-4 py-16 text-center'>
           <div className='mb-1.5 text-[15px] font-medium text-text'>
             No tools match
@@ -159,16 +184,18 @@ export default function DiscoverContent({ tools, categories }: Props) {
             Try a different search or category.
           </div>
         </div>
-      ) : (
-        <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
-          {visibleTools.map(tool => (
-            <DirectoryToolCard
-              key={tool.id}
-              tool={tool}
-              categoryName={categoriesById.get(tool.categoryId)}
-            />
-          ))}
-        </div>
+          ) : (
+            <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
+              {visibleTools.map(tool => (
+                <DirectoryToolCard
+                  key={tool.id}
+                  tool={tool}
+                  categoryName={categoriesById.get(tool.categoryId)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </main>
   )
