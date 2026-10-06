@@ -8,7 +8,7 @@ import { Request } from 'express';
 import { verify, JwtPayload } from 'jsonwebtoken';
 import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 
-type NextAuthJwtPayload = JwtPayload & {
+type AccessTokenPayload = JwtPayload & {
   githubId?: number | string;
 };
 
@@ -26,10 +26,10 @@ export class AuthenticatedUserGuard implements CanActivate {
       throw new UnauthorizedException('Authentication is not configured');
     }
 
-    let decodedToken: NextAuthJwtPayload;
+    let decodedToken: AccessTokenPayload;
 
     try {
-      decodedToken = verify(token, secret) as NextAuthJwtPayload;
+      decodedToken = verify(token, secret) as AccessTokenPayload;
     } catch {
       throw new UnauthorizedException('Invalid authentication token');
     }
@@ -75,8 +75,8 @@ export class AuthenticatedUserGuard implements CanActivate {
     return token;
   }
 
-  private extractUserId(payload: NextAuthJwtPayload): number | null {
-    // New tokens use `sub`; legacy NextAuth tokens use `githubId`
+  private extractUserId(payload: AccessTokenPayload): number | null {
+    // Current tokens use `sub`; legacy tokens may still use `githubId`
     const possibleIdentifiers: Array<string | number | undefined> = [
       payload.sub,
       payload.githubId,

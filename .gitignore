@@ -1,13 +1,52 @@
-# Superpowers plugin (specs, plans, generated docs)
-docs/superpowers/
+# Dependencies
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# Environment files
+.env
+.env.*
+!**/.env.example
+!.env.example
+
+# Build output
+.next/
+**/.next/
+dist/
+**/dist/
+coverage/
+**/coverage/
+.turbo/
+**/.turbo/
+*.tsbuildinfo
+next-env.d.ts
+out/
+**/out/
+.swc/
+**/.swc/
+
+# Generated Prisma Client
+apps/api/src/generated/prisma/
+
+# Logs and reports
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+test-results/
+playwright-report/
+
+# Platform/local metadata
+.vercel/
+.railway/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
 
 # Git worktrees
 .worktrees/
 
-# Claude Code project instructions
-CLAUDE.md
-CLAUDE.md
-node_modules
-
-# Generated Prisma Client
-apps/api/src/generated/prisma/
+# Superpowers plugin generated docs
+docs/superpowers/
