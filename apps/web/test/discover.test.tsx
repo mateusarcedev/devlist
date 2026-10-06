@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AnchorHTMLAttributes } from 'react'
 import DiscoverContent from '../src/components/DiscoverContent'
 
+const refresh = vi.fn()
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh }),
+}))
+
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -84,6 +90,17 @@ describe('DiscoverContent', () => {
 
     fireEvent.change(search, { target: { value: 'react.dev' } })
     expect(screen.getByText(/React — Frontend/)).toBeInTheDocument()
+  })
+
+  it('shows a retry state when the directory fails to load', () => {
+    render(
+      <DiscoverContent tools={[]} categories={[]} loadError />,
+    )
+
+    expect(
+      screen.getByText("We couldn't load the directory"),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
   it('shows the empty state when no tool matches', () => {

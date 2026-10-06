@@ -1,7 +1,5 @@
-import { jwtVerify } from 'jose'
+import { hasValidAccessToken } from '@/lib/proxy-auth'
 import { type NextRequest, NextResponse } from 'next/server'
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
 
 export default async function proxy(req: NextRequest) {
   const token = req.cookies.get('access_token')?.value
@@ -9,23 +7,19 @@ export default async function proxy(req: NextRequest) {
   const headers = new Headers(req.headers)
   headers.set('x-current-path', req.nextUrl.pathname)
 
-  if (!token) {
+  const authenticated = await hasValidAccessToken(
+    token,
+    process.env.JWT_SECRET,
+  )
+
+  if (!authenticated) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-
-    if (req.nextUrl.pathname.startsWith('/admin')) {
-      if (payload.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/', req.url))
-      }
-    }
-
-    return NextResponse.next({ headers })
-  } catch {
-    return NextResponse.redirect(new URL('/login', req.url))
-  }
+  // Do not authorize ADMIN from JWT claims here.
+  // The page reads the current user through /auth/me and the API AdminGuard
+  // checks the current database role for every mutation.
+  return NextResponse.next({ headers })
 }
 
 export const config = {

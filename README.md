@@ -2,27 +2,49 @@
 
 > A community-driven catalog for discovering, saving, and suggesting useful developer tools.
 
+[![CI](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml/badge.svg)](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/Node.js-24-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-black)
+
 [Português (Brasil)](./README.pt-BR.md)
 
-## About
+## What is Tools4.tech?
 
-**Tools4.tech** helps developers find useful tools without relying on scattered social posts, bookmarks, and personal lists.
+**Tools4.tech** is an open-source directory for developer tools.
 
-The platform combines a public, category-based catalog with GitHub authentication, favorites, community suggestions, and an admin workflow for maintaining the catalog.
+Instead of relying on scattered bookmarks, social posts, or private lists, developers can browse a curated catalog, filter by category, save favorites, suggest new tools, and contribute back to the project.
 
-> Repository name: `devlist` is kept for project history. The product name is **Tools4.tech**.
+> The repository keeps the historical name `devlist`, but the product name is **Tools4.tech**.
 
-## Features
+## Product tour
 
-- Browse developer tools by category
-- Open tool links with a `tools4.tech` referral marker
-- Sign in with GitHub OAuth
-- Save and remove favorites
-- Suggest tools for review
-- View project contributors and repository statistics
-- Admin-only tool and category mutations enforced by the API
+| Area | What it does |
+| --- | --- |
+| Discover | Browse and search the full catalog, filter by category, and open tool pages |
+| Categories | Explore focused directories for each category |
+| Favorites | Save tools to a personal list after GitHub sign-in |
+| Suggest a tool | Send a tool suggestion through the authenticated community flow |
+| Contributors | Explore the people contributing to the repository |
+| Admin | Create catalog entries through an API-protected admin flow |
+
+The current interface uses a compact dark developer-focused design with accessible navigation, responsive layouts, global loading/error states, keyboard support, and reduced-motion handling.
+
+## Core features
+
+- Public catalog organized by category
+- Search and category filters
+- GitHub OAuth authentication
+- HTTP-only access and refresh token flow
+- Personal favorites
+- Community tool suggestions
+- Contributors directory backed by GitHub data
+- Admin-only catalog mutations enforced by the API
+- PostgreSQL migrations and demo seed
 - Health/readiness endpoints for production orchestration
-- Demo seed for local/staging environments
+- Permanent CI quality gate
+- Responsive and accessible frontend states
+- Open Graph / social sharing metadata
 
 ## Architecture
 
@@ -92,8 +114,6 @@ pnpm install --frozen-lockfile
 docker compose -f docker-compose.dev.yml up -d postgres
 ```
 
-The development database runs on `localhost:5432` with the same defaults used by the API example environment.
-
 ### 3. Configure the API
 
 ```bash
@@ -108,12 +128,11 @@ GITHUB_SECRET=your-github-oauth-client-secret
 JWT_SECRET=replace-with-a-local-secret
 ```
 
-For the local GitHub OAuth App, use:
+For the local GitHub OAuth App:
 
 ```text
-Homepage URL:        http://localhost:3000
-Authorization callback URL:
-http://localhost:3001/auth/callback/github
+Homepage URL: http://localhost:3000
+Authorization callback URL: http://localhost:3001/auth/callback/github
 ```
 
 ### 4. Configure the web app
@@ -150,7 +169,7 @@ Local services:
 - Liveness: `http://localhost:3001/health/live`
 - Readiness: `http://localhost:3001/health/ready`
 
-## Tests and quality gates
+## Tests and quality gate
 
 Run the main checks locally:
 
@@ -168,45 +187,37 @@ pnpm --filter @tools4tech/web typecheck
 pnpm --filter @tools4tech/web build
 ```
 
-Every pull request to `main` is validated by the GitHub Actions **Quality Gate**, including PostgreSQL migrations, API tests/E2E, frontend tests, lint, type checking, and builds.
+Every pull request to `main` is validated by the GitHub Actions **Quality Gate**, including PostgreSQL migrations, API tests/E2E, frontend tests, lint, type checking, and production builds.
 
-## Production
+## Production topology
 
-The production Docker Compose stack includes:
+The production Docker Compose stack includes PostgreSQL, a migration job, an optional demo seed profile, the API with readiness health checks, and the web app gated on API health.
 
-- PostgreSQL
-- migration job
-- optional demo seed profile
-- API with readiness health check
-- web app gated on API health
-
-Production authentication expects the web and API to use sibling HTTPS hosts under the same parent domain, for example:
+The production auth topology uses sibling HTTPS hosts under the same parent domain:
 
 ```text
 https://www.tools4.tech
 https://api.tools4.tech
 ```
 
-The stack is intended to run behind a reverse proxy/TLS terminator. See [`.env.example`](./.env.example) for the complete production environment contract.
+The stack is prepared to run behind a reverse proxy / TLS terminator. See [`.env.example`](./.env.example) for the complete production environment contract.
 
-**Production deployment is intentionally not documented as live yet.** VPS, reverse proxy, DNS, backup, and rollback are handled in the final deployment phase.
+The application is currently in the **pre-production deployment phase**. VPS provisioning, reverse proxy, DNS, TLS, OAuth production configuration, backups, rollback, and operational documentation are the final delivery steps.
 
-## Contributing
+## Open source
 
-1. Fork the repository
-2. Create a branch from `main`
-3. Make your changes
-4. Run the relevant quality checks
-5. Open a pull request explaining what changed and why
+Tools4.tech is released under the [MIT License](./LICENSE).
 
-See [CONTRIBUTORS.md](./CONTRIBUTORS.md) for project contributors.
+Useful project documents:
+
+- [Contributing guide](./CONTRIBUTING.md)
+- [Security policy](./SECURITY.md)
+- [Contributors](./CONTRIBUTORS.md)
 
 ## Project status
 
-The modernization baseline is complete: current framework versions, PostgreSQL, migrations, production environment validation, auth hardening, health checks, API E2E, frontend tests, and permanent CI are in place.
+The application baseline and frontend redesign are complete.
 
-The remaining delivery work is focused on final visual assets and production deployment/operations.
+Completed areas include framework modernization, PostgreSQL, migrations, environment validation, authentication hardening, API authorization, health checks, backend E2E, frontend tests, CI, responsive UI, accessibility states, and open-source project documentation.
 
-## License
-
-No license has been published for this repository yet. The source is publicly visible, but reuse and redistribution rights have not been granted through an open-source license.
+The remaining work is focused on production deployment and post-deploy screenshots/operational verification.
