@@ -163,9 +163,8 @@ describe('Navbar', () => {
     render(<Navbar />)
     fireEvent.click(screen.getByRole('button', { name: 'Account menu' }))
 
-    expect(screen.getByRole('link', { name: 'Add a tool (admin)' })).toHaveAttribute(
-      'href',
-      '/admin/addtools',
-    )
+    expect(
+      screen.getByRole('menuitem', { name: 'Add a tool (admin)' }),
+    ).toHaveAttribute('href', '/admin/addtools')
   })
 })
