@@ -81,6 +81,14 @@ describe('Navbar', () => {
     expect(push).toHaveBeenCalledWith('/favorites')
   })
 
+  it('opens the suggestion modal for anonymous users so the modal can handle sign-in', () => {
+    render(<Navbar />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Suggest a tool/ }))
+
+    expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
+  })
+
   it('opens the suggestion modal for authenticated users', () => {
     authState = {
       user: {
