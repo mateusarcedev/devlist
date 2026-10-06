@@ -1,4 +1,4 @@
-name: tools4tech
+name: devlist
 
 services:
   postgres:
@@ -75,9 +75,8 @@ services:
     restart: unless-stopped
     environment:
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
-      ROOT_DOMAIN: ${ROOT_DOMAIN:-tools4.tech}
-      WEB_DOMAIN: ${WEB_DOMAIN:-www.tools4.tech}
-      API_DOMAIN: ${API_DOMAIN:-api.tools4.tech}
+      WEB_DOMAIN: ${WEB_DOMAIN:-devlist.mateusarce.dev}
+      API_DOMAIN: ${API_DOMAIN:-api.devlist.mateusarce.dev}
     ports:
       - "80:80"
       - "443:443"
