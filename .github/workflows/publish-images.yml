@@ -1,9 +1,11 @@
 name: Publish production images
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -14,19 +16,26 @@ concurrency:
   group: publish-production-images
   cancel-in-progress: true
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_OWNER: ${{ github.repository_owner }}
-
 jobs:
   publish:
     name: Build and publish
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_OWNER: ${{ github.repository_owner }}
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
     steps:
-      - name: Checkout
+      - name: Checkout validated commit
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -46,7 +55,7 @@ jobs:
           target: runner
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-api:${{ env.SOURCE_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-api:latest
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
@@ -59,7 +68,7 @@ jobs:
           target: migrator
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-migrate:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-migrate:${{ env.SOURCE_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-migrate:latest
           cache-from: type=gha,scope=migrate
           cache-to: type=gha,mode=max,scope=migrate
@@ -74,7 +83,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_URL_API=${{ vars.PRODUCTION_API_URL || 'https://api.tools4.tech' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-web:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-web:${{ env.SOURCE_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/devlist-web:latest
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
