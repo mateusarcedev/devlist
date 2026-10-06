@@ -6,7 +6,7 @@ import { type Metadata } from 'next'
 import FavoritesContent from './FavoritesContent'
 
 export const metadata: Metadata = {
-  title: 'Favorites - Tools4.tech',
+  title: 'Favorites',
 }
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
