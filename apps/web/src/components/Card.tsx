@@ -3,6 +3,7 @@
 import { useFavoriteToggle } from '@/hooks/useFavoriteToggle'
 import type { OnFavoriteChange, Tool } from '@/types'
 import { ExternalLink } from 'lucide-react'
+import { withReferral } from '@/lib/tool-url'
 import Link from 'next/link'
 import { Toast } from './Toast'
 
@@ -29,7 +30,7 @@ export default function Card({ tool, initialIsFavorite = false, onFavoriteChange
   return (
     <>
       <Link
-        href={`${tool.link}?ref=tools4.tech`}
+        href={withReferral(tool.link)}
         target='_blank'
         className='block w-72 max-w-sm'
       >

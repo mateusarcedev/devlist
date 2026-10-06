@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Quality Gate
@@ -84,6 +88,9 @@ jobs:
 
       - name: Lint web
         run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
+
+      - name: Run web tests
+        run: pnpm --filter @tools4tech/web test
 
       - name: Typecheck web
         run: pnpm --filter @tools4tech/web typecheck

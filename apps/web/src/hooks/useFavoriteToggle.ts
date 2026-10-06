@@ -4,6 +4,7 @@ import { AxiosConfig } from '@/utils'
 import type { OnFavoriteChange, Tool } from '@/types'
 import { useAuth } from './useAuth'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { getApiErrorMessage } from '@/lib/http-error'
 
 interface ToastState {
   message: string
@@ -88,12 +89,10 @@ export function useFavoriteToggle(
       onFavoriteChange?.(tool.id, newFavoriteStatus)
     } catch (error: unknown) {
       setFavoriteState({ toolId: tool.id, value: previousFavoriteStatus })
-      const message =
-        error instanceof Error &&
-        'response' in error &&
-        (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          ? (error as { response: { data: { message: string } } }).response.data.message
-          : 'An error occurred while updating favorites. Please try again.'
+      const message = getApiErrorMessage(
+        error,
+        'An error occurred while updating favorites. Please try again.',
+      )
       setToast({ message, type: 'error' })
     }
   }

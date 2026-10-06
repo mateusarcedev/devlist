@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
+import { getApiErrorMessage } from '@/lib/http-error'
 
 interface SubmitResult {
   status: 'success' | 'error'
@@ -61,12 +62,10 @@ export default function AddSuggestionModal({ isOpen, onClose, onSubmit }: Props)
     },
     onError: (error: unknown) => {
       console.error('Error creating suggestion:', error)
-      const message =
-        error instanceof Error &&
-        'response' in error &&
-        (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          ? (error as { response: { data: { message: string } } }).response.data.message
-          : 'Error sending suggestion. Please try again.'
+      const message = getApiErrorMessage(
+        error,
+        'Error sending suggestion. Please try again.',
+      )
       onSubmit?.({ status: 'error', message })
     },
   })

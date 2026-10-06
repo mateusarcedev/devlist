@@ -3,6 +3,10 @@
 /* eslint-disable @next/next/no-img-element -- Contributor avatars are remote GitHub URLs and intentionally remain unoptimized. */
 
 import type { Contributor } from '@/types'
+import {
+  filterAndSortContributors,
+  type ContributorSortKey,
+} from '@/lib/contributors'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -11,29 +15,16 @@ interface Props {
   data: Contributor[]
 }
 
-type SortKey = 'contributions' | 'followers' | 'name'
-
 export default function CardsContributors({ data }: Props) {
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState<SortKey>('contributions')
+  const [sortBy, setSortBy] = useState<ContributorSortKey>('contributions')
   const MotionLink = motion(Link)
 
-  const filteredAndSortedContributors = data
-    .filter(contributor =>
-      contributor.login.toLowerCase().includes(search.toLowerCase()),
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'contributions':
-          return b.contributions - a.contributions
-        case 'followers':
-          return (b.followers ?? 0) - (a.followers ?? 0)
-        case 'name':
-          return a.login.localeCompare(b.login)
-        default:
-          return 0
-      }
-    })
+  const filteredAndSortedContributors = filterAndSortContributors(
+    data,
+    search,
+    sortBy,
+  )
 
   return (
     <>
@@ -47,7 +38,7 @@ export default function CardsContributors({ data }: Props) {
         />
         <select
           value={sortBy}
-          onChange={e => setSortBy(e.target.value as SortKey)}
+          onChange={e => setSortBy(e.target.value as ContributorSortKey)}
           className='p-2 rounded-lg bg-[#222] text-white focus:outline-hidden focus:ring-2 focus:ring-gray-600'
         >
           <option value='contributions'>Most contributions</option>
