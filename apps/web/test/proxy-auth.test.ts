@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { SignJWT } from 'jose'
 import { describe, expect, it } from 'vitest'
 import { hasValidAccessToken } from '../src/lib/proxy-auth'
