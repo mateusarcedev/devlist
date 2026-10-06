@@ -142,6 +142,18 @@ const tools = [
     description: 'Hand-crafted SVG icons designed for modern web interfaces.',
   },
   {
+    category: 'Design',
+    name: 'SVGOMG',
+    link: 'https://jakearchibald.github.io/svgomg/',
+    description: 'Browser-based SVG optimizer for cleaning and compressing vector graphics.',
+  },
+  {
+    category: 'Design',
+    name: 'IcoMoon',
+    link: 'https://icomoon.io/',
+    description: 'Icon management app for creating custom SVG icon sets and icon fonts.',
+  },
+  {
     category: 'AI',
     name: 'OpenAI',
     link: 'https://openai.com/',
