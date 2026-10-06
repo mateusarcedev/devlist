@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Tools4.tech is currently maintained from the latest version of the `main` branch.
+Devlist is currently maintained from the latest version of the `main` branch.
 
 ## Reporting a vulnerability
 
