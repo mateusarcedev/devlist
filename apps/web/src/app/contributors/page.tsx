@@ -33,7 +33,7 @@ export default async function Contributors() {
         Contributors
       </h1>
       <p className='mb-7 mt-2 text-sm text-subtle'>
-        {data.length} people have contributed to Tools4.tech
+        {data.length} people have contributed to Devlist
       </p>
 
       <CardsContributors data={data} />
