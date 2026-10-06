@@ -1,11 +1,15 @@
+'use client'
+
 import Link from 'next/link'
 import { FaGithub } from 'react-icons/fa'
+import { useI18n } from '@/contexts/i18n-context'
 
 export default function Footer() {
+  const { t } = useI18n()
   return (
     <footer className='border-t border-border px-[clamp(16px,4vw,24px)] py-5'>
       <div className='mx-auto flex max-w-[1120px] flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-faint'>
-        <span>Community-curated developer tools</span>
+        <span>{t('communityTools')}</span>
         <Link
           href='https://github.com/mateusarcedev/devlist'
           target='_blank'
