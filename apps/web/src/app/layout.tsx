@@ -1,8 +1,9 @@
+import Footer from '@/components/Footer'
 import Navbar from '@/components/Navbar'
 import { cn } from '@/utils'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { JetBrains_Mono } from 'next/font/google'
+import { Geist_Mono, Inter } from 'next/font/google'
 import { type Metadata, type Viewport } from 'next'
 import './globals.css'
 import { QueryProvider, AuthProvider } from './providers'
@@ -55,23 +56,36 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#111111',
+  themeColor: '#000000',
 }
 
-const jetbrainsMono = JetBrains_Mono({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['100', '300', '400', '500', '700'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-inter',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
 })
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='en'>
-      <body className={cn(jetbrainsMono.variable, 'bg-[#111111]')}>
+      <body
+        className={cn(
+          inter.variable,
+          geistMono.variable,
+          'min-h-screen bg-canvas text-text font-sans',
+        )}
+      >
         <AuthProvider>
           <QueryProvider>
-            <Navbar />
-            {children}
+            <div className='flex min-h-screen flex-col'>
+              <Navbar />
+              <div className='flex-1'>{children}</div>
+              <Footer />
+            </div>
             <Analytics />
             <SpeedInsights />
           </QueryProvider>

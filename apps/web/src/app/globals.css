@@ -6,36 +6,131 @@
   --breakpoint-laptop: 1024px;
   --breakpoint-desktop: 1280px;
 
-  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
-  --background-image-gradient-conic: conic-gradient(
-    from 180deg at 50% 50%,
-    var(--tw-gradient-stops)
-  );
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-hover: #111113;
+  --color-surface-raised: #141416;
+  --color-border: #18181b;
+  --color-border-strong: #27272a;
+  --color-text: #fafafa;
+  --color-muted: #a1a1aa;
+  --color-subtle: #71717a;
+  --color-faint: #52525b;
+  --color-accent: #00dc82;
+  --color-danger: #f87171;
 
-  --color-navbar: #151515;
-  --color-background: #111111;
-  --color-card: #d9d9d9;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-card: 10px;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+@keyframes dl-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+@keyframes dl-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer base {
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-border);
+  }
+
+  html {
+    background: var(--color-canvas);
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--color-canvas);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-canvas);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-faint);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 }
 
-body {
-  @apply text-white;
-  font-family: 'JetBrains Mono', monospace;
+@layer components {
+  .dl-page {
+    width: min(100%, 1120px);
+    margin-inline: auto;
+    padding: clamp(28px, 5vw, 40px) clamp(16px, 4vw, 24px) 96px;
+  }
+
+  .dl-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-card);
+  }
+
+  .dl-control {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    color: var(--color-text);
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .dl-control:hover {
+    border-color: #3f3f46;
+  }
+
+  .dl-enter {
+    animation: dl-in 140ms ease-out;
+  }
+
+  .dl-pulse {
+    animation: dl-pulse 1.4s ease-in-out infinite;
+  }
 }

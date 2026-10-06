@@ -5,6 +5,7 @@ import Navbar from '../src/components/Navbar'
 
 const push = vi.fn()
 const logout = vi.fn()
+let pathname = '/'
 let authState: {
   user: null | { githubId: number; name: string; avatar: string; role: 'USER' | 'ADMIN' }
   loading: boolean
@@ -16,6 +17,7 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
+  usePathname: () => pathname,
 }))
 
 vi.mock('next/link', () => ({
@@ -35,6 +37,7 @@ vi.mock('../src/components/Toast', () => ({
 
 describe('Navbar', () => {
   beforeEach(() => {
+    pathname = '/'
     authState = { user: null, loading: false }
     push.mockReset()
     logout.mockReset()
@@ -93,5 +96,37 @@ describe('Navbar', () => {
     fireEvent.click(screen.getByRole('button', { name: /Suggest a tool/ }))
 
     expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
+  })
+
+  it('shows the minimal brand header on the login page', () => {
+    pathname = '/login'
+
+    render(<Navbar />)
+
+    expect(screen.getByRole('link', { name: 'Tools4.tech' })).toHaveAttribute(
+      'href',
+      '/',
+    )
+    expect(screen.queryByRole('button', { name: /Favorites/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the admin action inside the account menu for administrators', () => {
+    authState = {
+      user: {
+        githubId: 1,
+        name: 'Mateus',
+        avatar: 'https://example.com/avatar.png',
+        role: 'ADMIN',
+      },
+      loading: false,
+    }
+
+    render(<Navbar />)
+    fireEvent.click(screen.getByRole('button', { name: 'Account menu' }))
+
+    expect(screen.getByRole('link', { name: 'Add a tool (admin)' })).toHaveAttribute(
+      'href',
+      '/admin/addtools',
+    )
   })
 })
