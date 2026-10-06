@@ -1,54 +1,42 @@
+name: tools4tech
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: devlist-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER is required} -d ${POSTGRES_DB:?POSTGRES_DB is required}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER is required} -d ${POSTGRES_DB:?POSTGRES_DB is required}",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   migrate:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-      target: migrator
-    container_name: devlist-migrate
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-migrate:${IMAGE_TAG:-latest}
     restart: "no"
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       DIRECT_URL: ${DIRECT_URL:?DIRECT_URL is required}
+    networks:
+      - backend
     depends_on:
       postgres:
         condition: service_healthy
 
-  seed:
-    profiles: ["demo"]
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-      target: seeder
-    restart: "no"
-    environment:
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
-      DIRECT_URL: ${DIRECT_URL:?DIRECT_URL is required}
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: devlist-api
-    restart: always
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
@@ -60,30 +48,58 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:?COOKIE_DOMAIN is required}
       PORT: 3001
-    ports:
-      - "127.0.0.1:3001:3001"
+    networks:
+      - edge
+      - backend
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_URL_API: ${NEXT_PUBLIC_URL_API:?NEXT_PUBLIC_URL_API is required}
-    container_name: devlist-web
-    restart: always
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
     environment:
       NODE_ENV: production
-      URL_API: ${URL_API:?URL_API is required}
+      URL_API: ${URL_API:-http://api:3001}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-    ports:
-      - "3000:3000"
+    networks:
+      - edge
+      - backend
     depends_on:
       api:
         condition: service_healthy
 
+  caddy:
+    image: caddy:2.11.6-alpine
+    restart: unless-stopped
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+      ROOT_DOMAIN: ${ROOT_DOMAIN:-tools4.tech}
+      WEB_DOMAIN: ${WEB_DOMAIN:-www.tools4.tech}
+      API_DOMAIN: ${API_DOMAIN:-api.tools4.tech}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+networks:
+  edge:
+  backend:
+    internal: true
+
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
