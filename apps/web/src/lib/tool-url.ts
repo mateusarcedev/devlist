@@ -1,6 +1,6 @@
 export function withReferral(
   link: string,
-  referral = 'tools4.tech',
+  referral = 'devlist.mateusarce.dev',
 ): string {
   const url = new URL(link)
   url.searchParams.set('ref', referral)
