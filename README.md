@@ -191,13 +191,7 @@ Every pull request to `main` is validated by the GitHub Actions **Quality Gate**
 
 ## Production topology
 
-The production Docker Compose stack includes:
-
-- PostgreSQL
-- migration job
-- optional demo seed profile
-- API with readiness health check
-- web app gated on API health
+The production Docker Compose stack includes PostgreSQL, a migration job, an optional demo seed profile, the API with readiness health checks, and the web app gated on API health.
 
 The production auth topology uses sibling HTTPS hosts under the same parent domain:
 
