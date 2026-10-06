@@ -59,12 +59,6 @@ export default function Navbar() {
 
   const handleSuggestionClick = () => {
     setMobileMenuOpen(false)
-
-    if (!user) {
-      showToast('Log in to suggest a tool!', 'warning')
-      return
-    }
-
     setIsModalOpen(true)
   }
 

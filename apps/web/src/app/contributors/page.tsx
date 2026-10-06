@@ -1,7 +1,7 @@
 import CardsContributors from '@/components/CardsContributors'
 import getContributors from '@/utils/getContributors'
 import { type Metadata } from 'next'
-import { BiErrorCircle } from 'react-icons/bi'
+import { AlertCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Contributors',
@@ -12,34 +12,31 @@ export default async function Contributors() {
 
   if (!data) {
     return (
-      <div className='bg-[#111] text-gray-300 h-screen flex items-center justify-center'>
-        <div className='text-center space-y-4'>
-          <BiErrorCircle className='text-4xl mx-auto' />
-          <h1 className='text-2xl font-bold text-white'>Contributors Not Found</h1>
-          <p className='text-gray-400'>
-            We couldn&apos;t find any contributors for this repository. Please check
-            the repository name or try again later.
+      <main className='dl-page'>
+        <div className='px-4 py-24 text-center'>
+          <AlertCircle className='mx-auto mb-4 h-7 w-7 text-subtle' />
+          <h1 className='text-xl font-semibold text-white'>
+            Contributors unavailable
+          </h1>
+          <p className='mx-auto mt-2 max-w-[420px] text-sm leading-6 text-subtle'>
+            We couldn&apos;t load the repository contributors right now. Please try
+            again later.
           </p>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className='bg-[#111] text-gray-300'>
-      <main className='container mx-auto px-4 py-12'>
-        <section className='space-y-8'>
-          <div className='text-center space-y-4'>
-            <h1 className='text-4xl font-bold text-white'>Project Contributors</h1>
-            <p className='text-gray-400 max-w-2xl mx-auto'>
-              Thank you to all the amazing contributors who have helped make this
-              project possible.
-            </p>
-          </div>
+    <main className='mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,24px)] pb-24 pt-[clamp(32px,6vw,56px)]'>
+      <h1 className='text-[26px] font-semibold tracking-[-0.02em] text-white'>
+        Contributors
+      </h1>
+      <p className='mb-7 mt-2 text-sm text-subtle'>
+        {data.length} people have contributed to Tools4.tech
+      </p>
 
-          <CardsContributors data={data} />
-        </section>
-      </main>
-    </div>
+      <CardsContributors data={data} />
+    </main>
   )
 }
