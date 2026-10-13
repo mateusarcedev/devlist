@@ -37,12 +37,16 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en')
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('devlist-locale')
-    if (saved === 'en' || saved === 'pt-BR') {
-      setLocaleState(saved)
-      return
-    }
-    if (navigator.language.toLowerCase().startsWith('pt')) setLocaleState('pt-BR')
+    // Resolved after hydration to avoid a server/client markup mismatch;
+    // deferred so setState is not called synchronously in the effect body.
+    queueMicrotask(() => {
+      const saved = window.localStorage.getItem('devlist-locale')
+      if (saved === 'en' || saved === 'pt-BR') {
+        setLocaleState(saved)
+        return
+      }
+      if (navigator.language.toLowerCase().startsWith('pt')) setLocaleState('pt-BR')
+    })
   }, [])
 
   const setLocale = (next: Locale) => {

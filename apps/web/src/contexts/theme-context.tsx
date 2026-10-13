@@ -32,8 +32,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         : window.matchMedia('(prefers-color-scheme: light)').matches
           ? 'light'
           : 'dark'
-    setThemeState(initial)
     applyTheme(initial)
+    // Deferred so setState is not called synchronously in the effect body.
+    queueMicrotask(() => setThemeState(initial))
   }, [])
 
   const setTheme = (next: Theme) => {
