@@ -26,14 +26,14 @@ CMD ["pnpm", "exec", "prisma", "db", "seed"]
 
 FROM deps AS builder
 COPY apps/api ./apps/api
-RUN pnpm --filter @tools4tech/api exec prisma generate
-RUN pnpm --filter @tools4tech/api build
+RUN pnpm --filter @devlist/api exec prisma generate
+RUN pnpm --filter @devlist/api build
 
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
-RUN pnpm install --frozen-lockfile --prod --filter @tools4tech/api... --ignore-scripts
+RUN pnpm install --frozen-lockfile --prod --filter @devlist/api... --ignore-scripts
 
 FROM node:24.21.0-alpine AS runner
 WORKDIR /app

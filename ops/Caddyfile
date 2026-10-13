@@ -10,6 +10,8 @@
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Enable only after TLS is validated on both hosts (docs/deployment.md, post-VPS):
+		# Strict-Transport-Security "max-age=31536000"
 	}
 }
 

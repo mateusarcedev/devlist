@@ -23,7 +23,7 @@ services:
       retries: 10
 
   migrate:
-    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-migrate:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-migrate:${IMAGE_TAG:?IMAGE_TAG is required (full git SHA)}
     restart: "no"
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
 
   api:
-    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-api:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-api:${IMAGE_TAG:?IMAGE_TAG is required (full git SHA)}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
 
   web:
-    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-web:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY:-ghcr.io/mateusarcedev}/devlist-web:${IMAGE_TAG:?IMAGE_TAG is required (full git SHA)}
     restart: unless-stopped
     environment:
       NODE_ENV: production

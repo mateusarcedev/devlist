@@ -1,5 +1,5 @@
 {
-  "name": "@tools4tech/web",
+  "name": "@devlist/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -42,6 +42,6 @@
   },
   "packageManager": "pnpm@12.9.1",
   "license": "MIT",
-  "description": "Tools4.tech Next.js web application",
+  "description": "Devlist Next.js web application",
   "author": "Mateus Arce"
 }

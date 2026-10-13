@@ -1,7 +1,7 @@
 {
-  "name": "@tools4tech/api",
+  "name": "@devlist/api",
   "version": "0.0.1",
-  "description": "Tools4.tech NestJS API",
+  "description": "Devlist NestJS API",
   "author": "Mateus Arce",
   "private": true,
   "license": "MIT",

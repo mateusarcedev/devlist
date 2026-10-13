@@ -13,7 +13,35 @@ set -a
 . ./.env
 set +a
 
-DEPLOY_TAG="${1:-${IMAGE_TAG:-latest}}"
+DEPLOY_TAG="${1:-${IMAGE_TAG:-}}"
+
+case "$DEPLOY_TAG" in
+  *[!0-9a-f]*|"")
+    echo "Deploy tag must be a full 40-char lowercase git SHA (got: '${DEPLOY_TAG}')." >&2
+    exit 1
+    ;;
+esac
+if [ "${#DEPLOY_TAG}" -ne 40 ]; then
+  echo "Deploy tag must be a full 40-char lowercase git SHA (got: '${DEPLOY_TAG}')." >&2
+  exit 1
+fi
+
+for var in POSTGRES_PASSWORD DATABASE_URL DIRECT_URL JWT_SECRET GITHUB_ID GITHUB_SECRET ACME_EMAIL; do
+  eval "value=\${$var:-}"
+  case "$value" in
+    ""|*change_me*|*example.com|*example.invalid)
+      echo "$var is empty or still a placeholder in .env." >&2
+      exit 1
+      ;;
+  esac
+done
+
+case "${COOKIE_DOMAIN:-}" in
+  ""|.*|*example.com|localhost)
+    echo "COOKIE_DOMAIN must be a bare production host (e.g. devlist.mateusarce.dev)." >&2
+    exit 1
+    ;;
+esac
 STATE_DIR="$ROOT_DIR/.deploy"
 CURRENT_FILE="$STATE_DIR/current-tag"
 PREVIOUS_FILE="$STATE_DIR/previous-tag"
@@ -27,7 +55,7 @@ fi
 
 export IMAGE_TAG="$DEPLOY_TAG"
 
-echo "Deploying Tools4.tech image tag: $IMAGE_TAG"
+echo "Deploying Devlist image tag: $IMAGE_TAG"
 
 docker compose pull postgres migrate api web caddy
 
