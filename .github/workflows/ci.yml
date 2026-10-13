@@ -53,7 +53,6 @@ jobs:
       URL_API: http://localhost:3001
       NEXT_PUBLIC_URL_API: http://localhost:3001
       COOKIE_DOMAIN: localhost
-      ROOT_DOMAIN: localhost
       WEB_DOMAIN: www.localhost
       API_DOMAIN: api.localhost
       ACME_EMAIL: ci@example.invalid
@@ -91,36 +90,35 @@ jobs:
         run: >-
           docker run --rm
           -e ACME_EMAIL=ci@example.invalid
-          -e ROOT_DOMAIN=tools4.tech
-          -e WEB_DOMAIN=www.tools4.tech
-          -e API_DOMAIN=api.tools4.tech
+          -e WEB_DOMAIN=devlist.mateusarce.dev
+          -e API_DOMAIN=api.devlist.mateusarce.dev
           -v "$PWD/ops/Caddyfile:/etc/caddy/Caddyfile:ro"
           caddy:2.11.6-alpine
           caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 
       - name: Apply database migrations
-        run: pnpm --filter @tools4tech/api exec prisma migrate deploy
+        run: pnpm --filter @devlist/api exec prisma migrate deploy
 
       - name: Lint API
-        run: pnpm --filter @tools4tech/api exec eslint "src/**/*.ts" "test/**/*.ts" --max-warnings=0
+        run: pnpm --filter @devlist/api exec eslint "src/**/*.ts" "test/**/*.ts" --max-warnings=0
 
       - name: Build API
-        run: pnpm --filter @tools4tech/api build
+        run: pnpm --filter @devlist/api build
 
       - name: Run API unit tests
-        run: pnpm --filter @tools4tech/api test --runInBand
+        run: pnpm --filter @devlist/api test --runInBand
 
       - name: Run API E2E tests
-        run: pnpm --filter @tools4tech/api test:e2e
+        run: pnpm --filter @devlist/api test:e2e
 
       - name: Lint web
-        run: pnpm --filter @tools4tech/web exec eslint . --max-warnings=0
+        run: pnpm --filter @devlist/web exec eslint . --max-warnings=0
 
       - name: Run web tests
-        run: pnpm --filter @tools4tech/web test
+        run: pnpm --filter @devlist/web test
 
       - name: Typecheck web
-        run: pnpm --filter @tools4tech/web typecheck
+        run: pnpm --filter @devlist/web typecheck
 
       - name: Build web
-        run: pnpm --filter @tools4tech/web build
+        run: pnpm --filter @devlist/web build

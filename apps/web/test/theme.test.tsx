@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ThemeProvider, useTheme } from '../src/contexts/theme-context'
 
@@ -26,9 +26,11 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.dataset.theme).toBe('light')
   })
 
-  it('restores a saved theme', () => {
+  it('restores a saved theme', async () => {
     localStorage.setItem('devlist-theme', 'light')
     render(<ThemeProvider><Consumer /></ThemeProvider>)
-    expect(screen.getByRole('button')).toHaveTextContent('light')
+    await waitFor(() =>
+      expect(screen.getByRole('button')).toHaveTextContent('light'),
+    )
   })
 })

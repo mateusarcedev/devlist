@@ -7,16 +7,16 @@ This runbook deploys **Devlist** on a single Linux VPS using Docker Compose, Cad
 ```text
 Internet
   │
-  ├── devlist.mateusarce.dev ──┐        │
-  └── api.devlist.mateusarce.dev ──┼────────┤
-                        ▼        │
-                    Caddy :80/:443
-                     │        │
-                     ▼        ▼
-                  web:3000   api:3001
-                               │
-                               ▼
-                         postgres:5432
+  ├── devlist.mateusarce.dev ─────┐
+  └── api.devlist.mateusarce.dev ─┤
+                                  ▼
+                          Caddy :80/:443
+                           │          │
+                           ▼          ▼
+                       web:3000    api:3001
+                                      │
+                                      ▼
+                                postgres:5432
 ```
 
 Only Caddy exposes host ports. PostgreSQL stays on the private `backend` Docker network.
@@ -74,9 +74,7 @@ ghcr.io/mateusarcedev/devlist-migrate:<git-sha>
 ghcr.io/mateusarcedev/devlist-web:<git-sha>
 ```
 
-The same images also receive `latest`.
-
-Production should prefer the **full git SHA** so rollback is deterministic.
+The same images also receive `latest`, but production must not use it: `docker-compose.yml` requires `IMAGE_TAG` and `ops/deploy.sh` / `ops/rollback.sh` accept only a full 40-character git SHA.
 
 If the GHCR packages are private, authenticate on the VPS with a token that has `read:packages`:
 
@@ -94,7 +92,16 @@ cd devlist
 cp .env.example .env
 ```
 
-Edit `.env` and replace every placeholder.
+Edit `.env` and replace every placeholder. `ops/deploy.sh` refuses to run while `POSTGRES_PASSWORD`, `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `GITHUB_ID`, `GITHUB_SECRET` or `ACME_EMAIL` are empty or placeholders, or while `COOKIE_DOMAIN` is not a bare production host.
+
+Generate URL-safe secrets (the Postgres password is embedded in `DATABASE_URL` / `DIRECT_URL`):
+
+```bash
+openssl rand -hex 24   # POSTGRES_PASSWORD
+openssl rand -hex 32   # JWT_SECRET
+```
+
+`COOKIE_DOMAIN=devlist.mateusarce.dev` scopes the access cookie to the Devlist hosts only; do not use `.mateusarce.dev`, which would send it to every other subdomain.
 
 Important production values:
 
@@ -110,7 +117,7 @@ GITHUB_SECRET=<production-client-secret>
 
 API_URL=https://api.devlist.mateusarce.dev
 FRONTEND_URL=https://devlist.mateusarce.dev
-COOKIE_DOMAIN=.mateusarce.dev
+COOKIE_DOMAIN=devlist.mateusarce.dev
 
 WEB_DOMAIN=devlist.mateusarce.dev
 API_DOMAIN=api.devlist.mateusarce.dev
@@ -177,7 +184,35 @@ BACKUP_DIR=./backups
 BACKUP_RETENTION_DAYS=14
 ```
 
-For real production resilience, copy backups off the VPS as well. A local disk backup does not protect against VPS/disk loss.
+### Scheduled backup
+
+```bash
+# crontab -e (as the deploy user)
+15 3 * * * cd /opt/devlist && sh ./ops/backup-postgres.sh >> /var/log/devlist-backup.log 2>&1
+```
+
+### Off-site copy (required)
+
+A local disk backup does not protect against VPS/disk loss. Copy dumps to external storage after each backup, with credentials kept outside the repository (e.g. `~/.config/rclone/rclone.conf`, mode 600):
+
+```bash
+# crontab -e, after the backup job
+45 3 * * * rclone copy /opt/devlist/backups remote:devlist-backups --include 'devlist-*.dump' >> /var/log/devlist-offsite.log 2>&1
+```
+
+Confirm with `rclone ls remote:devlist-backups` that the newest dump is present. Use a bucket/remote with versioning or its own retention policy.
+
+### Restore drill
+
+Test restoring on a disposable Postgres, never on production:
+
+```bash
+docker run -d --name restore-test -e POSTGRES_PASSWORD=test postgres:16-alpine
+docker cp ./backups/<file>.dump restore-test:/tmp/b.dump
+docker exec restore-test pg_restore --no-owner --no-privileges -U postgres -d postgres /tmp/b.dump
+docker exec restore-test psql -U postgres -c 'SELECT count(*) FROM tools;'
+docker rm -f restore-test
+```
 
 ## Restore
 
@@ -237,8 +272,10 @@ After each deployment:
 curl -fsS https://api.devlist.mateusarce.dev/health/live
 curl -fsS https://api.devlist.mateusarce.dev/health/ready
 curl -I https://devlist.mateusarce.dev
-curl -I https://devlist.mateusarce.dev
+curl -sI https://api.devlist.mateusarce.dev/auth/github | grep -i '^location: https://github.com/login/oauth'
 ```
+
+After TLS is confirmed on both hosts, uncomment `Strict-Transport-Security` in `ops/Caddyfile` and redeploy.
 
 Also validate manually:
 

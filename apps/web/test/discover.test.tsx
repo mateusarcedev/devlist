@@ -79,7 +79,9 @@ describe('DiscoverContent', () => {
 
   it('filters tools by name, description, category, or domain', () => {
     render(<DiscoverContent tools={tools} categories={categories} />)
-    const search = screen.getByRole('searchbox', { name: 'Search tools' })
+    const search = screen.getByRole('searchbox', {
+      name: 'Search tools, categories, technologies...',
+    })
 
     fireEvent.change(search, { target: { value: 'browser' } })
     expect(screen.getByText(/Playwright — Testing/)).toBeInTheDocument()
@@ -93,22 +95,27 @@ describe('DiscoverContent', () => {
   })
 
   it('shows a retry state when the directory fails to load', () => {
-    render(
-      <DiscoverContent tools={[]} categories={[]} loadError />,
-    )
+    render(<DiscoverContent tools={[]} categories={[]} loadError />)
 
     expect(
       screen.getByText("We couldn't load the directory"),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Try again' }),
+    ).toBeInTheDocument()
   })
 
   it('shows the empty state when no tool matches', () => {
     render(<DiscoverContent tools={tools} categories={categories} />)
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search tools' }), {
-      target: { value: 'does-not-exist' },
-    })
+    fireEvent.change(
+      screen.getByRole('searchbox', {
+        name: 'Search tools, categories, technologies...',
+      }),
+      {
+        target: { value: 'does-not-exist' },
+      },
+    )
 
     expect(screen.getByText('No tools match')).toBeInTheDocument()
     expect(

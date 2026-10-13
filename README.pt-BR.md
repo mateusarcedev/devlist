@@ -194,7 +194,7 @@ Toda pull request para `main` passa pelo **Quality Gate** do GitHub Actions, inc
 A stack self-host de produção agora está definida no repositório:
 
 - Caddy 2.11.6 como única entrada pública nas portas 80/443;
-- HTTPS automático para `devlist.mateusarce.dev`, `devlist.mateusarce.dev` e `api.devlist.mateusarce.dev`;
+- HTTPS automático para `devlist.mateusarce.dev` e `api.devlist.mateusarce.dev`;
 - web e API em redes Docker privadas;
 - PostgreSQL isolado da rede pública do host;
 - imagens imutáveis de API/migrator/web publicadas no GHCR depois que a `main` passa no CI;

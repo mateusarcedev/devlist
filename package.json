@@ -1,5 +1,5 @@
 {
-  "name": "tools4tech-monorepo",
+  "name": "devlist-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",

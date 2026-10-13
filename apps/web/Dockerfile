@@ -10,7 +10,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
-RUN pnpm install --frozen-lockfile --filter @tools4tech/web...
+RUN pnpm install --frozen-lockfile --filter @devlist/web...
 
 FROM deps AS builder
 COPY apps/web ./apps/web
@@ -18,7 +18,7 @@ COPY apps/web ./apps/web
 ARG NEXT_PUBLIC_URL_API
 ENV NEXT_PUBLIC_URL_API=$NEXT_PUBLIC_URL_API
 
-RUN pnpm --filter @tools4tech/web build
+RUN pnpm --filter @devlist/web build
 
 FROM node:24.21.0-alpine AS runner
 WORKDIR /app/apps/web
