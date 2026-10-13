@@ -45,13 +45,13 @@
 :root[data-theme='light'] .text-white { color: var(--color-text); }
 :root[data-theme='light'] .bg-white { background-color: #18181b; }
 :root[data-theme='light'] .text-black { color: #ffffff; }
-:root[data-theme='light'] .hover\\:bg-zinc-200:hover { background-color: #27272a; }
-:root[data-theme='light'] .focus\\:border-zinc-600:focus,
-:root[data-theme='light'] .hover\\:border-zinc-600:hover { border-color: #a1a1aa; }
-:root[data-theme='light'] .border-\\[\\#0d3a26\\] { border-color: #a7f3d0; }
-:root[data-theme='light'] .bg-\\[\\#061a12\\] { background-color: #ecfdf5; }
-:root[data-theme='light'] .border-\\[\\#3a1414\\] { border-color: #fecaca; }
-:root[data-theme='light'] .bg-\\[\\#1a0a0a\\] { background-color: #fef2f2; }
+:root[data-theme='light'] .hover\:bg-zinc-200:hover { background-color: #27272a; }
+:root[data-theme='light'] .focus\:border-zinc-600:focus,
+:root[data-theme='light'] .hover\:border-zinc-600:hover { border-color: #a1a1aa; }
+:root[data-theme='light'] .border-\[\#0d3a26\] { border-color: #a7f3d0; }
+:root[data-theme='light'] .bg-\[\#061a12\] { background-color: #ecfdf5; }
+:root[data-theme='light'] .border-\[\#3a1414\] { border-color: #fecaca; }
+:root[data-theme='light'] .bg-\[\#1a0a0a\] { background-color: #fef2f2; }
 
 @keyframes dl-pulse {
   0%,
