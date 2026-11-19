@@ -39,11 +39,3 @@ export interface Suggestion {
 
 export type OnFavoriteChange = (toolId: string, isFavorite: boolean) => void
 
-export interface Contributor {
-  login: string
-  avatar_url: string
-  name: string
-  followers: number
-  public_repos: number
-  contributions: number
-}

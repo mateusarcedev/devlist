@@ -1,55 +1,57 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CardsContributors from '../src/components/CardsContributors'
+import type { PublicContributor } from '../src/lib/public-contributors'
 
-const contributors = [
-  {
-    login: 'zeta-dev',
-    avatar_url: 'https://example.com/zeta.png',
-    name: 'Zeta Dev',
-    followers: 20,
-    public_repos: 10,
-    contributions: 4,
-  },
-  {
-    login: 'alpha',
-    avatar_url: 'https://example.com/alpha.png',
-    name: 'Alpha',
-    followers: 5,
-    public_repos: 2,
-    contributions: 12,
-  },
+const mock = vi.hoisted(() => ({ refresh: vi.fn() }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mock.refresh }) }))
+
+const contributors: PublicContributor[] = [
+  { login: 'beta', avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4', isMaintainer: false, approvedCount: 2, sinceYear: 2026, lastApprovedAt: '2026-10-01T00:00:00Z', recentTools: ['Tailwind'] },
+  { login: 'alpha', avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4', isMaintainer: true, approvedCount: 6, sinceYear: 2025, lastApprovedAt: '2026-06-01T00:00:00Z', recentTools: ['Astro', 'Next.js'] },
+  { login: 'zeta', avatarUrl: 'https://avatars.githubusercontent.com/u/3?v=4', isMaintainer: false, approvedCount: 4, sinceYear: 2026, lastApprovedAt: '2026-11-01T00:00:00Z', recentTools: ['React'] },
 ]
 
 describe('CardsContributors', () => {
-  it('renders contributors sorted by contributions by default', () => {
+  beforeEach(() => mock.refresh.mockReset())
+
+  it('shows the approved-only ranking, maintainer, recent tool chips and GitHub avatars', () => {
     render(<CardsContributors data={contributors} />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Contributors' })).toBeInTheDocument()
+    expect(screen.getByText('maintainer')).toBeInTheDocument()
+    expect(screen.getByText('Astro')).toBeInTheDocument()
+    expect(screen.getByText('since 2025')).toBeInTheDocument()
+    expect(screen.getAllByRole('img', { hidden: true }).length).toBeGreaterThanOrEqual(3)
 
     const links = screen.getAllByRole('link')
     expect(links[0]).toHaveAttribute('href', 'https://github.com/alpha')
-    expect(links[1]).toHaveAttribute('href', 'https://github.com/zeta-dev')
+    expect(links[1]).toHaveAttribute('href', 'https://github.com/zeta')
   })
 
-  it('filters contributors and shows the empty state', () => {
+  it('changes segmented sorting to most recent and updates pressed state', () => {
     render(<CardsContributors data={contributors} />)
-
-    fireEvent.change(
-      screen.getByRole('searchbox', { name: 'Search contributors' }),
-      { target: { value: 'missing' } },
-    )
-
-    expect(screen.getByText('No contributors found')).toBeInTheDocument()
-    expect(screen.getByText('No one matches "missing".')).toBeInTheDocument()
+    const recent = screen.getByRole('button', { name: 'Most recent' })
+    expect(recent).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(recent)
+    expect(recent).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', 'https://github.com/zeta')
   })
 
-  it('sorts contributors by followers', () => {
-    render(<CardsContributors data={contributors} />)
+  it('shows a genuine empty state and triggers the existing suggestion modal', () => {
+    const listener = vi.fn()
+    window.addEventListener('devhub:open-suggestion', listener)
+    render(<CardsContributors data={[]} />)
+    expect(screen.getByText('No approved contributions yet')).toBeInTheDocument()
+    expect(screen.queryByText('Most approved')).not.toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Suggest a tool' })[0])
+    expect(listener).toHaveBeenCalledOnce()
+    window.removeEventListener('devhub:open-suggestion', listener)
+  })
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Sort contributors' }), {
-      target: { value: 'followers' },
-    })
-
-    const links = screen.getAllByRole('link')
-    expect(links[0]).toHaveAttribute('href', 'https://github.com/zeta-dev')
+  it('shows a retry state when the API is unavailable', () => {
+    render(<CardsContributors data={[]} loadError />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Contributors unavailable')
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(mock.refresh).toHaveBeenCalledOnce()
   })
 })
