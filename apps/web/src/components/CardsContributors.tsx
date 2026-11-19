@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 interface Props {
   data: PublicContributor[]
   loadError?: boolean
+  catalogPending?: boolean
   codeContributors?: GitHubCodeContributor[]
   codeLoadError?: boolean
 }
@@ -35,7 +36,7 @@ function Avatar({ contributor }: { contributor: PublicContributor }) {
   )
 }
 
-export default function CardsContributors({ data, loadError = false, codeContributors = [], codeLoadError = false }: Props) {
+export default function CardsContributors({ data, loadError = false, catalogPending = false, codeContributors = [], codeLoadError = false }: Props) {
   const { t } = useI18n()
   const router = useRouter()
   const [sortBy, setSortBy] = useState<ContributorSort>('approved')
@@ -79,16 +80,16 @@ export default function CardsContributors({ data, loadError = false, codeContrib
         </div>
 
       {loadError ? (
-        <div role='alert' className='flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-border-strong px-6 py-12 text-center'>
-          <h2 className='font-sans text-[16px] font-semibold text-text'>{t('contributorsErrorTitle')}</h2>
-          <p className='max-w-[420px] text-[12.5px] text-muted'>{t('contributorsErrorDescription')}</p>
-          <button
+        <div role={catalogPending ? 'status' : 'alert'} className='flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-border-strong px-6 py-12 text-center'>
+          <h2 className='font-sans text-[16px] font-semibold text-text'>{catalogPending ? t('contributorsSetupTitle') : t('contributorsErrorTitle')}</h2>
+          <p className='max-w-[420px] text-[12.5px] text-muted'>{catalogPending ? t('contributorsSetupDescription') : t('contributorsErrorDescription')}</p>
+          {!catalogPending && <button
             type='button'
             onClick={() => router.refresh()}
             className='inline-flex h-10 items-center rounded-[6px] border border-border-strong px-4 text-[12.5px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
           >
             {t('retry')}
-          </button>
+          </button>}
         </div>
       ) : people.length === 0 ? (
         <div className='flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-border-strong px-6 py-12 text-center'>

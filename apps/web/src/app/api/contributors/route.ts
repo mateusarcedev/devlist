@@ -1,5 +1,5 @@
 import { fetchGitHubCodeContributors } from '@/lib/github-code-contributors'
-import { fetchPublicContributors, type ContributorSort } from '@/lib/public-contributors'
+import { ContributorSchemaPendingError, fetchPublicContributors, type ContributorSort } from '@/lib/public-contributors'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
     contributors: catalog.status === 'fulfilled' ? catalog.value : [],
     codeContributors: github.status === 'fulfilled' ? github.value : [],
     sources: {
-      catalog: catalog.status === 'fulfilled' ? 'ok' : 'unavailable',
+      catalog: catalog.status === 'fulfilled'
+        ? 'ok' : catalog.reason instanceof ContributorSchemaPendingError ? 'setup' : 'unavailable',
       github: github.status === 'fulfilled' ? 'ok' : 'unavailable',
     },
   }, {

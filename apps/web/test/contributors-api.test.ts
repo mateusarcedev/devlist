@@ -62,6 +62,15 @@ describe('GET /api/contributors', () => {
     })
   })
 
+  it('identifies pending catalog migration separately from a GitHub failure', async () => {
+    const { ContributorSchemaPendingError } = await import('../src/lib/public-contributors')
+    mock.load.mockRejectedValue(new ContributorSchemaPendingError())
+    mock.github.mockResolvedValue([{ login: 'alpha', commits: 8 }])
+    const response = await GET(request())
+    expect(response.status).toBe(200)
+    expect((await response.json()).sources).toEqual({ catalog: 'setup', github: 'ok' })
+  })
+
   it('keeps tool contributors accessible if GitHub is temporarily unavailable', async () => {
     mock.load.mockResolvedValue([{ login: 'alpha', approvedCount: 2 }])
     mock.github.mockRejectedValue(new Error('GitHub rate limited'))

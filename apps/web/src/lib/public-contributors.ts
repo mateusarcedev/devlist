@@ -2,6 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 
 export type ContributorSort = 'approved' | 'recent'
 
+export class ContributorSchemaPendingError extends Error {
+  constructor() {
+    super('Contributor credits schema not deployed')
+    this.name = 'ContributorSchemaPendingError'
+  }
+}
+
 export interface PublicContributor {
   login: string
   avatarUrl: string
@@ -43,7 +50,12 @@ export async function fetchPublicContributors(sort: ContributorSort = 'approved'
     : await query.order('approved_count', { ascending: false })
       .order('last_approved_at', { ascending: false }).limit(200)
 
-  if (error) throw new Error('Unable to load public contributors')
+  if (error) {
+    if (error.code === 'PGRST205' || error.code === '42P01') {
+      throw new ContributorSchemaPendingError()
+    }
+    throw new Error('Unable to load public contributors')
+  }
 
   return ((data ?? []) as ContributorRow[]).map(row => ({
     login: row.github_login,

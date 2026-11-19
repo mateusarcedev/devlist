@@ -1,6 +1,6 @@
 import CardsContributors from '@/components/CardsContributors'
 import { fetchGitHubCodeContributors } from '@/lib/github-code-contributors'
-import { fetchPublicContributors } from '@/lib/public-contributors'
+import { ContributorSchemaPendingError, fetchPublicContributors } from '@/lib/public-contributors'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -22,6 +22,7 @@ export default async function ContributorsPage() {
     <CardsContributors
       data={approved.status === 'fulfilled' ? approved.value : []}
       loadError={approved.status === 'rejected'}
+      catalogPending={approved.status === 'rejected' && approved.reason instanceof ContributorSchemaPendingError}
       codeContributors={code.status === 'fulfilled' ? code.value : []}
       codeLoadError={code.status === 'rejected'}
     />
