@@ -1,0 +1,33 @@
+name: Stage 3 Web Validation
+
+on:
+  push:
+    branches:
+      - feat/devhub-redesign-stage3-url-suggestions
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.9.1
+          run_install: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @devlist/web exec eslint . --max-warnings=0
+      - run: pnpm --filter @devlist/web test
+      - run: pnpm --filter @devlist/web typecheck
+      - run: pnpm --filter @devlist/web build
