@@ -27,7 +27,7 @@ const labels = {
     failedCopy:'Could not copy the link.',unavailable:'The comparison is unavailable. Try again.',
     noMatches:'No matching tools in the public catalog.',
     empty:'Select two or three tools to see their differences.',
-    purpose:'Purpose and differences',cases:'Documented use cases',
+    differences:'Key differences, according to the catalog',purpose:'Purpose and differences',cases:'Documented use cases',
     limitations:'Known limitations',costs:'Known costs',source:'Official source',
     accessSource:'Access-model evidence',unknown:'Not documented in the catalog.',
     priceUnknown:'No exact price or billing limits verified for this tool.',
@@ -45,7 +45,7 @@ const labels = {
     failedCopy:'Não foi possível copiar o link.',unavailable:'Não foi possível comparar agora. Tente novamente.',
     noMatches:'Nenhuma ferramenta correspondente no catálogo público.',
     empty:'Selecione duas ou três ferramentas para comparar suas diferenças.',
-    purpose:'Proposta e diferenças',cases:'Casos de uso documentados',
+    differences:'Principais diferenças segundo o catálogo',purpose:'Proposta e diferenças',cases:'Casos de uso documentados',
     limitations:'Limitações conhecidas',costs:'Custos conhecidos',source:'Fonte oficial',
     accessSource:'Fonte da classificação',unknown:'Não informado no catálogo.',
     priceUnknown:'Preço exato e limites de cobrança não verificados para esta ferramenta.',
@@ -104,7 +104,8 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
       if(!Array.isArray(body.tools)||body.tools.length!==ids.length)throw new Error(t.unavailable)
       if(!activeRequest.signal.aborted){
         setResult({tools:body.tools,semanticPairs:Array.isArray(body.semanticPairs)?body.semanticPairs:null})
-        window.history.replaceState(window.history.state,'','/compare?tools='+encodeURIComponent(ids.join(',')))
+        if(window.location.protocol==='https:'||window.location.protocol==='http:')
+          window.history.replaceState(window.history.state,'','/compare?tools='+encodeURIComponent(ids.join(',')))
       }
     }catch(e){
       if(!activeRequest.signal.aborted)setError(e instanceof Error?e.message:t.unavailable)
@@ -121,15 +122,18 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
 
   const add=(id:string)=>{
     if(selected.length>=3||selected.includes(id))return
+    request.current?.abort();setBusy(false)
     setSelected(old=>[...old,id]);setQuery('');setActive(false);setResult(null);setFeedback('')
   }
   const remove=(id:string)=>{
+    request.current?.abort();setBusy(false)
     setSelected(old=>old.filter(item=>item!==id));setResult(null);setFeedback('')
   }
   const reset=()=>{
     request.current?.abort();setBusy(false)
     setSelected([]);setResult(null);setError('');setFeedback('');setQuery('')
-    window.history.replaceState(window.history.state,'','/compare')
+    if(window.location.protocol==='https:'||window.location.protocol==='http:')
+      window.history.replaceState(window.history.state,'','/compare')
   }
   const submit=(event:FormEvent<HTMLFormElement>)=>{
     event.preventDefault()
@@ -259,6 +263,21 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
                 <ShieldCheck aria-hidden='true' className='h-4 w-4 text-accent'/>
                 <p className='text-[12px] text-muted'>{t.sourceWarning}</p>
               </div>
+              <section className='mb-4 rounded-[12px] border border-border-strong bg-surface p-4 tablet:p-5'>
+                <h2 className='mb-3 font-sans text-[15px] font-semibold text-text'>{t.differences}</h2>
+                <div className={'grid gap-3 '+(result.tools.length===3?'tablet:grid-cols-2 desktop:grid-cols-3':'tablet:grid-cols-2')}>
+                  {result.tools.map(tool=>(
+                    <div key={tool.id} className='rounded-[8px] border border-border-strong bg-canvas p-3'>
+                      <p className='mb-1 text-[12px] font-semibold text-accent'>{tool.name}</p>
+                      <p className='text-[12px] leading-relaxed text-muted'>
+                        {locale==='en' && tool.evidence.en?.useCases[0]
+                          ? tool.evidence.en.useCases[0]
+                          : tool.evidence.useCases[0] ?? tool.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
               <div className={'grid gap-3 '+(result.tools.length===3?'tablet:grid-cols-2 desktop:grid-cols-3':'tablet:grid-cols-2')}>
                 {result.tools.map(tool=>{
                   const facts=locale==='en' && tool.evidence.en
