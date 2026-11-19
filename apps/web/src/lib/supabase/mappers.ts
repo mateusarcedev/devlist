@@ -1,4 +1,5 @@
 import type { Category, Favorite, Suggestion, Tool } from '@/types'
+import { accessModelForTool } from '@/lib/tool-access'
 
 export interface ToolRow {
   id: string
@@ -6,6 +7,7 @@ export interface ToolRow {
   link: string
   description: string
   category_id: string
+  access_model?: string | null
 }
 
 export interface FavoriteRow {
@@ -33,6 +35,7 @@ export function toTool(row: ToolRow): Tool {
     link: row.link,
     description: row.description,
     categoryId: row.category_id,
+    accessModel: accessModelForTool(row.access_model, row.link),
   }
 }
 

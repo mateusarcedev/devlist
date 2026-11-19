@@ -1,7 +1,7 @@
 import CategoryToolsContent from './CategoryToolsContent'
 import type { Tool } from '@/types'
 import { createClient } from '@/lib/supabase/server'
-import { toTool, type ToolRow } from '@/lib/supabase/mappers'
+import { loadVisibleTools } from '@/lib/catalog-tools'
 import { type Metadata } from 'next'
 
 interface PageProps {
@@ -27,12 +27,8 @@ async function getToolsByCategory(name: string): Promise<CategoryToolsResult> {
     const category = await supabase.from('categories').select('id').eq('name', name).maybeSingle()
     if (category.error) return { tools: [], loadError: true }
     if (!category.data) return { tools: [], loadError: false }
-    const result = await supabase.from('tools')
-      .select('id,name,link,description,category_id')
-      .eq('category_id', category.data.id)
-      .order('name')
-    if (result.error) return { tools: [], loadError: true }
-    return { tools: ((result.data ?? []) as ToolRow[]).map(toTool), loadError: false }
+    const result = await loadVisibleTools(supabase, category.data.id)
+    return { tools: result.tools, loadError: result.error }
   } catch (error) {
     console.error('Failed to load category from Supabase', error)
     return { tools: [], loadError: true }

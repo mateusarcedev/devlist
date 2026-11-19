@@ -1,7 +1,8 @@
 import DiscoverContent from '@/components/DiscoverContent'
 import type { Category, Tool } from '@/types'
 import { createClient } from '@/lib/supabase/server'
-import { toCategory, toTool, type ToolRow } from '@/lib/supabase/mappers'
+import { toCategory } from '@/lib/supabase/mappers'
+import { loadVisibleTools } from '@/lib/catalog-tools'
 
 interface DirectoryData {
   tools: Tool[]
@@ -13,14 +14,14 @@ async function getDirectoryData(): Promise<DirectoryData> {
   try {
     const supabase = await createClient()
     const [toolsResult, categoriesResult] = await Promise.all([
-      supabase.from('tools').select('id,name,link,description,category_id').order('name'),
+      loadVisibleTools(supabase),
       supabase.from('categories').select('id,name').order('name'),
     ])
     if (toolsResult.error || categoriesResult.error) {
       return { tools: [], categories: [], loadError: true }
     }
     return {
-      tools: ((toolsResult.data ?? []) as ToolRow[]).map(toTool),
+      tools: toolsResult.tools,
       categories: (categoriesResult.data ?? []).map(toCategory),
       loadError: false,
     }
