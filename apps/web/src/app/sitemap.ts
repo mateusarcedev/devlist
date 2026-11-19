@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: absoluteUrl('/'), ...(updated ? {lastModified:updated} : {}), changeFrequency:'daily', priority:1 },
     { url: absoluteUrl('/contributors'), changeFrequency:'weekly', priority:0.6 },
+    { url: absoluteUrl('/compare'), changeFrequency:'monthly', priority:0.7 },
     ...[...categories.entries()].map(([name,list])=>({
       url: absoluteUrl('/tools/'+encodeURIComponent(name)),
       ...(latest(list.map(tool=>tool.createdAt)) ? {lastModified:latest(list.map(tool=>tool.createdAt))} : {}),
