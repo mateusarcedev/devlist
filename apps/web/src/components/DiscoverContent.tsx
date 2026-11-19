@@ -1,6 +1,7 @@
 'use client'
 
 import DirectoryToolCard from '@/components/DirectoryToolCard'
+import DevhubAiSearch from '@/components/DevhubAiSearch'
 import { useI18n } from '@/contexts/i18n-context'
 import { getCategoryLabel } from '@/lib/category-labels'
 import { requestSuggestionModal } from '@/lib/suggestion-trigger'
@@ -147,6 +148,7 @@ export default function DiscoverContent({
             </kbd>
           </form>
         )}
+        {!loadError && <DevhubAiSearch />}
       </section>
 
       <section id='catalogo' className='flex flex-col gap-5 pb-12 pt-2 laptop:flex-row laptop:items-start laptop:gap-7'>
