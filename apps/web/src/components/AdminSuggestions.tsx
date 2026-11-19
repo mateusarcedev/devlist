@@ -36,11 +36,16 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
       if (!response.ok) throw new Error(payload.message || 'Erro ao carregar sugestões.')
       const suggestions = payload.suggestions as Suggestion[]
       setItems(suggestions)
-      setSelected(current => suggestions.some(s=>s.id===current)?current:(suggestions[0]?.id ?? null))
+      setSelected(suggestions[0]?.id ?? null)
+      setForm({name:suggestions[0]?.name??'',description:suggestions[0]?.description??'',categoryId:suggestions[0]?.category_id??''})
     } catch(e) { setError(e instanceof Error?e.message:'Erro inesperado');setItems([]);setSelected(null) }
     finally { setLoading(false) }
   },[])
-  useEffect(() => { void load(tab) },[tab,load])
+  useEffect(() => {
+    let active=true
+    queueMicrotask(()=>{if(active)void load(tab)})
+    return ()=>{active=false}
+  },[tab,load])
   useEffect(() => {
     let active=true
     void Promise.all(tabs.map(async t=>{
@@ -52,13 +57,9 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
   },[tab,items.length])
   const current=useMemo(()=>items.find(s=>s.id===selected)??null,[items,selected])
   useEffect(()=>{
-    if(!current) return
-    setForm({name:current.name??'',description:current.description??'',categoryId:current.category_id??''})
-  },[current])
-  useEffect(()=>{
     if(!current || current.status!=='PENDING' || (current.name && current.description)) return
     let active=true
-    setMetaLoading(true)
+    queueMicrotask(()=>{if(active)setMetaLoading(true)})
     void fetch('/api/admin/suggestions/'+current.id+'/metadata',{cache:'no-store'})
       .then(async response=>response.ok?response.json():null)
       .then(meta=>{
@@ -121,7 +122,7 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
         {loading?<p className='p-5 text-[13px] text-muted'>Carregando sugestões…</p>:
           items.length===0?<p className='p-8 text-center text-[13px] text-muted'>Nada por aqui.</p>:
           <div className='max-h-[700px] overflow-y-auto'>
-            {items.map(item=><button key={item.id} type='button' onClick={()=>setSelected(item.id)}
+            {items.map(item=><button key={item.id} type='button' onClick={()=>{setSelected(item.id);setForm({name:item.name??'',description:item.description??'',categoryId:item.category_id??''})}}
               aria-pressed={selected===item.id}
               className={'flex w-full items-center gap-3 border-b border-border px-4 py-4 text-left transition-colors hover:bg-surface-hover '+
                 (selected===item.id?'border-l-2 border-l-accent bg-surface-hover':'border-l-2 border-l-transparent')}>
