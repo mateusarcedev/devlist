@@ -142,7 +142,7 @@ describe('Navbar', () => {
 
     render(<Navbar />)
 
-    expect(screen.getByRole('link', { name: 'Devlist' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'DevHub' })).toHaveAttribute(
       'href',
       '/',
     )
