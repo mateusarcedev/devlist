@@ -4,8 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { toFavorite, type FavoriteRow } from '@/lib/supabase/mappers'
 import type { Favorite } from '@/types'
 import { type Metadata } from 'next'
+import { noIndex } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = { title: 'Favorites' }
+export const metadata: Metadata = { title: 'Favorites', ...noIndex }
 
 type FavoritesLoadResult =
   | { status: 'ok'; favorites: Favorite[] }
