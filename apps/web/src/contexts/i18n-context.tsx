@@ -28,6 +28,9 @@ const messages = {
     saveFavorite: 'Save {name} to favorites', removeFavorite: 'Remove {name} from favorites',
     visit: 'Visit', footerDescription: 'devhub · developer tools curated by the community',
     footerLinks: 'Footer links', madeBy: 'made by',
+    myFavorites: 'My favorites', savedTools: 'saved tools',
+    favoriteEmptyHeading: 'No favorites here yet',
+    favoriteEmptyDescription: 'Tap the heart on a tool to save it here.',
     skipContent: 'Skip to content', discoverTools: 'Discover tools', searchTools: 'Search tools, categories, technologies...', all: 'All', allTools: 'All tools', loadToolsError: 'Something went wrong while fetching tools.', retry: 'Try again', noResults: 'No tools match your search', noTools: 'No tools found', trySearch: 'Try a different search term.',
   },
   'pt-BR': {
@@ -53,6 +56,9 @@ const messages = {
     saveFavorite: 'Salvar {name} nos favoritos', removeFavorite: 'Remover {name} dos favoritos',
     visit: 'Visitar', footerDescription: 'devhub · ferramentas para devs, curadas pela comunidade',
     footerLinks: 'Links do rodapé', madeBy: 'feito por',
+    myFavorites: 'Seus favoritos', savedTools: 'ferramentas salvas',
+    favoriteEmptyHeading: 'Nenhum favorito aqui ainda',
+    favoriteEmptyDescription: 'Toque no coração de uma ferramenta para salvá-la nesta lista.',
     skipContent: 'Pular para o conteúdo', discoverTools: 'Descubra ferramentas', searchTools: 'Busque ferramentas, categorias, tecnologias...', all: 'Todas', allTools: 'Todas as ferramentas', loadToolsError: 'Algo deu errado ao buscar as ferramentas.', retry: 'Tentar novamente', noResults: 'Nenhuma ferramenta corresponde à sua busca', noTools: 'Nenhuma ferramenta encontrada', trySearch: 'Tente outro termo de busca.',
   },
 } as const

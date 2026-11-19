@@ -155,10 +155,34 @@ describe('DiscoverContent', () => {
       },
     )
 
-    expect(screen.getByText('No tools match')).toBeInTheDocument()
+    expect(screen.getByText('Nothing found')).toBeInTheDocument()
     expect(
-      screen.getByText('Try a different search or category.'),
+      screen.getByText('Try another search or category. Missing a tool? Suggest it to the community.'),
     ).toBeInTheDocument()
+  })
+
+  it('focuses the search with Ctrl+K and keeps categories in a sidebar', () => {
+    render(<DiscoverContent tools={tools} categories={categories} />)
+    const search = screen.getByRole('searchbox', {
+      name: 'Search tools, categories, technologies...',
+    })
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+    expect(search).toHaveFocus()
+
+    const sidebar = screen.getByRole('complementary', { name: 'Categories' })
+    expect(sidebar).toContainElement(screen.getByRole('button', { name: 'Testing' }))
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Testing' }))
+    expect(screen.getByRole('button', { name: 'Testing' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('opens the existing suggestion modal from the empty state', () => {
+    const listener = vi.fn()
+    window.addEventListener('devhub:open-suggestion', listener)
+    render(<DiscoverContent tools={[]} categories={categories} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest a tool' }))
+    expect(listener).toHaveBeenCalledTimes(1)
+    window.removeEventListener('devhub:open-suggestion', listener)
   })
 
   it('links the selected category to its full page', () => {
@@ -168,7 +192,7 @@ describe('DiscoverContent', () => {
 
     expect(
       screen.getByRole('link', {
-        name: 'View Frontend as a full category page →',
+        name: 'View full category: Frontend',
       }),
     ).toHaveAttribute('href', '/tools/Frontend')
   })

@@ -85,14 +85,14 @@ describe('FavoritesContent', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove React' }))
 
     expect(screen.queryByText('React')).not.toBeInTheDocument()
-    expect(screen.getByText('1 saved tool')).toBeInTheDocument()
+    expect(screen.getByText('1 saved tools')).toBeInTheDocument()
   })
 
   it('shows the empty collection state', () => {
     render(<FavoritesContent initialFavorites={[]} />)
 
-    expect(screen.getByText('No favorites yet')).toBeInTheDocument()
-    expect(screen.getByText('Save tools you want to come back to.')).toBeInTheDocument()
+    expect(screen.getByText('No favorites here yet')).toBeInTheDocument()
+    expect(screen.getByText('Tap the heart on a tool to save it here.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Discover tools' })).toHaveAttribute(
       'href',
       '/',
