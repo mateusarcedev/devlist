@@ -1,3 +1,5 @@
+> **LEGACY SELF-HOSTED CONFIGURATION.** The Docker/NestJS hostnames and callbacks below refer to the old deployment plan and must not be used for DevHub. The target is Vercel + Supabase at `https://devhub.mateusarce.dev`. See [migration instructions](./migration-supabase-vercel.md).
+
 # Production deployment
 
 This runbook deploys **Devlist** on a single Linux VPS using Docker Compose, Caddy, PostgreSQL, and immutable GHCR images.

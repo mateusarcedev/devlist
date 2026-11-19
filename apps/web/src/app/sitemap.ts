@@ -1,7 +1,8 @@
+import { siteUrl } from '@/lib/site-config'
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://devlist.mateusarce.dev'
+  const baseUrl = siteUrl
 
   return [
     {

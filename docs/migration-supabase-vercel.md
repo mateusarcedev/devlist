@@ -1,4 +1,4 @@
-# Supabase + Vercel migration
+# DevHub — Supabase + Vercel migration
 
 Use a **new Supabase project**. Keep the original NestJS/Prisma production system intact until tested cutover. This branch initially prepares the migration without changing live infrastructure.
 
@@ -12,7 +12,7 @@ Use a **new Supabase project**. Keep the original NestJS/Prisma production syste
 1. Create a Supabase project and install the Supabase CLI.
 2. Run `supabase login`, `supabase link --project-ref YOUR_REF`, and `supabase db push`.
 3. Enable GitHub login in Supabase Auth. In the GitHub OAuth App configure callback `https://YOUR_REF.supabase.co/auth/v1/callback`.
-4. Set Auth Site URL and allow callbacks `http://localhost:3000/auth/callback` and `https://YOUR_PRODUCTION_HOST/auth/callback`.
+4. Set Auth Site URL and allow callbacks `http://localhost:3000/auth/callback` and `https://devhub.mateusarce.dev/auth/callback`.
 5. Import GitHub repository into Vercel with Root Directory `apps/web`, and configure pnpm/workspace build.
 6. Copy environment values from `apps/web/.env.supabase.example`. Set the public URL, publishable key, and site URL in Vercel.
 7. Test catalog as anonymous, favorites and suggestions as logged-in user, admin insert, RLS isolation, and sign-out/refresh.
@@ -30,7 +30,7 @@ Use a **new Supabase project**. Keep the original NestJS/Prisma production syste
 Only a privileged database operator may run `update public.profiles set role = 'ADMIN' where id = '<verified UUID>';` after identifying the correct user. Never allow UI or OAuth metadata to grant admin status.
 
 ## Naming
-The owner has requested a rename. Do not change GitHub repository, DNS or OAuth settings until a name and domain are approved. Historical repository identifiers remain for now.
+The product is **DevHub**, with canonical production host `devhub.mateusarce.dev`. The GitHub repository and workspace names remain `devlist` for compatibility. Configure `NEXT_PUBLIC_SITE_URL=https://devhub.mateusarce.dev` on Vercel.
 
 ## Deployment policy
 Do not merge this branch or disable the old API before all production deployment requirements are validated. Schema migrations are forward-only and must be backed up.

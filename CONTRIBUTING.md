@@ -1,6 +1,6 @@
-# Contributing to Devlist
+# Contributing to DevHub
 
-Thanks for helping improve **Devlist**. Contributions are welcome across the catalog, frontend, API, tests, documentation, and developer experience.
+Thanks for helping improve **DevHub**. Contributions are welcome across the catalog, frontend, API, tests, documentation, and developer experience.
 
 ## Before you start
 

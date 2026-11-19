@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Devlist is currently maintained from the latest version of the `main` branch.
+DevHub is currently maintained from the latest version of the `main` branch.
 
 ## Reporting a vulnerability
 
