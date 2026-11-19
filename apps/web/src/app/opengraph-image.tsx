@@ -21,14 +21,15 @@ export default async function OpenGraphImage() {
   const tools = await getSeoTools()
   const groups = groupByCategory(tools)
   const categoryNames = [...groups.keys()]
-  const labels = [
-    ...featured.filter(name=>groups.has(name)),
-    ...categoryNames.filter(name=>!featured.includes(name)),
-  ].slice(0,5).map(name=>({
+  const shortNames: Record<string,string> = {
     'UI Components & Design Systems':'UI Components',
     'Fonts & Typography':'Fonts',
     'DevOps & Infrastructure':'DevOps',
-  }[name] ?? name))
+  }
+  const labels = [
+    ...featured.filter(name=>groups.has(name)),
+    ...categoryNames.filter(name=>!featured.includes(name)),
+  ].slice(0,5).map(name=>shortNames[name] ?? name)
   const remaining = Math.max(groups.size-labels.length,0)
 
   return new ImageResponse(
