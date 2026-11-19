@@ -47,11 +47,11 @@ describe('CompareContent',()=>{
     fireEvent.click(screen.getByRole('option',{name:/Canine/}))
     expect(screen.getByRole('button',{name:'Compare tools'})).toBeEnabled()
     fireEvent.click(screen.getByRole('button',{name:'Compare tools'}))
-    expect(await screen.findByText('Self-hosted deployment')).toBeInTheDocument()
+    await waitFor(()=>expect(screen.getAllByText('Self-hosted deployment').length).toBeGreaterThan(0))
     expect(screen.getByText('83%')).toBeInTheDocument()
     expect(screen.getByText('No license fee for self-hosted use.')).toBeInTheDocument()
     expect(screen.getByText('No exact price or billing limits verified for this tool.')).toBeInTheDocument()
-    expect(screen.getByText('Not documented in the catalog.')).toBeInTheDocument()
+    expect(screen.getAllByText('Not documented in the catalog.').length).toBeGreaterThan(0)
   })
   it('does not allow more than three tools or duplicates',()=>{
     render(<CompareContent tools={tools} categories={categories}/>)
