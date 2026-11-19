@@ -1,11 +1,14 @@
 // web/src/types/index.ts
 
+import type { AccessModel } from '@/lib/tool-access'
+
 export interface Tool {
   id: string
   name: string
   link: string
   description: string
   categoryId: string
+  accessModel?: AccessModel
   category?: Category
 }
 

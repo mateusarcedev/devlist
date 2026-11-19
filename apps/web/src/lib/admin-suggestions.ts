@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { isAccessModel, type AccessModel } from '@/lib/tool-access'
 
 export type Status = 'PENDING' | 'APPROVED' | 'REJECTED'
 export const statuses: Status[] = ['PENDING','APPROVED','REJECTED']
@@ -26,13 +27,19 @@ export function parseFields(value: unknown) {
   const name = body.name.trim(), description = body.description.trim()
   if (!name || name.length > 120 || !description || description.length > 140) return null
   if (body.categoryId && !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(body.categoryId)) return null
-  return { name, description, categoryId: body.categoryId || null }
+  const accessModel: AccessModel = body.accessModel === undefined ? 'UNVERIFIED' :
+    isAccessModel(body.accessModel) ? body.accessModel : 'UNVERIFIED'
+  if (body.accessModel !== undefined && !isAccessModel(body.accessModel)) return null
+  if (body.sourceUrl !== undefined && typeof body.sourceUrl !== 'string') return null
+  const sourceUrl = (body.sourceUrl as string | undefined)?.trim() || null
+  if (sourceUrl && (sourceUrl.length > 500 || !/^https:\/\/[^\s]+$/i.test(sourceUrl))) return null
+  return { name, description, categoryId: body.categoryId || null, accessModel, sourceUrl }
 }
 
 export function moderationError(error: { code?: string, message?: string }) {
   if (error.code === 'D4093' || error.code === 'D4091' || error.code === '23505')
     return noStore({ message: error.message ?? 'Conflito na revisão.' }, 409)
   if (error.code === '22023' || error.code === '23503')
-    return noStore({ message: 'Preencha nome, descrição (até 140 caracteres) e categoria válida.' }, 422)
+    return noStore({ message: 'Revise nome, descrição, categoria, classificação e URL de referência.' }, 422)
   return noStore({ message: 'Não foi possível salvar a revisão.' }, 500)
 }

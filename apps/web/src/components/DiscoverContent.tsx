@@ -5,7 +5,7 @@ import { useI18n } from '@/contexts/i18n-context'
 import { getCategoryLabel } from '@/lib/category-labels'
 import { requestSuggestionModal } from '@/lib/suggestion-trigger'
 import type { Category, Tool } from '@/types'
-import { Search, ArrowUpRight } from 'lucide-react'
+import { Search, ArrowUpRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -104,11 +104,11 @@ export default function DiscoverContent({
   )
 
   return (
-    <main className='mx-auto w-full max-w-[1240px] px-[clamp(16px,2.3vw,28px)]'>
-      <section className='flex flex-col gap-[18px] pb-7 pt-9'>
+    <main className='mx-auto w-full max-w-[1600px] px-[clamp(16px,2.3vw,28px)]'>
+      <section className='flex flex-col gap-[18px] pb-5 pt-7 tablet:pb-7 tablet:pt-9'>
         <div className='flex flex-wrap items-end justify-between gap-x-6 gap-y-2'>
           <div>
-            <h1 className='font-sans text-[28px] font-semibold leading-[1.2] tracking-[-0.025em] text-text'>
+            <h1 className='font-sans text-[25px] font-semibold leading-[1.2] tracking-[-0.025em] text-text tablet:text-[28px]'>
               {t('discoverHeading')}
             </h1>
             <p className='mt-1 text-[13px] text-muted'>{t('discoverDescription')}</p>
@@ -149,9 +149,35 @@ export default function DiscoverContent({
         )}
       </section>
 
-      <section id='catalogo' className='flex flex-wrap items-start gap-8 pb-12 pt-2'>
+      <section id='catalogo' className='flex flex-col gap-5 pb-12 pt-2 laptop:flex-row laptop:items-start laptop:gap-7'>
         {!loadError && (
-          <aside aria-label={t('categoriesLabel')} className='flex w-full shrink-0 flex-col gap-2.5 laptop:w-[230px] laptop:max-w-[260px]'>
+          <div className='laptop:hidden'>
+            <label htmlFor='devhub-mobile-category' className='mb-2 block text-[11px] uppercase tracking-[0.12em] text-subtle'>
+              {t('categoriesLabel')}
+            </label>
+            <div className='relative'>
+              <select
+                id='devhub-mobile-category'
+                value={activeCategory}
+                onChange={event => {
+                  setActiveCategory(event.target.value)
+                  setVisibleCount(PAGE_SIZE)
+                }}
+                className='h-11 w-full appearance-none rounded-[8px] border border-border-strong bg-surface pl-3.5 pr-10 text-[13px] text-text outline-none focus:border-[var(--mint-edge)] focus:ring-4 focus:ring-[var(--mint-dim)]'
+              >
+                <option value='all'>{t('all')}</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {categoryLabels.get(category.id) ?? category.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown aria-hidden='true' className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted' />
+            </div>
+          </div>
+        )}
+        {!loadError && (
+          <aside aria-label={t('categoriesLabel')} className='hidden w-[220px] shrink-0 flex-col gap-2.5 laptop:flex'>
             <h2 className='mb-1 pl-2.5 text-[11px] font-normal uppercase tracking-[0.14em] text-subtle'>
               {t('categoriesLabel')}
             </h2>
@@ -188,11 +214,11 @@ export default function DiscoverContent({
           </aside>
         )}
 
-        <div className='min-w-0 flex-1 basis-[560px]'>
+        <div className='min-w-0 w-full flex-1'>
           {loadError ? emptyState(t('catalogErrorHeading'), t('catalogErrorDescription'), true) : (
             <>
               <div className='mb-[18px] flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2'>
-                <h2 className='font-sans text-[22px] font-semibold tracking-[-0.02em] text-text'>{heading}</h2>
+                <h2 className='font-sans text-[20px] font-semibold tracking-[-0.02em] text-text tablet:text-[22px]'>{heading}</h2>
                 <span aria-live='polite' className='text-[12px] text-subtle'>{resultLabel}</span>
               </div>
               {visibleTools.length === 0

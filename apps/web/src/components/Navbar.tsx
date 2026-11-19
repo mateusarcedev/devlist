@@ -98,7 +98,7 @@ export default function Navbar() {
   return (
     <>
       <header className='relative z-40 border-b border-border bg-canvas'>
-        <div className='mx-auto flex min-h-[72px] max-w-[1240px] items-center justify-between gap-3 px-[clamp(16px,2.3vw,28px)] py-3.5'>
+        <div className='mx-auto flex min-h-[64px] max-w-[1600px] desktop:min-h-[72px] items-center justify-between gap-3 px-[clamp(16px,2.3vw,28px)] py-2.5 desktop:py-3.5'>
           <div className='flex min-w-0 items-center gap-7'>
             <Link
               href='/'
@@ -163,9 +163,14 @@ export default function Navbar() {
                       <div className='text-[11px] text-subtle'>{user.role === 'ADMIN' ? t('administrator') : t('member')}</div>
                     </div>
                     {user.role === 'ADMIN' && (
+                      <>
                       <Link href='/admin/suggestions' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
                         Sugestões
                       </Link>
+                      <Link href='/admin/catalog' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
+                        Revisar catálogo
+                      </Link>
+                      </>
                     )}
                     <button type='button' role='menuitem' onClick={handleLogout} className='flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-left text-[12.5px] text-text hover:bg-surface-hover'>
                       <LogOut aria-hidden='true' className='h-4 w-4' /> {t('signOut')}
@@ -192,7 +197,8 @@ export default function Navbar() {
               <button type='button' onClick={handleFavoritesClick} aria-current={isFavorites ? 'page' : undefined} className={navClass(isFavorites)}>{t('favorites')}{favoriteCount}</button>
               <Link href='/contributors' aria-current={isContributors ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={navClass(isContributors)}>{t('contributors')}</Link>
               {user?.role === 'ADMIN' && (
-                <Link href='/admin/suggestions' onClick={() => setMobileMenuOpen(false)} className={navClass(false)}>Admin</Link>
+                <><Link href='/admin/suggestions' onClick={() => setMobileMenuOpen(false)} className={navClass(false)}>Admin · Sugestões</Link>
+                  <Link href='/admin/catalog' onClick={() => setMobileMenuOpen(false)} className={navClass(false)}>Admin · Catálogo</Link></>
               )}
               <button type='button' onClick={toggleTheme} className={navClass(false)}>{theme === 'dark' ? t('lightTheme') : t('darkTheme')}</button>
               <button type='button' onClick={toggleLocale} className={navClass(false)}>{t('language')}: {locale === 'en' ? 'Português' : 'English'}</button>

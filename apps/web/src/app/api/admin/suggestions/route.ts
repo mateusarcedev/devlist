@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     return noStore({ message: 'Status inválido.' }, 422)
 
   const { data, error: dbError } = await db.from('suggestions')
-    .select('id,link,host,user_id,created_at,status,name,description,category_id,tool_id,reviewed_at')
+    .select('id,link,host,user_id,created_at,status,name,description,category_id,access_model,access_source_url,tool_id,reviewed_at')
     .eq('status', status).order('created_at', { ascending: false }).limit(100)
   if (dbError) return noStore({ message: 'Erro ao carregar sugestões.' }, 500)
   const ids = [...new Set((data ?? []).map(x => x.user_id))]

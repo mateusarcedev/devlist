@@ -9,6 +9,8 @@ import { withReferral } from '@/lib/tool-url'
 import { ArrowUpRight, Heart } from 'lucide-react'
 import { memo } from 'react'
 import { Toast } from './Toast'
+import ToolAccessBadge from './ToolAccessBadge'
+import { accessModelForTool } from '@/lib/tool-access'
 
 interface Props {
   tool: Tool
@@ -78,7 +80,9 @@ function DirectoryToolCard({
           </button>
         </div>
 
-        <p className='min-w-0 flex-1 whitespace-normal [overflow-wrap:anywhere] text-[12.5px] leading-[1.6] text-muted'>
+        <ToolAccessBadge model={accessModelForTool(tool.accessModel, tool.link)} />
+
+        <p className='min-w-0 flex-1 whitespace-normal [overflow-wrap:anywhere] text-[13px] leading-[1.6] text-muted'>
           {tool.description}
         </p>
 

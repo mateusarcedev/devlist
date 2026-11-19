@@ -49,7 +49,7 @@ export default function CategoryToolsContent({
   const hasMore = visibleCount < filteredTools.length
 
   return (
-    <main className='dl-page'>
+    <main className='mx-auto w-full max-w-[1600px] px-[clamp(16px,2.3vw,28px)] pb-24 pt-9'>
       <Link
         href='/'
         className='mb-5 inline-flex items-center gap-1.5 text-[13px] text-subtle transition-colors hover:text-text'
@@ -58,7 +58,7 @@ export default function CategoryToolsContent({
         All categories
       </Link>
 
-      <h1 className='text-2xl font-semibold tracking-[-0.01em] text-white'>
+      <h1 className='text-2xl font-semibold tracking-[-0.01em] text-text'>
         {categoryName}
       </h1>
       <div className='mb-6 mt-1 text-[13px] text-subtle'>
@@ -111,7 +111,7 @@ export default function CategoryToolsContent({
         </div>
       ) : (
         <div>
-          <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
+          <div className='grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3'>
             {displayedTools.map(tool => (
               <DirectoryToolCard
                 key={tool.id}

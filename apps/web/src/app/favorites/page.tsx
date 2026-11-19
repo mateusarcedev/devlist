@@ -17,12 +17,14 @@ async function getFavorites(): Promise<FavoritesLoadResult> {
     const supabase = await createClient()
     const { data: auth, error: authError } = await supabase.auth.getUser()
     if (authError || !auth.user) return { status: 'invalid-session' }
-    const { data, error } = await supabase.from('favorites')
-      .select('id,user_id,tool_id,tools(id,name,link,description,category_id)')
+    const read = (withAccess: boolean) => supabase.from('favorites')
+      .select('id,user_id,tool_id,tools(id,name,link,description,category_id' + (withAccess ? ',access_model' : '') + ')')
       .eq('user_id', auth.user.id)
       .order('created_at', { ascending: false })
-    if (error) return { status: 'error' }
-    return { status: 'ok', favorites: ((data ?? []) as FavoriteRow[]).map(toFavorite) }
+    let result = await read(true)
+    if (result.error && /access_model/i.test(result.error.message)) result = await read(false)
+    if (result.error) return { status: 'error' }
+    return { status: 'ok', favorites: ((result.data ?? []) as unknown as FavoriteRow[]).map(toFavorite).filter(f => f.tool?.accessModel !== 'PAID') }
   } catch (error) {
     console.error('Failed to fetch favorites', error)
     return { status: 'error' }
