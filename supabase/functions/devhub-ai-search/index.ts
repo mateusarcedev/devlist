@@ -58,7 +58,8 @@ function lexical(tool: Tool, searchTerms: string[]) {
   const name = translate(tool.name)
   const category = translate(tool.categoryName)
   const description = translate(tool.description)
-  const hostname = new URL(tool.link).hostname.toLowerCase()
+  let hostname = ''
+  try { hostname = new URL(tool.link).hostname.toLowerCase() } catch { /* Ignore legacy malformed URLs. */ }
   return searchTerms.reduce((score, term) => score +
     (name.includes(term) ? 5 : 0) +
     (category.includes(term) ? 2.5 : 0) +
