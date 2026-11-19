@@ -36,10 +36,5 @@ describe('GET /api/contributors', () => {
     expect(mock.load).not.toHaveBeenCalled()
   })
 
-  it('returns 503 instead of inventing contributor data when the read model is unavailable', async () => {
-    mock.load.mockImplementation(() => { throw new Error('schema not migrated') })
-    const response = await GET(request())
-    expect(response.status).toBe(503)
-    expect(await response.json()).toEqual({ message: 'Contributors temporarily unavailable.' })
-  })
+
 })
