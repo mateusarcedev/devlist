@@ -78,7 +78,7 @@ function DirectoryToolCard({
           </button>
         </div>
 
-        <p className='line-clamp-2 flex-1 text-[12.5px] leading-[1.6] text-muted'>
+        <p className='min-w-0 flex-1 whitespace-normal [overflow-wrap:anywhere] text-[12.5px] leading-[1.6] text-muted'>
           {tool.description}
         </p>
 
