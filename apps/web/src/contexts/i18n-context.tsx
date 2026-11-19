@@ -6,7 +6,7 @@ export type Locale = 'en' | 'pt-BR'
 
 const messages = {
   en: {
-    discover: 'Discover', favorites: 'Favorites', contributors: 'Contributors',
+    discover: 'Discover', compare: 'Compare', favorites: 'Favorites', contributors: 'Contributors',
     contributorsHeading: 'Contributors',
     contributorsCodeHeading: 'Code contributors',
     contributorsCodeDescription: 'GitHub accounts with commits merged into the DevHub repository.',
@@ -73,7 +73,7 @@ const messages = {
     skipContent: 'Skip to content', discoverTools: 'Discover tools', searchTools: 'Search tools, categories, technologies...', all: 'All', allTools: 'All tools', loadToolsError: 'Something went wrong while fetching tools.', retry: 'Try again', noResults: 'No tools match your search', noTools: 'No tools found', trySearch: 'Try a different search term.',
   },
   'pt-BR': {
-    discover: 'Descobrir', favorites: 'Favoritos', contributors: 'Contribuidores',
+    discover: 'Descobrir', compare: 'Comparar', favorites: 'Favoritos', contributors: 'Contribuidores',
     contributorsHeading: 'Contribuidores',
     contributorsCodeHeading: 'Contribuidores de código',
     contributorsCodeDescription: 'Contas com commits integrados ao repositório do DevHub no GitHub.',
