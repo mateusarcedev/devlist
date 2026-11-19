@@ -55,6 +55,13 @@ describe('CardsContributors', () => {
     expect(catalog.getByText('Contributors unavailable')).toBeInTheDocument()
   })
 
+  it('labels the missing migration as setup rather than a failed contributions page', () => {
+    render(<CardsContributors data={[]} loadError catalogPending codeContributors={code} />)
+    expect(screen.getByText('Tool credits are being prepared')).toBeInTheDocument()
+    expect(screen.getByText('@gamma')).toBeInTheDocument()
+    expect(screen.queryByText('Contributors unavailable')).not.toBeInTheDocument()
+  })
+
   it('renders empty tool contributions and keeps the suggestion CTA functional', () => {
     const listener = vi.fn()
     window.addEventListener('devhub:open-suggestion', listener)

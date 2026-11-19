@@ -4,6 +4,7 @@ import { GET } from '../src/app/api/contributors/route'
 const mock = vi.hoisted(() => ({ load: vi.fn(), github: vi.fn() }))
 vi.mock('@/lib/public-contributors', () => ({
   fetchPublicContributors: mock.load,
+  ContributorSchemaPendingError: class ContributorSchemaPendingError extends Error {},
 }))
 vi.mock('@/lib/github-code-contributors', () => ({
   fetchGitHubCodeContributors: mock.github,
