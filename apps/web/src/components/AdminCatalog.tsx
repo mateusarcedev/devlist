@@ -51,7 +51,11 @@ export default function AdminCatalog() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => { if (active) void load() })
+    return () => { active = false }
+  }, [load])
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase()
