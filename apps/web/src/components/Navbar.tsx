@@ -37,6 +37,7 @@ export default function Navbar() {
 
   const isLogin = pathname === '/login'
   const isDiscover = pathname === '/' || pathname.startsWith('/tools/')
+  const isCompare = pathname === '/compare'
   const isFavorites = pathname === '/favorites'
   const isContributors = pathname === '/contributors'
 
@@ -107,10 +108,11 @@ export default function Navbar() {
               <span aria-hidden='true' className='h-2 w-2 rounded-full bg-accent shadow-[0_0_10px_var(--mint)]' />
               <span className='font-sans font-semibold tracking-[-0.01em]'>devhub</span>
               <span aria-hidden='true' className='text-subtle'>/</span>
-              <span className='text-[12px] text-muted'>{pathname.startsWith('/admin') ? 'admin' : isContributors ? t('contributors') : t('catalogCrumb')}</span>
+              <span className='text-[12px] text-muted'>{pathname.startsWith('/admin') ? 'admin' : isContributors ? t('contributors') : isCompare ? t('compare') : t('catalogCrumb')}</span>
             </Link>
             <nav aria-label={t('primaryNavigation')} className='hidden items-center gap-1 desktop:flex'>
               <Link href='/' aria-current={isDiscover ? 'page' : undefined} className={navClass(isDiscover)}>{t('discover')}</Link>
+              <Link href='/compare' aria-current={isCompare ? 'page' : undefined} className={navClass(isCompare)}>{t('compare')}</Link>
               <button
                 type='button'
                 onClick={handleFavoritesClick}
@@ -194,6 +196,7 @@ export default function Navbar() {
           <nav id='mobile-navigation' aria-label={t('primaryNavigation')} className='dl-enter border-t border-border px-[clamp(16px,2.3vw,28px)] py-3 desktop:hidden'>
             <div className='mx-auto flex max-w-[1240px] flex-col gap-1'>
               <Link href='/' aria-current={isDiscover ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={navClass(isDiscover)}>{t('discover')}</Link>
+              <Link href='/compare' aria-current={isCompare ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={navClass(isCompare)}>{t('compare')}</Link>
               <button type='button' onClick={handleFavoritesClick} aria-current={isFavorites ? 'page' : undefined} className={navClass(isFavorites)}>{t('favorites')}{favoriteCount}</button>
               <Link href='/contributors' aria-current={isContributors ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={navClass(isContributors)}>{t('contributors')}</Link>
               {user?.role === 'ADMIN' && (
