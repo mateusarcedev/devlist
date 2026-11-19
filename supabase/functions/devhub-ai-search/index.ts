@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     const signature = req.headers.get('x-devhub-ai-signature') ?? ''
     const clientHash = req.headers.get('x-devhub-client-ip') ?? ''
     const sentAt = Number(timestamp)
-    if (!/^\\d{13}$/.test(timestamp) || !Number.isFinite(sentAt) ||
+    if (!/^\d{13}$/.test(timestamp) || !Number.isFinite(sentAt) ||
         Math.abs(Date.now()-sentAt)>120_000 ||
         !/^[a-f0-9]{64}$/.test(clientHash) || !/^[a-f0-9]{64}$/.test(signature))
       return respond({message:'Acesso não autorizado.'},403)
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     const signer = await crypto.subtle.importKey('raw',new TextEncoder().encode(proxy.secret),
       {name:'HMAC',hash:'SHA-256'},false,['sign'])
     const digest = new Uint8Array(await crypto.subtle.sign('HMAC',signer,
-      new TextEncoder().encode(timestamp+'\\n'+clientHash+'\\n'+query)))
+      new TextEncoder().encode(timestamp+'\n'+clientHash+'\n'+query)))
     const expected = Array.from(digest).map(x=>x.toString(16).padStart(2,'0')).join('')
     let mismatch = 0
     for (let index=0;index<64;index++) mismatch |= expected.charCodeAt(index)^signature.charCodeAt(index)
