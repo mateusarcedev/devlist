@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         return json({ message: 'Esse link não parece válido. Ex.: https://exemplo.com' }, 422)
       }
       // The preview cannot save submissions before the schema migration is applied.
-      if (error.code === 'PGRST204' || error.code === '42703') {
+      if (error.code === 'PGRST204' || error.code === '42703' || error.code === '23502') {
         return json({ message: 'As sugestões estão temporariamente indisponíveis.' }, 503)
       }
       console.error('Suggestion insert failed', { code: error.code })

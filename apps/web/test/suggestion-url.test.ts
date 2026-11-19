@@ -19,6 +19,12 @@ describe('normalizeSuggestionUrl', () => {
     )
   })
 
+  it('treats GitHub www and http links as the same repository URL', () => {
+    const canonical = normalizeSuggestionUrl('github.com/a/repo').url
+    expect(normalizeSuggestionUrl('http://www.github.com/a/repo').url).toBe(canonical)
+    expect(normalizeSuggestionUrl('https://github.com/a/other').url).not.toBe(canonical)
+  })
+
   it('removes URL fragments and retains a valid path/query', () => {
     expect(normalizeSuggestionUrl('https://example.com/path?view=1#intro')).toEqual({
       url: 'https://example.com/path?view=1',

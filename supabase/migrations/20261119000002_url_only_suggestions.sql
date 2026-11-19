@@ -22,7 +22,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS suggestions_pending_domain_unique_idx
   ON public.suggestions(host)
   WHERE status = 'PENDING' AND host <> 'github.com';
 CREATE UNIQUE INDEX IF NOT EXISTS suggestions_pending_github_link_unique_idx
-  ON public.suggestions ((lower(trim(trailing '/' FROM split_part(link, '#', 1)))))
+  ON public.suggestions ((lower(trim(trailing '/' FROM regexp_replace(split_part(link, '#', 1), '^https?://(www\.)?', '', 'i')))))
   WHERE status = 'PENDING' AND host = 'github.com';
 
 CREATE INDEX IF NOT EXISTS suggestions_user_created_at_idx
@@ -72,7 +72,7 @@ BEGIN
   END LOOP;
 
   v_key := CASE WHEN v_host = 'github.com'
-    THEN lower(trim(trailing '/' FROM split_part(NEW.link, '#', 1)))
+    THEN lower(trim(trailing '/' FROM regexp_replace(split_part(NEW.link, '#', 1), '^https?://(www\.)?', '', 'i')))
     ELSE v_host END;
 
   -- Serialize per-user rate checks, then identical domain/URL checks.
@@ -92,7 +92,7 @@ BEGIN
            '^www\.', ''
          ) = v_host)
      OR (v_host = 'github.com' AND
-         lower(trim(trailing '/' FROM split_part(t.link, '#', 1))) = v_key)
+         lower(trim(trailing '/' FROM regexp_replace(split_part(t.link, '#', 1), '^https?://(www\.)?', '', 'i'))) = v_key)
   LIMIT 1;
 
   IF v_name IS NOT NULL THEN
@@ -103,7 +103,7 @@ BEGIN
     SELECT 1 FROM public.suggestions s WHERE s.status = 'PENDING'
     AND (CASE WHEN v_host = 'github.com'
       THEN s.host = 'github.com' AND
-           lower(trim(trailing '/' FROM split_part(s.link, '#', 1))) = v_key
+           lower(trim(trailing '/' FROM regexp_replace(split_part(s.link, '#', 1), '^https?://(www\.)?', '', 'i'))) = v_key
       ELSE s.host = v_host END)
   ) THEN
     RAISE EXCEPTION USING ERRCODE = 'D4092', MESSAGE = 'Already pending';

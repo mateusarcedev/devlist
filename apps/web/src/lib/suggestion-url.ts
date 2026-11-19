@@ -39,6 +39,11 @@ export function normalizeSuggestionUrl(raw: string): NormalizedSuggestionUrl {
   ) {
     throw new SuggestionUrlError('Esse link não parece válido. Ex.: https://exemplo.com')
   }
+  // GitHub repository identity ignores www and the protocol, but retains the full path.
+  if (host === 'github.com') {
+    parsed.hostname = host
+    parsed.protocol = 'https:'
+  }
   parsed.hash = ''
   if (parsed.href.length > 2048) {
     throw new SuggestionUrlError('Esse link não parece válido. Ex.: https://exemplo.com')
