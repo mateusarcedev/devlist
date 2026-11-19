@@ -29,3 +29,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!data) return noStore({ message: 'Ferramenta não encontrada.' }, 404)
   return noStore({ tool: data })
 }
+
+
+/** Permanently remove a catalog tool. RLS restricts deletion to administrators;
+ * existing favorites cascade and suggestion references are cleared by FKs. */
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { db, error } = await adminClient()
+  if (error || !db) return error!
+  const { id } = await params
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id)) return noStore({ message: 'ID inválido.' }, 422)
+
+  const { data, error: deleteError } = await db.from('tools')
+    .delete()
+    .eq('id', id)
+    .select('id,name')
+    .maybeSingle()
+  if (deleteError) {
+    if (deleteError.code === '23503')
+      return noStore({ message: 'Esta ferramenta ainda possui referências que impedem a exclusão.' }, 409)
+    return noStore({ message: 'Não foi possível excluir a ferramenta.' }, 500)
+  }
+  if (!data) return noStore({ message: 'Ferramenta não encontrada.' }, 404)
+  return noStore({ deleted: data })
+}
