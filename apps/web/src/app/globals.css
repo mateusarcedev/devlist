@@ -224,3 +224,22 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* DevHub card interaction from Main.dc.html. Keep animations small to protect INP. */
+@layer components {
+  .dh-tool-card {
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .dh-tool-card:hover {
+    border-color: var(--mint-edge);
+    transform: translateY(-2px);
+  }
+  .dh-tool-card:hover .dh-tool-mark {
+    color: var(--mint);
+    border-color: var(--mint-edge);
+  }
+  .dh-tool-card:focus-within {
+    border-color: var(--mint-edge);
+  }
+}

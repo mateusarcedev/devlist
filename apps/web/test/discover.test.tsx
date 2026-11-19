@@ -106,12 +106,12 @@ describe('DiscoverContent', () => {
     expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
     expect(screen.getByText('Showing 24 of 61 tools')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(48)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(61)
-    expect(screen.queryByRole('button', { name: 'Load more tools' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
   it('resets the visible page when the search changes', () => {
@@ -123,13 +123,14 @@ describe('DiscoverContent', () => {
       categoryId: 'cat-frontend',
     }))
     render(<DiscoverContent tools={manyTools} categories={categories} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(35)
     fireEvent.change(
       screen.getByRole('searchbox', { name: 'Search tools, categories, technologies...' }),
       { target: { value: 'Tool' } },
     )
-    expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(35)
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
   it('shows a retry state when the directory fails to load', () => {
@@ -155,10 +156,34 @@ describe('DiscoverContent', () => {
       },
     )
 
-    expect(screen.getByText('No tools match')).toBeInTheDocument()
+    expect(screen.getByText('Nothing found')).toBeInTheDocument()
     expect(
-      screen.getByText('Try a different search or category.'),
+      screen.getByText('Try another search or category. Missing a tool? Suggest it to the community.'),
     ).toBeInTheDocument()
+  })
+
+  it('focuses the search with Ctrl+K and keeps categories in a sidebar', () => {
+    render(<DiscoverContent tools={tools} categories={categories} />)
+    const search = screen.getByRole('searchbox', {
+      name: 'Search tools, categories, technologies...',
+    })
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+    expect(search).toHaveFocus()
+
+    const sidebar = screen.getByRole('complementary', { name: 'Categories' })
+    expect(sidebar).toContainElement(screen.getByRole('button', { name: 'Testing' }))
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Testing' }))
+    expect(screen.getByRole('button', { name: 'Testing' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('opens the existing suggestion modal from the empty state', () => {
+    const listener = vi.fn()
+    window.addEventListener('devhub:open-suggestion', listener)
+    render(<DiscoverContent tools={[]} categories={categories} />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Suggest a tool' })[0])
+    expect(listener).toHaveBeenCalledTimes(1)
+    window.removeEventListener('devhub:open-suggestion', listener)
   })
 
   it('links the selected category to its full page', () => {
@@ -168,7 +193,7 @@ describe('DiscoverContent', () => {
 
     expect(
       screen.getByRole('link', {
-        name: 'View Frontend as a full category page →',
+        name: 'View full category: Frontend',
       }),
     ).toHaveAttribute('href', '/tools/Frontend')
   })

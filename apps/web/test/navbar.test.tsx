@@ -26,6 +26,10 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+vi.mock('../src/components/FavoriteNavCount', () => ({
+  default: () => null,
+}))
+
 vi.mock('../src/components/AddSuggestionModal', () => ({
   default: ({ isOpen }: { isOpen: boolean }) =>
     isOpen ? <div data-testid='suggestion-modal'>Suggestion Modal</div> : null,
@@ -104,6 +108,18 @@ describe('Navbar', () => {
     fireEvent.click(screen.getByRole('button', { name: /Suggest a tool/ }))
 
     expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
+  })
+
+  it('opens suggestion modal when the catalog requests it', () => {
+    render(<Navbar />)
+    fireEvent(window, new Event('devhub:open-suggestion'))
+    expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
+  })
+
+  it('shows the catalog breadcrumb and a mobile language control', () => {
+    render(<Navbar />)
+    expect(screen.getByText('catalog')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Language' })).toBeInTheDocument()
   })
 
   it('marks the current navigation item as active', () => {
