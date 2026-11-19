@@ -10,7 +10,7 @@ CREATE TABLE public.tool_ai_embeddings (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX tool_ai_embeddings_vector_idx ON public.tool_ai_embeddings
-  USING hnsw (embedding vector_cosine_ops);
+  USING hnsw (embedding extensions.vector_cosine_ops);
 ALTER TABLE public.tool_ai_embeddings ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.tool_ai_embeddings FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.tool_ai_embeddings TO service_role;
@@ -23,11 +23,11 @@ CREATE FUNCTION public.match_devhub_ai_tools(
 RETURNS TABLE (tool_id uuid, similarity double precision)
 LANGUAGE sql STABLE SECURITY INVOKER SET search_path = ''
 AS $$
-  SELECT e.tool_id, (1 - (e.embedding <=> query_embedding))::double precision
+  SELECT e.tool_id, (1 - (e.embedding OPERATOR(extensions.<=>) query_embedding))::double precision
   FROM public.tool_ai_embeddings e
   JOIN public.tools t ON t.id=e.tool_id
   WHERE t.access_model IN ('OPEN_SOURCE','FREE','FREEMIUM')
-  ORDER BY e.embedding <=> query_embedding
+  ORDER BY e.embedding OPERATOR(extensions.<=>) query_embedding
   LIMIT LEAST(GREATEST(match_count,1),24);
 $$;
 REVOKE ALL ON FUNCTION public.match_devhub_ai_tools(extensions.vector,int) FROM PUBLIC,anon,authenticated;
