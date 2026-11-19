@@ -153,7 +153,14 @@ BEGIN
   IF p_access_model IS NOT NULL AND p_access_model NOT IN ('OPEN_SOURCE','FREE','FREEMIUM','PAID','UNVERIFIED') THEN
     RAISE EXCEPTION USING ERRCODE='22023', MESSAGE='Invalid access model';
   END IF;
-  IF p_access_source_url IS NOT NULL AND (length(p_access_source_url)>500 OR p_access_source_url !~* '^https://[^[:space:]]+
+  IF p_access_source_url IS NOT NULL AND (length(p_access_source_url)>500 OR p_access_source_url !~* '^https://[^[:space:]]+$') THEN
+    RAISE EXCEPTION USING ERRCODE='22023', MESSAGE='Invalid source URL';
+  END IF;
+  IF p_action='approve' AND (p_access_model IS NULL OR p_access_model NOT IN ('OPEN_SOURCE','FREE','FREEMIUM')) THEN
+    RAISE EXCEPTION USING ERRCODE='22023', MESSAGE='Only free, freemium, or open-source tools can be approved';
+  END IF;
+
+  IF p_action='save' THEN
     UPDATE public.suggestions SET name=btrim(p_name),description=btrim(p_description),
       category_id=p_category_id,access_model=COALESCE(p_access_model,s.access_model),
       access_source_url=p_access_source_url WHERE id=p_id AND status='PENDING';
@@ -189,48 +196,6 @@ BEGIN
   RETURN v_tool_id;
 END;
 $$;
-) THEN
-    RAISE EXCEPTION USING ERRCODE='22023', MESSAGE='Invalid source URL';
-  END IF;
-  IF p_action='approve' AND p_access_model NOT IN ('OPEN_SOURCE','FREE','FREEMIUM') THEN
-    RAISE EXCEPTION USING ERRCODE='22023', MESSAGE='Only free, freemium, or open-source tools can be approved';
-  END IF;
-
-  IF p_action='save' THEN
-    UPDATE public.suggestions SET name=btrim(p_name),description=btrim(p_description),
-      category_id=p_category_id WHERE id=p_id AND status='PENDING';
-    RETURN NULL;
-  END IF;
-
-  v_key := CASE WHEN s.host='github.com'
-    THEN lower(trim(trailing '/' FROM regexp_replace(split_part(s.link,'#',1),'^https?://(www\\.)?','','i')))
-    ELSE s.host END;
-  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('suggestion-url:'||v_key,0));
-  SELECT t.name INTO v_other_name FROM public.tools t
-  WHERE (s.host<>'github.com' AND
-    regexp_replace(lower(split_part(split_part(split_part(split_part(t.link,'://',2),'/',1),'?',1),'#',1)),'^www[.]','')=s.host)
-    OR (s.host='github.com' AND
-      lower(trim(trailing '/' FROM regexp_replace(split_part(t.link,'#',1),'^https?://(www\\.)?','','i')))=v_key)
-  LIMIT 1;
-  IF v_other_name IS NOT NULL THEN
-    RAISE EXCEPTION USING ERRCODE='D4091', MESSAGE=v_other_name||' já está no catálogo';
-  END IF;
-
-  INSERT INTO public.tools(name,link,description,category_id)
-  VALUES(btrim(p_name),s.link,btrim(p_description),p_category_id)
-  RETURNING id INTO v_tool_id;
-
-  UPDATE public.suggestions SET name=btrim(p_name),description=btrim(p_description),
-    category_id=p_category_id,tool_id=v_tool_id,status='APPROVED',
-    reviewed_by_id=auth.uid(),reviewed_at=now()
-  WHERE id=p_id AND status='PENDING';
-  IF NOT FOUND THEN
-    RAISE EXCEPTION USING ERRCODE='D4093', MESSAGE='Suggestion already reviewed';
-  END IF;
-  RETURN v_tool_id;
-END;
-$$;
-
 REVOKE ALL ON FUNCTION public.review_suggestion(uuid,text,text,text,uuid,text,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.review_suggestion(uuid,text,text,text,uuid,text,text) TO authenticated;
 COMMIT;
