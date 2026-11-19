@@ -10,7 +10,9 @@ function tokens(selector: string) {
   const declarations = new Map<string, string>()
   root.walkRules(rule => {
     if (rule.selectors?.includes(selector)) {
-      rule.walkDecls(declaration => declarations.set(declaration.prop, declaration.value))
+      rule.walkDecls(declaration => {
+        declarations.set(declaration.prop, declaration.value)
+      })
     }
   })
   return declarations
