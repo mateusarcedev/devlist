@@ -1,42 +1,30 @@
 import CardsContributors from '@/components/CardsContributors'
-import getContributors from '@/utils/getContributors'
-import { type Metadata } from 'next'
-import { AlertCircle } from 'lucide-react'
+import { fetchGitHubCodeContributors } from '@/lib/github-code-contributors'
+import { ContributorSchemaPendingError, fetchPublicContributors } from '@/lib/public-contributors'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contributors',
+  title: 'Contribuidores',
+  description: 'Quem contribuiu com código no GitHub e com ferramentas aprovadas no DevHub.',
+  alternates: { canonical: '/contributors' },
 }
 
-export default async function Contributors() {
-  const data = await getContributors('mateusarcedev', 'devlist')
+export const dynamic = 'force-dynamic'
 
-  if (!data) {
-    return (
-      <main className='dl-page'>
-        <div className='px-4 py-24 text-center'>
-          <AlertCircle className='mx-auto mb-4 h-7 w-7 text-subtle' />
-          <h1 className='text-xl font-semibold text-white'>
-            Contributors unavailable
-          </h1>
-          <p className='mx-auto mt-2 max-w-[420px] text-sm leading-6 text-subtle'>
-            We couldn&apos;t load the repository contributors right now. Please try
-            again later.
-          </p>
-        </div>
-      </main>
-    )
-  }
+export default async function ContributorsPage() {
+  // Independent sources: absent catalog migration must not hide GitHub contributors.
+  const [approved, code] = await Promise.allSettled([
+    fetchPublicContributors('approved'),
+    fetchGitHubCodeContributors(),
+  ])
 
   return (
-    <main className='mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,24px)] pb-24 pt-[clamp(32px,6vw,56px)]'>
-      <h1 className='text-[26px] font-semibold tracking-[-0.02em] text-white'>
-        Contributors
-      </h1>
-      <p className='mb-7 mt-2 text-sm text-subtle'>
-        {data.length} people have contributed to DevHub
-      </p>
-
-      <CardsContributors data={data} />
-    </main>
+    <CardsContributors
+      data={approved.status === 'fulfilled' ? approved.value : []}
+      loadError={approved.status === 'rejected'}
+      catalogPending={approved.status === 'rejected' && approved.reason instanceof ContributorSchemaPendingError}
+      codeContributors={code.status === 'fulfilled' ? code.value : []}
+      codeLoadError={code.status === 'rejected'}
+    />
   )
 }

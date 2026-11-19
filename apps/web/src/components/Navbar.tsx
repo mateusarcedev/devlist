@@ -107,7 +107,7 @@ export default function Navbar() {
               <span aria-hidden='true' className='h-2 w-2 rounded-full bg-accent shadow-[0_0_10px_var(--mint)]' />
               <span className='font-sans font-semibold tracking-[-0.01em]'>devhub</span>
               <span aria-hidden='true' className='text-subtle'>/</span>
-              <span className='text-[12px] text-muted'>{pathname.startsWith('/admin') ? 'admin' : t('catalogCrumb')}</span>
+              <span className='text-[12px] text-muted'>{pathname.startsWith('/admin') ? 'admin' : isContributors ? t('contributors') : t('catalogCrumb')}</span>
             </Link>
             <nav aria-label={t('primaryNavigation')} className='hidden items-center gap-1 desktop:flex'>
               <Link href='/' aria-current={isDiscover ? 'page' : undefined} className={navClass(isDiscover)}>{t('discover')}</Link>
