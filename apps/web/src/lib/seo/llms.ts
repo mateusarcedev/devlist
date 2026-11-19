@@ -18,6 +18,7 @@ export async function buildLlmsText(locale: 'en' | 'pt-BR' = 'en'): Promise<stri
     '', pt ? '## Páginas' : '## Pages', '',
     `- [${pt ? 'Descobrir ferramentas' : 'Discover tools'}](${absoluteUrl('/')})`,
     `- [${pt ? 'Contribuidores' : 'Contributors'}](${absoluteUrl('/contributors')})`,
+    `- [${pt ? 'Comparar ferramentas' : 'Compare tools'}](${absoluteUrl('/compare')})`,
     `- [GitHub](${site.repo})`,
     `- [${pt ? 'Versão em inglês' : 'Portuguese version'}](${absoluteUrl(pt ? '/llms.txt' : '/llms-pt.txt')})`,
     '',
