@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         typeof item.categoryName === 'string' &&
         ['OPEN_SOURCE','FREE','FREEMIUM'].includes(String(item.accessModel)) &&
         /^https:\/\//.test(item.link),
-      ).slice(0,6).map(item => ({
+      ).map(item => ({
         id: item.id, name: item.name, link: item.link,
         description: item.description, categoryName: item.categoryName,
         accessModel: item.accessModel,
