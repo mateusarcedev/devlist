@@ -3,6 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- Verified GitHub OAuth avatar URLs are external user images. */
 
 import { useI18n } from '@/contexts/i18n-context'
+import GitHubContributorsSection from '@/components/GitHubContributorsSection'
+import type { GitHubCodeContributor } from '@/lib/github-code-contributors'
 import { sortContributors } from '@/lib/contributors'
 import { requestSuggestionModal } from '@/lib/suggestion-trigger'
 import type { ContributorSort, PublicContributor } from '@/lib/public-contributors'
@@ -13,6 +15,8 @@ import { useRouter } from 'next/navigation'
 interface Props {
   data: PublicContributor[]
   loadError?: boolean
+  codeContributors?: GitHubCodeContributor[]
+  codeLoadError?: boolean
 }
 
 function Avatar({ contributor }: { contributor: PublicContributor }) {
@@ -31,7 +35,7 @@ function Avatar({ contributor }: { contributor: PublicContributor }) {
   )
 }
 
-export default function CardsContributors({ data, loadError = false }: Props) {
+export default function CardsContributors({ data, loadError = false, codeContributors = [], codeLoadError = false }: Props) {
   const { t } = useI18n()
   const router = useRouter()
   const [sortBy, setSortBy] = useState<ContributorSort>('approved')
@@ -39,30 +43,40 @@ export default function CardsContributors({ data, loadError = false }: Props) {
 
   return (
     <main className='mx-auto flex w-full max-w-[1240px] flex-col gap-7 px-[clamp(16px,2.3vw,28px)] pb-14 pt-9'>
-      <div className='flex flex-wrap items-end justify-between gap-x-6 gap-y-3'>
-        <div className='flex flex-col gap-1'>
-          <h1 className='font-sans text-[28px] font-semibold leading-[1.2] tracking-[-0.025em] text-text'>
-            {t('contributorsHeading')}
-          </h1>
-          <p className='text-[13px] leading-[1.6] text-muted'>{t('contributorsDescription')}</p>
-        </div>
-        {!loadError && people.length > 0 && (
-          <div role='group' aria-label={t('contributorsSortLabel')} className='flex flex-wrap gap-1 rounded-[8px] border border-border-strong bg-surface p-[3px]'>
-            {(['approved', 'recent'] as const).map(option => (
-              <button
-                key={option}
-                type='button'
-                aria-pressed={sortBy === option}
-                onClick={() => setSortBy(option)}
-                className={'h-8 rounded-[6px] px-3 text-[12px] transition-colors ' +
-                  (sortBy === option ? 'bg-surface-hover text-text' : 'text-muted hover:bg-surface-hover hover:text-text')}
-              >
-                {option === 'approved' ? t('contributorsMostApproved') : t('contributorsMostRecent')}
-              </button>
-            ))}
+      <header>
+        <h1 className='font-sans text-[28px] font-semibold leading-[1.2] tracking-[-0.025em] text-text'>
+          {t('contributorsHeading')}
+        </h1>
+        <p className='mt-1 text-[13px] leading-[1.6] text-muted'>{t('contributorsDescription')}</p>
+      </header>
+
+      <GitHubContributorsSection data={codeContributors} loadError={codeLoadError} />
+
+      <section aria-labelledby='catalog-contributors-title' className='flex flex-col gap-4'>
+        <div className='flex flex-wrap items-center justify-between gap-x-6 gap-y-3'>
+          <div>
+            <h2 id='catalog-contributors-title' className='font-sans text-[20px] font-semibold tracking-[-0.02em] text-text'>
+              {t('contributorsCatalogHeading')}
+            </h2>
+            <p className='mt-1 text-[12.5px] text-muted'>{t('contributorsCatalogDescription')}</p>
           </div>
-        )}
-      </div>
+          {!loadError && people.length > 0 && (
+            <div role='group' aria-label={t('contributorsSortLabel')} className='flex flex-wrap gap-1 rounded-[8px] border border-border-strong bg-surface p-[3px]'>
+              {(['approved', 'recent'] as const).map(option => (
+                <button
+                  key={option}
+                  type='button'
+                  aria-pressed={sortBy === option}
+                  onClick={() => setSortBy(option)}
+                  className={'h-8 rounded-[6px] px-3 text-[12px] transition-colors ' +
+                    (sortBy === option ? 'bg-surface-hover text-text' : 'text-muted hover:bg-surface-hover hover:text-text')}
+                >
+                  {option === 'approved' ? t('contributorsMostApproved') : t('contributorsMostRecent')}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
       {loadError ? (
         <div role='alert' className='flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-border-strong px-6 py-12 text-center'>
@@ -142,6 +156,8 @@ export default function CardsContributors({ data, loadError = false }: Props) {
           ))}
         </div>
       )}
+
+      </section>
 
       <div className='flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-[10px] border border-border-strong bg-surface px-5 py-4'>
         <p className='text-[13px] text-muted'>{t('contributorsCTA')}</p>
