@@ -180,7 +180,7 @@ describe('Navbar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Account menu' }))
 
     expect(
-      screen.getByRole('menuitem', { name: 'Add a tool (admin)' }),
-    ).toHaveAttribute('href', '/admin/addtools')
+      screen.getByRole('menuitem', { name: 'Sugestões' }),
+    ).toHaveAttribute('href', '/admin/suggestions')
   })
 })
