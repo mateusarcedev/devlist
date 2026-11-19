@@ -1,42 +1,21 @@
 import CardsContributors from '@/components/CardsContributors'
-import getContributors from '@/utils/getContributors'
-import { type Metadata } from 'next'
-import { AlertCircle } from 'lucide-react'
+import { fetchPublicContributors } from '@/lib/public-contributors'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contributors',
+  title: 'Contribuidores',
+  description: 'Pessoas que ajudaram a montar o catálogo DevHub por meio de sugestões aprovadas.',
+  alternates: { canonical: '/contributors' },
 }
 
-export default async function Contributors() {
-  const data = await getContributors('mateusarcedev', 'devlist')
+// Rank data is derived from approved suggestions and changes after moderation.
+export const dynamic = 'force-dynamic'
 
-  if (!data) {
-    return (
-      <main className='dl-page'>
-        <div className='px-4 py-24 text-center'>
-          <AlertCircle className='mx-auto mb-4 h-7 w-7 text-subtle' />
-          <h1 className='text-xl font-semibold text-white'>
-            Contributors unavailable
-          </h1>
-          <p className='mx-auto mt-2 max-w-[420px] text-sm leading-6 text-subtle'>
-            We couldn&apos;t load the repository contributors right now. Please try
-            again later.
-          </p>
-        </div>
-      </main>
-    )
+export default async function ContributorsPage() {
+  try {
+    const contributors = await fetchPublicContributors('approved')
+    return <CardsContributors data={contributors} />
+  } catch {
+    return <CardsContributors data={[]} loadError />
   }
-
-  return (
-    <main className='mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,24px)] pb-24 pt-[clamp(32px,6vw,56px)]'>
-      <h1 className='text-[26px] font-semibold tracking-[-0.02em] text-white'>
-        Contributors
-      </h1>
-      <p className='mb-7 mt-2 text-sm text-subtle'>
-        {data.length} people have contributed to DevHub
-      </p>
-
-      <CardsContributors data={data} />
-    </main>
-  )
 }
