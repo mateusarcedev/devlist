@@ -66,16 +66,12 @@ grant execute on function public.is_admin() to authenticated;
 create function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
-declare supplied_id text;
 begin
- supplied_id:=coalesce(new.raw_user_meta_data->>'provider_id',
-                       new.raw_user_meta_data->>'sub');
- insert into public.profiles(id,github_id,name,email,avatar)
+ -- github_id deliberately starts NULL: user metadata is not a trusted identity key.
+ -- Link it only to the verified auth.identities provider_id during trusted import.
+ insert into public.profiles(id,name,email,avatar)
  values(
   new.id,
-  case when new.raw_app_meta_data->>'provider'='github'
-       and supplied_id ~ '^[0-9]+$'
-       then supplied_id::bigint else null end,
   coalesce(new.raw_user_meta_data->>'full_name',
            new.raw_user_meta_data->>'name',
            new.raw_user_meta_data->>'user_name',''),

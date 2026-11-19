@@ -22,7 +22,7 @@ Use a **new Supabase project**. Keep the original NestJS/Prisma production syste
 2. Export old `categories`, `tools`, `users`, `favorites`, `suggestions` into restricted staging tables.
 3. Import categories and tools preserving their UUID IDs and relationships.
 4. Every legacy user must sign in using Supabase GitHub OAuth; legacy session cookies cannot migrate.
-5. Map the legacy numeric `githubId` to the **verified** GitHub provider ID associated with each Supabase `auth.users.id` (UUID). Do not match only by email or name.
+5. Map the legacy numeric `githubId` to the **verified** GitHub provider ID from `auth.identities.provider_id` (provider = `github`) associated with each Supabase `auth.users.id` (UUID); never use raw user metadata for ownership mapping. Do not match only by email or name.
 6. Import favorites/suggestions by joining their legacy user IDs to the verified mapping. Verify owner and count totals before release.
 7. Promote the new stack only after parity, RLS tests, and monitoring pass. Keep the original service for rollback.
 
