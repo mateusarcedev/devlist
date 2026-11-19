@@ -46,7 +46,7 @@ describe('POST /api/ai/search', () => {
       expect.objectContaining({ method:'POST',body:JSON.stringify({query:'I need to deploy Docker apps on a VPS'}) }))
     const args = remote.mock.calls[0][1]
     expect(args.headers['x-devhub-ai-signature']).toMatch(/^[a-f0-9]{64}$/)
-    expect(args.headers['x-devhub-ai-timestamp']).toMatch(/^\\d{13}$/)
+    expect(args.headers['x-devhub-ai-timestamp']).toMatch(/^\d{13}$/)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
   })
 
