@@ -106,12 +106,12 @@ describe('DiscoverContent', () => {
     expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
     expect(screen.getByText('Showing 24 of 61 tools')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(48)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(61)
-    expect(screen.queryByRole('button', { name: 'Load more tools' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
   it('resets the visible page when the search changes', () => {
@@ -123,13 +123,14 @@ describe('DiscoverContent', () => {
       categoryId: 'cat-frontend',
     }))
     render(<DiscoverContent tools={manyTools} categories={categories} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(screen.getAllByTestId('tool-card')).toHaveLength(35)
     fireEvent.change(
       screen.getByRole('searchbox', { name: 'Search tools, categories, technologies...' }),
       { target: { value: 'Tool' } },
     )
-    expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(35)
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
   it('shows a retry state when the directory fails to load', () => {

@@ -112,7 +112,7 @@ describe('Navbar', () => {
 
   it('opens suggestion modal when the catalog requests it', () => {
     render(<Navbar />)
-    window.dispatchEvent(new Event('devhub:open-suggestion'))
+    fireEvent(window, new Event('devhub:open-suggestion'))
     expect(screen.getByTestId('suggestion-modal')).toBeInTheDocument()
   })
 

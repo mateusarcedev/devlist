@@ -23,7 +23,7 @@ export default function FavoritesContent({ initialFavorites }: Props) {
       <div className='mb-7 flex flex-wrap items-end justify-between gap-4'>
         <div>
           <h1 className='font-sans text-[28px] font-semibold tracking-[-0.025em] text-text'>{t('myFavorites')}</h1>
-          <p className='mt-1 text-[13px] text-muted'>{favorites.length} {t('savedTools')}</p>
+          <p className='mt-1 text-[13px] text-muted'>{favorites.length} {favorites.length === 1 ? t('savedToolSingle') : t('savedTools')}</p>
         </div>
         <Link href='/' className='inline-flex h-10 items-center rounded-[6px] border border-border-strong px-4 text-[12.5px] text-text hover:border-[var(--mint-edge)] hover:text-accent'>
           {t('discoverTools')}

@@ -85,7 +85,7 @@ describe('FavoritesContent', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove React' }))
 
     expect(screen.queryByText('React')).not.toBeInTheDocument()
-    expect(screen.getByText('1 saved tools')).toBeInTheDocument()
+    expect(screen.getByText('1 saved tool')).toBeInTheDocument()
   })
 
   it('shows the empty collection state', () => {
