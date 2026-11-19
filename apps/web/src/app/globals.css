@@ -6,40 +6,74 @@
   --breakpoint-laptop: 1024px;
   --breakpoint-desktop: 1280px;
 
-  --color-canvas: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #111113;
-  --color-surface-raised: #141416;
-  --color-border: #18181b;
-  --color-border-strong: #27272a;
-  --color-text: #fafafa;
-  --color-muted: #a1a1aa;
-  --color-subtle: #71717a;
-  --color-faint: #52525b;
-  --color-accent: #00dc82;
-  --color-danger: #f87171;
-
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
-
-  --radius-control: 6px;
-  --radius-panel: 8px;
+  --radius-button: 6px;
+  --radius-control: 8px;
+  --radius-panel: 10px;
   --radius-card: 10px;
+  --radius-modal: 14px;
+  --radius-pill: 999px;
+}
+
+/* Keep existing Tailwind utilities working while the screens are migrated.
+   Inline aliases resolve against the active data-theme at use time. */
+@theme inline {
+  --color-canvas: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-2);
+  --color-surface-raised: var(--surface);
+  --color-border: var(--line-soft);
+  --color-border-strong: var(--line);
+  --color-text: var(--fg);
+  --color-muted: var(--fg-dim);
+  --color-subtle: var(--fg-faint);
+  --color-faint: var(--fg-faint);
+  --color-accent: var(--mint);
+  --color-danger: var(--pink);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+}
+
+/* Exact HANDOFF.md palette. Dark is intentionally charcoal, not black. */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #151515;
+  --bg-soft: #1a1a1a;
+  --surface: #1d1d1d;
+  --surface-2: #262626;
+  --line: #2c2c2c;
+  --line-soft: #232323;
+  --fg: #f4f4f4;
+  --fg-dim: #b0b0b0;
+  --fg-faint: #929292;
+  --mint: #15f5ba;
+  --mint-dim: rgba(21, 245, 186, 0.10);
+  --mint-edge: rgba(21, 245, 186, 0.32);
+  --pink: #e96479;
+  --pink-dim: rgba(233, 100, 121, 0.12);
+  --on-mint: #0e0e0e;
+  --glow: radial-gradient(900px 420px at 78% -10%, rgba(21, 245, 186, 0.08), transparent 70%);
 }
 
 :root[data-theme='light'] {
-  --color-canvas: #ffffff;
-  --color-surface: #fafafa;
-  --color-surface-hover: #f4f4f5;
-  --color-surface-raised: #ffffff;
-  --color-border: #e4e4e7;
-  --color-border-strong: #d4d4d8;
-  --color-text: #18181b;
-  --color-muted: #52525b;
-  --color-subtle: #71717a;
-  --color-faint: #a1a1aa;
-  --color-accent: #009a5b;
-  --color-danger: #dc2626;
+  color-scheme: light;
+  --bg: #f5f3ee;
+  --bg-soft: #efece5;
+  --surface: #ffffff;
+  --surface-2: #ecebe5;
+  --line: #d8d4ca;
+  --line-soft: #e3dfd4;
+  --fg: #1a1a17;
+  --fg-dim: #5a5a52;
+  --fg-faint: #5f5d56;
+  --mint: #076b39;
+  --mint-dim: rgba(7, 107, 57, 0.08);
+  --mint-edge: rgba(7, 107, 57, 0.30);
+  --pink: #a02f69;
+  --pink-dim: rgba(160, 47, 105, 0.10);
+  --on-mint: #ffffff;
+  --glow: radial-gradient(900px 420px at 78% -10%, rgba(7, 107, 57, 0.06), transparent 70%);
 }
 
 :root[data-theme='light'] .text-white { color: var(--color-text); }
@@ -91,14 +125,26 @@
     min-height: 100vh;
     background: var(--color-canvas);
     color: var(--color-text);
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.025em;
+  }
+
   ::selection {
-    background: var(--color-accent);
-    color: var(--color-canvas);
+    background: var(--mint);
+    color: var(--on-mint);
   }
 
   a {
@@ -119,21 +165,21 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--mint);
     outline-offset: 2px;
   }
 }
 
 @layer components {
   .dl-page {
-    width: min(100%, 1120px);
+    width: min(100%, 1240px);
     margin-inline: auto;
-    padding: clamp(28px, 5vw, 40px) clamp(16px, 4vw, 24px) 96px;
+    padding: clamp(28px, 5vw, 40px) clamp(16px, 2.3vw, 28px) 96px;
   }
 
   .dl-panel {
     background: var(--color-surface);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line);
     border-radius: var(--radius-card);
   }
 
@@ -149,7 +195,13 @@
   }
 
   .dl-control:hover {
-    border-color: #3f3f46;
+    border-color: var(--mint-edge);
+  }
+
+  .dl-control:focus,
+  .dl-control:focus-within {
+    border-color: var(--mint-edge);
+    box-shadow: 0 0 0 4px var(--mint-dim);
   }
 
   .dl-enter {

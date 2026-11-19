@@ -1,7 +1,7 @@
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Navbar'
 import { cn } from '@/utils'
-import { Geist_Mono, Inter } from 'next/font/google'
+import { Geist, Geist_Mono } from 'next/font/google'
 import { type Metadata, type Viewport } from 'next'
 import './globals.css'
 import { QueryProvider, AuthProvider } from './providers'
@@ -56,14 +56,14 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f3ee' },
+    { media: '(prefers-color-scheme: dark)', color: '#151515' },
   ],
 }
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-geist-sans',
 })
 
 const geistMono = Geist_Mono({
@@ -83,9 +83,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body
         className={cn(
-          inter.variable,
+          geistSans.variable,
           geistMono.variable,
-          'min-h-screen bg-canvas text-text font-sans',
+          'min-h-screen bg-canvas text-text font-mono',
         )}
       >
         <AuthProvider>
