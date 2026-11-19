@@ -1,38 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import { FaGithub } from 'react-icons/fa'
 import { useI18n } from '@/contexts/i18n-context'
 
 export default function Footer() {
   const { t } = useI18n()
   return (
-    <footer className='border-t border-border px-[clamp(16px,4vw,24px)] py-5'>
-      <div className='mx-auto flex max-w-[1120px] flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-faint'>
-        <span>{t('communityTools')}</span>
-        <Link
-          href='https://github.com/mateusarcedev/devlist'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='flex items-center gap-1.5 text-subtle transition-colors hover:text-text'
-        >
-          <FaGithub className='h-3.5 w-3.5' />
-          GitHub
-        </Link>
-        <Link
-          href='/contributors'
-          className='text-subtle transition-colors hover:text-text'
-        >
-          Contributors
-        </Link>
-        <Link
-          href='https://www.mateusarce.dev/'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-subtle transition-colors hover:text-text'
-        >
-          Built by Mateus Arce
-        </Link>
+    <footer className='border-t border-border'>
+      <div className='mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-[clamp(16px,2.3vw,28px)] pb-10 pt-7 text-[11.5px] text-subtle'>
+        <span>{t('footerDescription')}</span>
+        <nav aria-label={t('footerLinks')} className='flex flex-wrap items-center gap-5'>
+          <Link href='https://github.com/mateusarcedev/devlist' target='_blank' rel='noopener noreferrer' className='transition-colors hover:text-accent'>
+            GitHub
+          </Link>
+          <Link href='/contributors' className='transition-colors hover:text-accent'>
+            {t('contributors')}
+          </Link>
+          <Link href='https://mateusarce.dev' target='_blank' rel='noopener noreferrer' className='transition-colors hover:text-accent'>
+            {t('madeBy')} <span className='text-[var(--pink)]'>Mateus Arce</span>
+          </Link>
+        </nav>
       </div>
     </footer>
   )
