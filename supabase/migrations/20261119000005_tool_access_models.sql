@@ -103,8 +103,10 @@ UPDATE public.tools SET access_source_url='https://mobbin.com/',access_reviewed_
  WHERE lower(link) LIKE 'https://mobbin.com/%';
 
 DROP POLICY IF EXISTS "Read tools" ON public.tools;
-CREATE POLICY "Read nonpaid tools or admin" ON public.tools FOR SELECT TO anon,authenticated
- USING (access_model <> 'PAID' OR (select private.is_admin()));
+CREATE POLICY "Public read nonpaid tools" ON public.tools FOR SELECT TO anon,authenticated
+ USING (access_model <> 'PAID');
+CREATE POLICY "Admin read all tools" ON public.tools FOR SELECT TO authenticated
+ USING ((select private.is_admin()));
 
 DROP FUNCTION IF EXISTS public.review_suggestion(uuid,text,text,text,uuid);
 CREATE OR REPLACE FUNCTION public.review_suggestion(
