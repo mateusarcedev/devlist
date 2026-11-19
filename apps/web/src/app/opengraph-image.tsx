@@ -1,225 +1,82 @@
 import { ImageResponse } from 'next/og'
-import { siteTitle } from '@/lib/site-config'
+import { getSeoTools, groupByCategory } from '@/lib/seo/data'
 
-export const alt = siteTitle
-export const size = {
-  width: 1200,
-  height: 630,
-}
-
+export const runtime = 'nodejs'
+export const revalidate = 86400
+export const alt = 'DevHub — developer tools curated by the community'
+export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-const tags = ['Frontend', 'Testing', 'APIs', 'DevOps']
-const cards = [
-  ['Vite', 'Frontend'],
-  ['Playwright', 'Testing'],
-  ['Postman', 'APIs'],
-  ['Docker', 'DevOps'],
+const C = {
+  bg:'#151515', surface:'#1d1d1d', line:'#2c2c2c', fg:'#f4f4f4',
+  muted:'#b0b0b0', faint:'#929292', mint:'#15f5ba',
+}
+const featured = [
+  'UI Components & Design Systems','APIs & Backend','Fonts & Typography',
+  'DevOps & Infrastructure','Animation & 3D',
 ]
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const tools = await getSeoTools()
+  const groups = groupByCategory(tools)
+  const categoryNames = [...groups.keys()]
+  const shortNames: Record<string,string> = {
+    'UI Components & Design Systems':'UI Components',
+    'Fonts & Typography':'Fonts',
+    'DevOps & Infrastructure':'DevOps',
+  }
+  const labels = [
+    ...featured.filter(name=>groups.has(name)),
+    ...categoryNames.filter(name=>!featured.includes(name)),
+  ].slice(0,5).map(name=>shortNames[name] ?? name)
+  const remaining = Math.max(groups.size-labels.length,0)
+
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          background: '#000000',
-          color: '#fafafa',
-          padding: '56px 64px',
-          fontFamily: 'monospace',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            border: '1px solid #27272a',
-            borderRadius: 22,
-            overflow: 'hidden',
-            background: '#09090b',
-          }}
-        >
-          <div
-            style={{
-              height: 74,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 28px',
-              borderBottom: '1px solid #27272a',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                fontSize: 26,
-                fontWeight: 700,
-              }}
-            >
-              <div
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 999,
-                  background: '#00dc82',
-                }}
-              />
-              DevHub
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: 24,
-                color: '#a1a1aa',
-                fontSize: 18,
-              }}
-            >
-              Discover
-              <span style={{ color: '#71717a' }}>Favorites</span>
-              <span style={{ color: '#71717a' }}>Contributors</span>
-            </div>
+      <div style={{
+        width:'100%',height:'100%',display:'flex',flexDirection:'column',
+        justifyContent:'space-between',padding:'60px 68px',background:C.bg,
+        backgroundImage:'radial-gradient(circle at 92% 0%, rgba(21,245,186,0.13), transparent 52%)',
+        color:C.fg,fontFamily:'sans-serif',
+      }}>
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:24 }}>
+          <div style={{ display:'flex',alignItems:'center',gap:14 }}>
+            <span style={{ width:14,height:14,background:C.mint,borderRadius:7 }} />
+            <span style={{ fontWeight:700 }}>devhub</span>
+            <span style={{ color:C.faint }}>/</span>
+            <span style={{ color:C.muted }}>catalog</span>
           </div>
+          <span style={{ color:C.faint,fontSize:20 }}>devhub.mateusarce.dev</span>
+        </div>
 
-          <div
-            style={{
-              display: 'flex',
-              flex: 1,
-              padding: '44px 48px',
-              gap: 48,
-            }}
-          >
-            <div
-              style={{
-                width: '54%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  marginBottom: 18,
-                  color: '#00dc82',
-                  fontSize: 17,
-                  letterSpacing: 2,
-                  textTransform: 'uppercase',
-                }}
-              >
-                community-curated
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  fontSize: 56,
-                  fontWeight: 700,
-                  lineHeight: 1.06,
-                  letterSpacing: -3,
-                }}
-              >
-                Useful developer tools, without the noise.
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  marginTop: 22,
-                  color: '#a1a1aa',
-                  fontSize: 22,
-                  lineHeight: 1.35,
-                }}
-              >
-                Discover, save, and suggest tools for software development.
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 10,
-                  marginTop: 28,
-                }}
-              >
-                {tags.map(tag => (
-                  <div
-                    key={tag}
-                    style={{
-                      display: 'flex',
-                      padding: '8px 13px',
-                      border: '1px solid #27272a',
-                      borderRadius: 999,
-                      color: '#d4d4d8',
-                      fontSize: 15,
-                    }}
-                  >
-                    {tag}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div
-              style={{
-                width: '46%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                gap: 12,
-              }}
-            >
-              {cards.map(([name, category], index) => (
-                <div
-                  key={name}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '18px 20px',
-                    border: '1px solid #27272a',
-                    borderRadius: 12,
-                    background: index === 0 ? '#111113' : '#0a0a0a',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        fontSize: 20,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {name}
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        marginTop: 5,
-                        fontSize: 14,
-                        color: '#71717a',
-                      }}
-                    >
-                      {category}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      color: '#00dc82',
-                      fontSize: 18,
-                    }}
-                  >
-                    ↗
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div style={{ display:'flex',flexDirection:'column',gap:18 }}>
+          <div style={{ display:'flex',color:C.mint,fontSize:21 }}>
+            {'// open catalog, maintained by the community'}
           </div>
+          <div style={{
+            display:'flex',flexDirection:'column',fontWeight:700,
+            fontSize:72,lineHeight:1.06,letterSpacing:'-0.035em',
+          }}>
+            <span>Developer tools,</span>
+            <span style={{ color:C.mint }}>curated by the community.</span>
+          </div>
+        </div>
+
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:20 }}>
+          <div style={{ display:'flex',flexWrap:'wrap',gap:9,maxWidth:840 }}>
+            {[...labels,...(remaining>0 ? [`+${remaining} categories`] : [])].map(label=>(
+              <span key={label} style={{
+                display:'flex',border:`1px solid ${C.line}`,background:C.surface,
+                borderRadius:999,padding:'8px 14px',fontSize:17,color:C.muted,
+              }}>{label}</span>
+            ))}
+          </div>
+          {tools.length>0 && (
+            <div style={{ display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5,fontSize:19,color:C.muted }}>
+              <span><strong style={{ color:C.fg,marginRight:8 }}>{tools.length}</strong>tools</span>
+              <span><strong style={{ color:C.fg,marginRight:8 }}>{groups.size}</strong>categories</span>
+            </div>
+          )}
         </div>
       </div>
     ),

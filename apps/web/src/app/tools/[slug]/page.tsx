@@ -3,6 +3,9 @@ import type { Tool } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { loadVisibleTools } from '@/lib/catalog-tools'
 import { type Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo/metadata'
+import { categoryJsonLd } from '@/lib/seo/jsonld'
+import { JsonLd } from '@/components/seo/JsonLd'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -10,10 +13,11 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const categoryName = decodeURIComponent((await params).slug)
-  return {
+  return pageMetadata({
     title: categoryName + ' tools',
-    description: 'Discover tools in the ' + categoryName + ' category.',
-  }
+    description: 'Discover developer tools in the ' + categoryName + ' category, curated by the DevHub community.',
+    path: `/tools/${encodeURIComponent(categoryName)}`,
+  })
 }
 
 interface CategoryToolsResult {
@@ -38,8 +42,14 @@ async function getToolsByCategory(name: string): Promise<CategoryToolsResult> {
 export default async function ToolsPage({ params }: PageProps) {
   const name = decodeURIComponent((await params).slug)
   const result = await getToolsByCategory(name)
+  const seoTools = result.tools.map(tool=>({
+    id:tool.id, name:tool.name, url:tool.link, description:tool.description,
+    category: { id:tool.categoryId, name },
+  }))
   return (
-    <CategoryToolsContent categoryName={name}
-      tools={result.tools} loadError={result.loadError} />
+    <>
+      {!result.loadError && seoTools.length>0 && <JsonLd data={categoryJsonLd(name,seoTools)} />}
+      <CategoryToolsContent categoryName={name} tools={result.tools} loadError={result.loadError} />
+    </>
   )
 }

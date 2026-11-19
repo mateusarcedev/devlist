@@ -221,4 +221,12 @@ describe('DiscoverContent', () => {
       }),
     ).toHaveAttribute('href', '/tools/Frontend')
   })
+  it('pre-filters the catalog for SearchAction URLs with ?q=', () => {
+    render(<DiscoverContent tools={tools} categories={categories} initialQuery='browser' />)
+    expect(screen.getByRole('searchbox', {name:'Search tools, categories, technologies...'})).toHaveValue('browser')
+    expect(screen.queryByText(/React — Frontend/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Playwright — Testing/)).toBeInTheDocument()
+  })
+
+
 })

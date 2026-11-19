@@ -1,22 +1,23 @@
 import type { MetadataRoute } from 'next'
-import { siteName, siteTitle } from '@/lib/site-config'
+import { site } from '@/lib/seo/site'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: siteTitle,
-    short_name: siteName,
-    description:
-      'Discover, save, and suggest useful developer tools in a community-driven catalog.',
+    name: site.title,
+    short_name: site.name,
+    description: site.description,
+    lang: site.language,
     start_url: '/',
+    scope: '/',
     display: 'standalone',
-    background_color: '#000000',
-    theme_color: '#000000',
+    background_color: site.themeColor.dark,
+    theme_color: site.themeColor.dark,
+    categories: ['developer','productivity','utilities'],
     icons: [
-      {
-        src: '/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
-      },
+      { src: '/icon.svg', type: 'image/svg+xml', sizes: 'any', purpose: 'any' },
+      { src: '/icon-192.png', type: 'image/png', sizes: '192x192', purpose: 'any' },
+      { src: '/icon-512.png', type: 'image/png', sizes: '512x512', purpose: 'any' },
+      { src: '/icon-maskable-512.png', type: 'image/png', sizes: '512x512', purpose: 'maskable' },
     ],
   }
 }

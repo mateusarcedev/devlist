@@ -1,16 +1,21 @@
-import { siteUrl } from '@/lib/site-config'
+import { site } from '@/lib/seo/site'
 import type { MetadataRoute } from 'next'
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = siteUrl
+const disallow = ['/admin', '/admin/', '/api/', '/favorites', '/login', '/auth/']
+const aiAgents = [
+  'GPTBot', 'OAI-SearchBot', 'ChatGPT-User',
+  'ClaudeBot', 'Claude-SearchBot', 'Claude-User',
+  'PerplexityBot', 'Perplexity-User',
+  'Google-Extended', 'Applebot-Extended',
+]
 
+export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/admin/', '/favorites'],
-    },
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    rules: [
+      { userAgent: '*', allow: '/', disallow },
+      { userAgent: aiAgents, allow: ['/', '/llms.txt', '/llms-pt.txt'], disallow },
+    ],
+    sitemap: site.url + '/sitemap.xml',
+    host: site.url,
   }
 }
