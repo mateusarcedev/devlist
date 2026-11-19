@@ -21,7 +21,7 @@ export async function loadVisibleTools(db: Db, categoryId?: string): Promise<{to
   }
   if (result.error) return { tools: [], error: true }
   return {
-    tools: ((result.data ?? []) as ToolRow[]).map(toTool).filter(tool => tool.accessModel !== 'PAID'),
+    tools: ((result.data ?? []) as unknown as ToolRow[]).map(toTool).filter(tool => tool.accessModel !== 'PAID'),
     error: false,
   }
 }

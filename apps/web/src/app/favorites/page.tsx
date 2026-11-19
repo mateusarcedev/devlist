@@ -24,7 +24,7 @@ async function getFavorites(): Promise<FavoritesLoadResult> {
     let result = await read(true)
     if (result.error && /access_model/i.test(result.error.message)) result = await read(false)
     if (result.error) return { status: 'error' }
-    return { status: 'ok', favorites: ((result.data ?? []) as FavoriteRow[]).map(toFavorite).filter(f => f.tool?.accessModel !== 'PAID') }
+    return { status: 'ok', favorites: ((result.data ?? []) as unknown as FavoriteRow[]).map(toFavorite).filter(f => f.tool?.accessModel !== 'PAID') }
   } catch (error) {
     console.error('Failed to fetch favorites', error)
     return { status: 'error' }
