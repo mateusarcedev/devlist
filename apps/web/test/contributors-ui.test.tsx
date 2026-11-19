@@ -21,7 +21,7 @@ describe('CardsContributors', () => {
     expect(screen.getByText('maintainer')).toBeInTheDocument()
     expect(screen.getByText('Astro')).toBeInTheDocument()
     expect(screen.getByText('since 2025')).toBeInTheDocument()
-    expect(screen.getAllByRole('img', { hidden: true }).length).toBeGreaterThanOrEqual(3)
+    expect(document.querySelectorAll('img')).toHaveLength(3)
 
     const links = screen.getAllByRole('link')
     expect(links[0]).toHaveAttribute('href', 'https://github.com/alpha')
