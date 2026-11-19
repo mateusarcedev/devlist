@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return pageMetadata({
     title: categoryName + ' tools',
     description: 'Discover developer tools in the ' + categoryName + ' category, curated by the DevHub community.',
-    path: '/tools/' + encodeURIComponent(categoryName),
+    path: `/tools/${encodeURIComponent(categoryName)}`,
   })
 }
 
