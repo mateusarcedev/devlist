@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og'
 import { getSeoTools, groupByCategory } from '@/lib/seo/data'
-import { site } from '@/lib/seo/site'
 
 export const runtime = 'nodejs'
 export const revalidate = 86400
