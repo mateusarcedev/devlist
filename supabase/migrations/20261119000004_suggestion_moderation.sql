@@ -9,7 +9,7 @@ CREATE INDEX IF NOT EXISTS suggestions_status_created_idx ON public.suggestions(
 CREATE INDEX IF NOT EXISTS suggestions_host_idx ON public.suggestions(host);
 -- Admins may see public display names of submitters, never other users' emails.
 CREATE POLICY "Admins read submitter profiles" ON public.profiles FOR SELECT
-  TO authenticated USING ((select public.is_admin()));
+  TO authenticated USING ((select private.is_admin()));
 -- No direct client edits to moderation fields: only the guarded RPC can write them.
 REVOKE UPDATE, DELETE ON public.suggestions FROM authenticated;
 DROP POLICY IF EXISTS "Admins update suggestions" ON public.suggestions;
@@ -27,7 +27,7 @@ DECLARE
   v_key text;
   v_other_name text;
 BEGIN
-  IF auth.uid() IS NULL OR NOT public.is_admin() THEN
+  IF auth.uid() IS NULL OR NOT private.is_admin() THEN
     RAISE EXCEPTION USING ERRCODE='42501', MESSAGE='Administrator required';
   END IF;
   IF p_action NOT IN ('save','approve','reject') THEN
