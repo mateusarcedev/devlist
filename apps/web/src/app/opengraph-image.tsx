@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
+import { siteTitle } from '@/lib/site-config'
 
-export const alt = 'Devlist — Curated developer tools'
+export const alt = siteTitle
 export const size = {
   width: 1200,
   height: 630,
@@ -68,7 +69,7 @@ export default function OpenGraphImage() {
                   background: '#00dc82',
                 }}
               />
-              Devlist
+              DevHub
             </div>
             <div
               style={{

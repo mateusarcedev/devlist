@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next'
+import { siteName, siteTitle } from '@/lib/site-config'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Devlist — Curated developer tools',
-    short_name: 'Devlist',
+    name: siteTitle,
+    short_name: siteName,
     description:
       'Discover, save, and suggest useful developer tools in a community-driven catalog.',
     start_url: '/',
