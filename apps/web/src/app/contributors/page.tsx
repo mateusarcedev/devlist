@@ -12,10 +12,12 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function ContributorsPage() {
+  let contributors: Awaited<ReturnType<typeof fetchPublicContributors>> = []
+  let loadError = false
   try {
-    const contributors = await fetchPublicContributors('approved')
-    return <CardsContributors data={contributors} />
+    contributors = await fetchPublicContributors('approved')
   } catch {
-    return <CardsContributors data={[]} loadError />
+    loadError = true
   }
+  return <CardsContributors data={contributors} loadError={loadError} />
 }
