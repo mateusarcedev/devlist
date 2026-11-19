@@ -1,13 +1,14 @@
 'use client'
 
 import DirectoryToolCard from '@/components/DirectoryToolCard'
-import type { Category, Tool } from '@/types'
 import { useI18n } from '@/contexts/i18n-context'
-import { Search, Users } from 'lucide-react'
+import { getCategoryLabel } from '@/lib/category-labels'
+import { requestSuggestionModal } from '@/lib/suggestion-trigger'
+import type { Category, Tool } from '@/types'
+import { Search, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
-import { FaGithub } from 'react-icons/fa'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const PAGE_SIZE = 24
 
@@ -17,76 +18,119 @@ interface Props {
   loadError?: boolean
 }
 
+function getDomain(link: string) {
+  try {
+    return new URL(link).hostname.replace(/^www\./, '')
+  } catch {
+    return link
+  }
+}
+
 export default function DiscoverContent({
   tools,
   categories,
   loadError = false,
 }: Props) {
-  const { t } = useI18n()
-  const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState<string>('all')
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const { locale, t } = useI18n()
   const router = useRouter()
+  const searchRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
-  const categoriesById = useMemo(
-    () => new Map(categories.map(category => [category.id, category.name])),
-    [categories],
+  useEffect(() => {
+    const focusSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        searchRef.current?.focus()
+        searchRef.current?.select()
+      }
+    }
+    window.addEventListener('keydown', focusSearch)
+    return () => window.removeEventListener('keydown', focusSearch)
+  }, [])
+
+  const categoryLabels = useMemo(
+    () => new Map(categories.map(category => [
+      category.id,
+      getCategoryLabel(category.name, locale),
+    ])),
+    [categories, locale],
   )
 
   const visibleTools = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
-
+    const term = query.trim().toLocaleLowerCase(locale)
     return tools.filter(tool => {
-      if (activeCategory !== 'all' && tool.categoryId !== activeCategory) {
-        return false
-      }
+      if (activeCategory !== 'all' && tool.categoryId !== activeCategory) return false
+      if (!term) return true
 
-      if (!normalizedQuery) return true
-
-      const categoryName = categoriesById.get(tool.categoryId) ?? ''
-      let domain = ''
-
-      try {
-        domain = new URL(tool.link).hostname.replace(/^www\./, '')
-      } catch {
-        domain = tool.link
-      }
-
-      return [tool.name, tool.description, categoryName, domain].some(value =>
-        value.toLowerCase().includes(normalizedQuery),
-      )
+      const rawCategory = categories.find(category => category.id === tool.categoryId)?.name ?? ''
+      const haystack = [
+        tool.name,
+        tool.description,
+        getDomain(tool.link),
+        rawCategory,
+        categoryLabels.get(tool.categoryId) ?? '',
+      ]
+      return haystack.some(item => item.toLocaleLowerCase(locale).includes(term))
     })
-  }, [activeCategory, categoriesById, query, tools])
+  }, [activeCategory, categories, categoryLabels, locale, query, tools])
 
-  const selectedCategory = categories.find(
-    category => category.id === activeCategory,
+  const selectedCategory = categories.find(category => category.id === activeCategory)
+  const isFiltered = activeCategory !== 'all' || query.trim().length > 0
+  // Preserve the performant 24-card initial render from PR #59.
+  // Filtered subsets are shown completely, as in Main.dc.html.
+  const displayedTools = isFiltered ? visibleTools : visibleTools.slice(0, visibleCount)
+  const hasMore = !isFiltered && visibleCount < visibleTools.length
+  const heading = selectedCategory
+    ? categoryLabels.get(selectedCategory.id) ?? selectedCategory.name
+    : t('allTools')
+  const resultLabel = isFiltered
+    ? visibleTools.length + ' ' + (visibleTools.length === 1 ? t('resultSingle') : t('resultPlural'))
+    : tools.length + ' ' + t('inCatalog')
+
+  const emptyState = (title: string, message: string, retry = false) => (
+    <div className='flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-[10px] border border-dashed border-border-strong px-6 py-12 text-center'>
+      <h3 className='font-sans text-[16px] font-semibold text-text'>{title}</h3>
+      <p className='max-w-[420px] text-[12.5px] text-muted'>{message}</p>
+      <button
+        type='button'
+        onClick={retry ? () => router.refresh() : requestSuggestionModal}
+        className='mt-2 inline-flex h-10 items-center rounded-[6px] border border-border-strong px-4 text-[12.5px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
+      >
+        {retry ? t('retry') : t('suggestOne')}
+      </button>
+    </div>
   )
 
-  // Hydrate only the first page of cards. Search/filter still covers every tool.
-  const displayedTools = visibleTools.slice(0, visibleCount)
-  const hasMore = visibleCount < visibleTools.length
-
-  const resultsLabel =
-    activeCategory === 'all' && !query.trim()
-      ? t('allTools')
-      : `${visibleTools.length} result${visibleTools.length === 1 ? '' : 's'}`
-
   return (
-    <main className='dl-page'>
-      <div className='mb-5'>
-        <h1 className='text-2xl font-semibold tracking-[-0.01em] text-white'>
-          Discover tools
-        </h1>
-        <p className='mt-1 text-sm text-subtle'>
-          Community-curated developer tools.
-        </p>
-      </div>
+    <main className='mx-auto w-full max-w-[1240px] px-[clamp(16px,2.3vw,28px)]'>
+      <section className='flex flex-col gap-[18px] pb-7 pt-9'>
+        <div className='flex flex-wrap items-end justify-between gap-x-6 gap-y-2'>
+          <div>
+            <h1 className='font-sans text-[28px] font-semibold leading-[1.2] tracking-[-0.025em] text-text'>
+              {t('discoverHeading')}
+            </h1>
+            <p className='mt-1 text-[13px] text-muted'>{t('discoverDescription')}</p>
+          </div>
+          {!loadError && (
+            <span className='text-[12px] text-subtle'>
+              {tools.length} {t('toolsCount')} · {categories.length} {t('categoriesCount')}
+            </span>
+          )}
+        </div>
 
-      {!loadError && (
-        <>
-          <div className='relative mb-4'>
-            <Search className='pointer-events-none absolute left-3.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-faint' />
+        {!loadError && (
+          <form
+            role='search'
+            onSubmit={event => event.preventDefault()}
+            className='flex h-12 items-center gap-3 rounded-[10px] border border-border-strong bg-surface px-4 transition-[border-color,box-shadow] focus-within:border-[var(--mint-edge)] focus-within:shadow-[0_0_0_4px_var(--mint-dim)]'
+          >
+            <Search aria-hidden='true' className='h-[17px] w-[17px] shrink-0 text-subtle' strokeWidth={1.7} />
+            <label className='sr-only' htmlFor='devhub-catalog-search'>{t('searchLabel')}</label>
             <input
+              id='devhub-catalog-search'
+              ref={searchRef}
               type='search'
               value={query}
               onChange={event => {
@@ -95,150 +139,126 @@ export default function DiscoverContent({
               }}
               placeholder={t('searchTools')}
               aria-label={t('searchTools')}
-              className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
+              aria-keyshortcuts='Meta+K Control+K'
+              className='h-full min-w-0 flex-1 bg-transparent text-[13.5px] text-text outline-none placeholder:text-subtle'
             />
-          </div>
+            <kbd className='hidden shrink-0 rounded-[6px] border border-border-strong bg-surface-hover px-2 py-[3px] font-mono text-[11px] text-muted tablet:block'>
+              ⌘ K
+            </kbd>
+          </form>
+        )}
+      </section>
 
-          <div className='mb-7 flex flex-wrap gap-2'>
-            <button
-              type='button'
-              onClick={() => {
-                setActiveCategory('all')
-                setVisibleCount(PAGE_SIZE)
-              }}
-              aria-pressed={activeCategory === 'all'}
-              className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
-                activeCategory === 'all'
-                  ? 'border-white bg-white text-black'
-                  : 'border-border-strong bg-transparent text-muted hover:border-zinc-600 hover:text-text'
-              }`}
-            >
-              All
-            </button>
-
-            {categories.map(category => (
+      <section id='catalogo' className='flex flex-wrap items-start gap-8 pb-12 pt-2'>
+        {!loadError && (
+          <aside aria-label={t('categoriesLabel')} className='flex w-full shrink-0 flex-col gap-2.5 laptop:w-[230px] laptop:max-w-[260px]'>
+            <h2 className='mb-1 pl-2.5 text-[11px] font-normal uppercase tracking-[0.14em] text-subtle'>
+              {t('categoriesLabel')}
+            </h2>
+            <div className='flex flex-col gap-0.5'>
               <button
                 type='button'
-                key={category.id}
-                onClick={() => {
-                  setActiveCategory(category.id)
-                  setVisibleCount(PAGE_SIZE)
-                }}
-                aria-pressed={activeCategory === category.id}
-                className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
-                  activeCategory === category.id
-                    ? 'border-white bg-white text-black'
-                    : 'border-border-strong bg-transparent text-muted hover:border-zinc-600 hover:text-text'
-                }`}
+                aria-pressed={activeCategory === 'all'}
+                onClick={() => { setActiveCategory('all'); setVisibleCount(PAGE_SIZE) }}
+                className={'flex min-h-9 items-center gap-2 rounded-[6px] px-2.5 py-[7px] text-left text-[12.5px] transition-colors ' +
+                  (activeCategory === 'all'
+                    ? 'bg-[var(--mint-dim)] text-accent'
+                    : 'text-muted hover:bg-surface-hover hover:text-text')}
               >
-                {category.name}
+                <span aria-hidden='true' className={'h-[5px] w-[5px] shrink-0 rounded-full ' + (activeCategory === 'all' ? 'bg-accent' : 'bg-border-strong')} />
+                {t('all')}
               </button>
-            ))}
-          </div>
-
-          {selectedCategory && (
-            <Link
-              href={`/tools/${encodeURIComponent(selectedCategory.name)}`}
-              className='mb-6 -mt-3 inline-flex text-[12.5px] text-subtle transition-colors hover:text-text'
-            >
-              View {selectedCategory.name} as a full category page →
-            </Link>
-          )}
-
-          <section className='mb-8 flex flex-wrap items-center gap-x-7 gap-y-4 rounded-[10px] border border-border px-5 py-4'>
-            <div className='min-w-[180px] flex-1'>
-              <div className='mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-accent'>
-                Community maintained
-              </div>
-              <div className='text-[13px] text-muted'>
-                Built and maintained with contributions from developers.
-              </div>
+              {categories.map(category => {
+                const active = activeCategory === category.id
+                return (
+                  <button
+                    key={category.id}
+                    type='button'
+                    aria-pressed={active}
+                    onClick={() => { setActiveCategory(category.id); setVisibleCount(PAGE_SIZE) }}
+                    className={'flex min-h-9 items-center gap-2 rounded-[6px] px-2.5 py-[7px] text-left text-[12.5px] transition-colors ' +
+                      (active ? 'bg-[var(--mint-dim)] text-accent' : 'text-muted hover:bg-surface-hover hover:text-text')}
+                  >
+                    <span aria-hidden='true' className={'h-[5px] w-[5px] shrink-0 rounded-full ' + (active ? 'bg-accent' : 'bg-border-strong')} />
+                    <span>{categoryLabels.get(category.id) ?? category.name}</span>
+                  </button>
+                )
+              })}
             </div>
+          </aside>
+        )}
 
+        <div className='min-w-0 flex-1 basis-[560px]'>
+          {loadError ? emptyState(t('catalogErrorHeading'), t('catalogErrorDescription'), true) : (
+            <>
+              <div className='mb-[18px] flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2'>
+                <h2 className='font-sans text-[22px] font-semibold tracking-[-0.02em] text-text'>{heading}</h2>
+                <span aria-live='polite' className='text-[12px] text-subtle'>{resultLabel}</span>
+              </div>
+              {visibleTools.length === 0
+                ? emptyState(t('noResultsHeading'), t('noResultsDescription'))
+                : (
+                  <>
+                    <div className='grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3'>
+                      {displayedTools.map(tool => (
+                        <DirectoryToolCard
+                          key={tool.id}
+                          tool={tool}
+                          categoryName={categoryLabels.get(tool.categoryId)}
+                        />
+                      ))}
+                    </div>
+                    {hasMore && (
+                      <div className='flex flex-col items-center gap-3 pt-7'>
+                        <p aria-live='polite' className='text-[12px] text-subtle'>
+                          {t('showing')} {displayedTools.length} {t('of')} {tools.length} {t('toolsCount')}
+                        </p>
+                        <button
+                          type='button'
+                          onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
+                          className='inline-flex h-11 items-center rounded-[6px] border border-border-strong bg-surface px-5 text-[13px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
+                        >
+                          {t('loadMore')}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              {selectedCategory && (
+                <Link
+                  href={'/tools/' + encodeURIComponent(selectedCategory.name)}
+                  className='mt-5 inline-flex items-center gap-1 text-[12px] text-muted transition-colors hover:text-accent'
+                >
+                  {t('viewCategory')} {categoryLabels.get(selectedCategory.id)} <ArrowUpRight aria-hidden='true' className='h-3 w-3' />
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section id='sugerir' className='pb-12'>
+        <div className='flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-[10px] border border-border-strong bg-surface px-5 py-4'>
+          <p className='text-[13px] text-muted'>{t('contributePrompt')}</p>
+          <div className='flex flex-wrap gap-2'>
+            <button
+              type='button'
+              onClick={requestSuggestionModal}
+              className='inline-flex h-[38px] items-center rounded-[6px] border border-border-strong px-3.5 text-[12.5px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
+            >
+              {t('suggestTool')}
+            </button>
             <Link
               href='https://github.com/mateusarcedev/devlist'
               target='_blank'
               rel='noopener noreferrer'
-              className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
+              className='inline-flex h-[38px] items-center rounded-[6px] border border-border-strong px-3.5 text-[12.5px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
             >
-              <FaGithub className='h-[15px] w-[15px]' />
-              GitHub repository →
+              GitHub
             </Link>
-
-            <Link
-              href='/contributors'
-              className='flex items-center gap-2 text-[13px] text-muted transition-colors hover:text-text'
-            >
-              <Users className='h-[15px] w-[15px]' />
-              Contributors →
-            </Link>
-          </section>
-        </>
-      )}
-
-      {loadError ? (
-        <div className='border-t border-border px-4 py-16 text-center'>
-          <div className='mb-1.5 text-[15px] font-medium text-text'>
-            We couldn&apos;t load the directory
           </div>
-          <p className='mb-5 text-[13px] text-subtle'>
-            The catalog is temporarily unavailable.
-          </p>
-          <button
-            type='button'
-            onClick={() => router.refresh()}
-            className='rounded-[6px] bg-white px-4 py-2 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
-          >
-            Try again
-          </button>
         </div>
-      ) : (
-        <>
-          <div
-            aria-live='polite'
-            className='mb-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-subtle'
-          >
-            {resultsLabel}
-          </div>
-
-          {visibleTools.length === 0 ? (
-            <div className='border-t border-border px-4 py-16 text-center'>
-              <div className='mb-1.5 text-[15px] font-medium text-text'>
-                No tools match
-              </div>
-              <div className='text-[13px] text-subtle'>
-                Try a different search or category.
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
-                {displayedTools.map(tool => (
-                  <DirectoryToolCard
-                    key={tool.id}
-                    tool={tool}
-                    categoryName={categoriesById.get(tool.categoryId)}
-                  />
-                ))}
-              </div>
-              {hasMore && (
-                <div className='mt-8 flex flex-col items-center gap-3'>
-                  <p className='text-[12px] text-subtle' aria-live='polite'>
-                    Showing {displayedTools.length} of {visibleTools.length} tools
-                  </p>
-                  <button
-                    type='button'
-                    onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
-                    className='rounded-[6px] border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-text transition-colors hover:border-zinc-600 hover:bg-surface-hover'
-                  >
-                    Load more tools
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
+      </section>
     </main>
   )
 }
