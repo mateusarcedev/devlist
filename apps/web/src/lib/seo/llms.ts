@@ -26,7 +26,7 @@ export async function buildLlmsText(locale: 'en' | 'pt-BR' = 'en'): Promise<stri
     lines.push(`## ${clean(name)}`,'')
     for (const tool of list) {
       // URL is constrained to http(s) by the database; prevent Markdown injection.
-      lines.push(`- [${clean(tool.name)}](${encodeURI(tool.url).replace(/\\(/g,'%28').replace(/\\)/g,'%29')}) : ${clean(tool.description)}`)
+      lines.push(`- [${clean(tool.name)}](${encodeURI(tool.url).replace(/\(/g,'%28').replace(/\)/g,'%29')}): ${clean(tool.description)}`)
     }
     lines.push('')
   }
