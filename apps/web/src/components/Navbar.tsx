@@ -127,7 +127,7 @@ export default function Navbar() {
 
           <div className='hidden items-center gap-1 desktop:flex'>
             {user?.role === 'ADMIN' && (
-              <Link href='/admin/addtools' className='inline-flex min-h-11 items-center gap-2 rounded-[6px] px-2.5 text-[12.5px] text-muted transition-colors hover:bg-surface-hover hover:text-accent'>
+              <Link href='/admin/suggestions' className='inline-flex min-h-11 items-center gap-2 rounded-[6px] px-2.5 text-[12.5px] text-muted transition-colors hover:bg-surface-hover hover:text-accent'>
                 Admin <span className='rounded-full bg-[var(--pink-dim)] px-2 py-0.5 text-[11px] text-[var(--pink)]'>●</span>
               </Link>
             )}
@@ -163,8 +163,8 @@ export default function Navbar() {
                       <div className='text-[11px] text-subtle'>{user.role === 'ADMIN' ? t('administrator') : t('member')}</div>
                     </div>
                     {user.role === 'ADMIN' && (
-                      <Link href='/admin/addtools' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
-                        {t('addToolAdmin')}
+                      <Link href='/admin/suggestions' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
+                        Sugestões
                       </Link>
                     )}
                     <button type='button' role='menuitem' onClick={handleLogout} className='flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-left text-[12.5px] text-text hover:bg-surface-hover'>
@@ -192,7 +192,7 @@ export default function Navbar() {
               <button type='button' onClick={handleFavoritesClick} aria-current={isFavorites ? 'page' : undefined} className={navClass(isFavorites)}>{t('favorites')}{favoriteCount}</button>
               <Link href='/contributors' aria-current={isContributors ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={navClass(isContributors)}>{t('contributors')}</Link>
               {user?.role === 'ADMIN' && (
-                <Link href='/admin/addtools' onClick={() => setMobileMenuOpen(false)} className={navClass(false)}>Admin</Link>
+                <Link href='/admin/suggestions' onClick={() => setMobileMenuOpen(false)} className={navClass(false)}>Admin</Link>
               )}
               <button type='button' onClick={toggleTheme} className={navClass(false)}>{theme === 'dark' ? t('lightTheme') : t('darkTheme')}</button>
               <button type='button' onClick={toggleLocale} className={navClass(false)}>{t('language')}: {locale === 'en' ? 'Português' : 'English'}</button>
