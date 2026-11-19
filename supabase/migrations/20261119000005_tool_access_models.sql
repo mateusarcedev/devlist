@@ -92,7 +92,7 @@ FROM (VALUES
 ('convertio.co','FREEMIUM'),
 ('tailwindui.com','PAID')
 ) AS known(host,model)
-WHERE lower(regexp_replace(split_part(split_part(t.link,'://',2),'/',1),'^www\\.','')) = known.host;
+WHERE lower(regexp_replace(split_part(split_part(t.link,'://',2),'/',1),'^www[.]','')) = known.host;
 
 -- Verified against the publishers' current pricing pages.
 UPDATE public.tools SET access_source_url='https://tailwindcss.com/blog/tailwind-plus',access_reviewed_at=now()
@@ -166,7 +166,7 @@ BEGIN
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('suggestion-url:'||v_key,0));
   SELECT t.name INTO v_other_name FROM public.tools t
   WHERE (s.host<>'github.com' AND
-    regexp_replace(lower(split_part(split_part(split_part(split_part(t.link,'://',2),'/',1),'?',1),'#',1)),'^www\\.','')=s.host)
+    regexp_replace(lower(split_part(split_part(split_part(split_part(t.link,'://',2),'/',1),'?',1),'#',1)),'^www[.]','')=s.host)
     OR (s.host='github.com' AND
       lower(trim(trailing '/' FROM regexp_replace(split_part(t.link,'#',1),'^https?://(www\\.)?','','i')))=v_key)
   LIMIT 1;
@@ -208,7 +208,7 @@ $$;
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('suggestion-url:'||v_key,0));
   SELECT t.name INTO v_other_name FROM public.tools t
   WHERE (s.host<>'github.com' AND
-    regexp_replace(lower(split_part(split_part(split_part(split_part(t.link,'://',2),'/',1),'?',1),'#',1)),'^www\\.','')=s.host)
+    regexp_replace(lower(split_part(split_part(split_part(split_part(t.link,'://',2),'/',1),'?',1),'#',1)),'^www[.]','')=s.host)
     OR (s.host='github.com' AND
       lower(trim(trailing '/' FROM regexp_replace(split_part(t.link,'#',1),'^https?://(www\\.)?','','i')))=v_key)
   LIMIT 1;

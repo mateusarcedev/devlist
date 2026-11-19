@@ -2,15 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, ArrowUpRight, CheckCircle2, RefreshCcw } from 'lucide-react'
+import Link from 'next/link'
+import { isPublishableAccessModel, type AccessModel } from '@/lib/tool-access'
+import ToolAccessBadge from './ToolAccessBadge'
 
 type Status = 'PENDING'|'APPROVED'|'REJECTED'
 interface Category { id:string;name:string }
 interface Suggestion {
   id:string;link:string;host:string;user_id:string;created_at:string;status:Status;
   name:string|null;description:string|null;category_id:string|null;tool_id:string|null;
+  access_model:AccessModel;access_source_url:string|null;
   reviewed_at:string|null;submitter:string;duplicate?:{id:string,name:string}
 }
-type Form = { name:string;description:string;categoryId:string }
+type Form = { name:string;description:string;categoryId:string;accessModel:AccessModel;sourceUrl:string }
 const tabs: {id:Status,label:string}[] = [
   {id:'PENDING',label:'Pendentes'},{id:'APPROVED',label:'Aprovadas'},{id:'REJECTED',label:'Rejeitadas'},
 ]
@@ -20,7 +24,7 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
   const [tab,setTab] = useState<Status>('PENDING')
   const [items,setItems] = useState<Suggestion[]>([])
   const [selected,setSelected] = useState<string|null>(null)
-  const [form,setForm] = useState<Form>({name:'',description:'',categoryId:''})
+  const [form,setForm] = useState<Form>({name:'',description:'',categoryId:'',accessModel:'UNVERIFIED',sourceUrl:''})
   const [loading,setLoading] = useState(true)
   const [busy,setBusy] = useState(false)
   const [error,setError] = useState('')
@@ -37,7 +41,7 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
       const suggestions = payload.suggestions as Suggestion[]
       setItems(suggestions)
       setSelected(suggestions[0]?.id ?? null)
-      setForm({name:suggestions[0]?.name??'',description:suggestions[0]?.description??'',categoryId:suggestions[0]?.category_id??''})
+      setForm({name:suggestions[0]?.name??'',description:suggestions[0]?.description??'',categoryId:suggestions[0]?.category_id??'',accessModel:suggestions[0]?.access_model??'UNVERIFIED',sourceUrl:suggestions[0]?.access_source_url??''})
     } catch(e) { setError(e instanceof Error?e.message:'Erro inesperado');setItems([]);setSelected(null) }
     finally { setLoading(false) }
   },[])
@@ -74,9 +78,10 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
   },[current])
 
   const valid=!!form.name.trim() && form.name.trim().length<=120 &&
-    !!form.description.trim() && form.description.trim().length<=140 && !!form.categoryId
+    !!form.description.trim() && form.description.trim().length<=140 && !!form.categoryId &&
+    isPublishableAccessModel(form.accessModel) && (!form.sourceUrl || /^https:\/\/[^\s]+$/i.test(form.sourceUrl))
   const catName=categories.find(c=>c.id===form.categoryId)?.name ?? 'Categoria'
-  const change=(key:keyof Form,value:string)=>setForm(previous=>({...previous,[key]:value}))
+  const change=<K extends keyof Form>(key:K,value:Form[K])=>setForm(previous=>({...previous,[key]:value}))
   const act=async (action:'save'|'approve'|'reject')=>{
     if(!current||busy)return
     setBusy(true);setError('');setToast('')
@@ -85,7 +90,7 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
       const response=await fetch(endpoint,{
         method:action==='save'?'PATCH':'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:form.name,description:form.description,categoryId:form.categoryId||null}),
+        body:JSON.stringify({name:form.name,description:form.description,categoryId:form.categoryId||null,accessModel:form.accessModel,sourceUrl:form.sourceUrl}),
       })
       const payload=await response.json()
       if(!response.ok) throw new Error(payload.message || 'Falha na revisão')
@@ -100,7 +105,8 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
     <header className='mb-7 flex flex-wrap items-end justify-between gap-4'>
       <div>
         <h1 className='font-sans text-[28px] font-semibold tracking-[-0.025em] text-text'>Sugestões</h1>
-        <p className='mt-1 text-[13px] text-muted'>Usuários enviam só o link. Complete os dados e publique no catálogo.</p>
+        <p className='mt-1 text-[13px] text-muted'>Usuários enviam só o link. Classifique o acesso antes de publicar.</p>
+        <Link href='/admin/catalog' className='mt-2 inline-block text-[12px] text-accent hover:underline'>Revisar ferramentas existentes</Link>
       </div>
       <button type='button' onClick={()=>void load(tab)} aria-label='Atualizar sugestões'
         className='flex h-10 items-center gap-2 rounded-[6px] border border-border-strong px-3 text-[12px] text-muted hover:text-accent'>
@@ -122,7 +128,7 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
         {loading?<p className='p-5 text-[13px] text-muted'>Carregando sugestões…</p>:
           items.length===0?<p className='p-8 text-center text-[13px] text-muted'>Nada por aqui.</p>:
           <div className='max-h-[700px] overflow-y-auto'>
-            {items.map(item=><button key={item.id} type='button' onClick={()=>{setSelected(item.id);setForm({name:item.name??'',description:item.description??'',categoryId:item.category_id??''})}}
+            {items.map(item=><button key={item.id} type='button' onClick={()=>{setSelected(item.id);setForm({name:item.name??'',description:item.description??'',categoryId:item.category_id??'',accessModel:item.access_model??'UNVERIFIED',sourceUrl:item.access_source_url??''})}}
               aria-pressed={selected===item.id}
               className={'flex w-full items-center gap-3 border-b border-border px-4 py-4 text-left transition-colors hover:bg-surface-hover '+
                 (selected===item.id?'border-l-2 border-l-accent bg-surface-hover':'border-l-2 border-l-transparent')}>
@@ -166,6 +172,27 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
                 {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
               </select></div>
           </div>
+          <div className='mt-4 grid gap-4 sm:grid-cols-2'>
+            <div>
+              <label htmlFor='review-access' className='mb-1.5 block text-[12px] text-muted'>Modelo de acesso</label>
+              <select id='review-access' value={form.accessModel} disabled={current.status!=='PENDING'||busy}
+                onChange={e=>change('accessModel',e.target.value as AccessModel)} className={inputClass}>
+                <option value='UNVERIFIED'>A verificar</option>
+                <option value='OPEN_SOURCE'>Open source</option>
+                <option value='FREE'>Grátis</option>
+                <option value='FREEMIUM'>Freemium</option>
+                <option value='PAID'>Pago — não publicar</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor='review-source' className='mb-1.5 block text-[12px] text-muted'>Fonte da classificação (URL, opcional)</label>
+              <input id='review-source' type='url' value={form.sourceUrl} disabled={current.status!=='PENDING'||busy}
+                onChange={e=>change('sourceUrl',e.target.value)} placeholder='https://.../pricing'
+                className={inputClass}/>
+            </div>
+          </div>
+          {(form.accessModel==='PAID'||form.accessModel==='UNVERIFIED')&&
+            <p className='mt-2 text-[12px] text-muted'>Somente ferramentas open source, gratuitas ou freemium podem ser publicadas.</p>}
           <div className='mt-4'>
             <div className='mb-1.5 flex justify-between text-[12px] text-muted'><label htmlFor='review-description'>Descrição</label>
               <span className={form.description.length>140?'text-[var(--pink)]':''}>{form.description.length}/140</span></div>
@@ -182,15 +209,15 @@ export default function AdminSuggestions({ categories }: { categories:Category[]
             <div className='flex items-center gap-3'><span className='grid h-9 w-9 place-items-center rounded-[8px] bg-surface-hover font-semibold text-accent'>{(form.name||current.host).charAt(0).toUpperCase()}</span>
               <div className='min-w-0'><p className='truncate font-sans text-[15px] font-semibold text-text'>{form.name||current.host}</p><p className='text-[11px] text-muted'>{current.host}</p></div></div>
             <p className='mt-3 text-[12px] text-muted'>{form.description||'Descrição da ferramenta…'}</p>
-            <span className='mt-3 inline-flex rounded-full border border-border-strong px-2 py-0.5 text-[11px] text-muted'>{catName}</span>
+            <div className='mt-3 flex flex-wrap items-center gap-2'><span className='inline-flex rounded-full border border-border-strong px-2 py-0.5 text-[11px] text-muted'>{catName}</span><ToolAccessBadge model={form.accessModel}/></div>
           </div>
           {current.status==='PENDING'&&<div className='mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5'>
-            <p className='text-[11px] text-muted'>{current.duplicate?'Recomendado: rejeitar como duplicada.':valid?'Pronto para publicar.':'Preencha nome, categoria e descrição (até 140 caracteres).'}</p>
+            <p className='text-[11px] text-muted'>{current.duplicate?'Recomendado: rejeitar como duplicada.':valid?'Pronto para publicar.':'Preencha nome, categoria, descrição e escolha um acesso permitido.'}</p>
             <div className='flex flex-wrap gap-2'>
               <button type='button' disabled={busy} onClick={()=>void act('reject')}
                 className='h-10 rounded-[6px] border border-border-strong px-3 text-[12px] text-muted hover:border-[var(--pink)] hover:text-[var(--pink)] disabled:opacity-40'>
                 {current.duplicate?'Rejeitar como duplicada':'Rejeitar'}</button>
-              <button type='button' disabled={busy||!form.name.trim()||!form.description.trim()||form.description.length>140}
+              <button type='button' disabled={busy||!form.name.trim()||!form.description.trim()||form.description.length>140||!!form.sourceUrl&&!/^https:\/\/[^\s]+$/i.test(form.sourceUrl)}
                 onClick={()=>void act('save')}
                 className='h-10 rounded-[6px] border border-border-strong px-3 text-[12px] text-muted hover:text-accent disabled:opacity-40'>Salvar</button>
               <button type='button' disabled={busy||!valid||!!current.duplicate}

@@ -11,6 +11,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { error: reviewError } = await db.rpc('review_suggestion', {
     p_id:id, p_action:'save', p_name:fields.name,
     p_description:fields.description, p_category_id:fields.categoryId,
+    p_access_model:fields.accessModel, p_access_source_url:fields.sourceUrl,
   })
   if (reviewError) return moderationError(reviewError)
   return noStore({ saved:true })
