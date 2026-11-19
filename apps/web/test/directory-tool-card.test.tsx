@@ -19,6 +19,16 @@ vi.mock('@/contexts/i18n-context', () => ({
 }))
 
 describe('DirectoryToolCard', () => {
+  it('shows a clear badge for each access model', () => {
+    const tool = { id: 'x', name: 'Example', link: 'https://example.com', description: 'Description', categoryId: 'c' }
+    const { rerender } = render(<DirectoryToolCard tool={{ ...tool, accessModel: 'OPEN_SOURCE' }} />)
+    expect(screen.getByText('accessOpenSource')).toBeInTheDocument()
+    rerender(<DirectoryToolCard tool={{ ...tool, accessModel: 'FREEMIUM' }} />)
+    expect(screen.getByText('accessFreemium')).toBeInTheDocument()
+    rerender(<DirectoryToolCard tool={{ ...tool, accessModel: 'UNVERIFIED' }} />)
+    expect(screen.getByText('accessUnverified')).toBeInTheDocument()
+  })
+
   it('shows the entire description without line clamping, even for long text', () => {
     const description = 'A complete description of a development tool that spans several lines and explains all of its features, use cases, integrations, and technical capabilities without hiding any of the original content.'
 
