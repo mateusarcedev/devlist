@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowUpRight, RefreshCcw, Search } from 'lucide-react'
+import { ArrowUpRight, RefreshCcw, Search, Trash2 } from 'lucide-react'
 import ToolAccessBadge from './ToolAccessBadge'
 import { accessModels, type AccessModel } from '@/lib/tool-access'
 
@@ -31,6 +31,8 @@ export default function AdminCatalog() {
   const [query, setQuery] = useState('')
   const [model, setModel] = useState<AccessModel>('UNVERIFIED')
   const [sourceUrl, setSourceUrl] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -74,6 +76,8 @@ export default function AdminCatalog() {
     setSelected(tool.id)
     setModel(tool.access_model)
     setSourceUrl(tool.access_source_url ?? '')
+    setShowDelete(false)
+    setDeleteConfirmation('')
     setError('')
     setMessage('')
   }
@@ -96,6 +100,27 @@ export default function AdminCatalog() {
       setMessage(updated.name + ': classificação salva.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao salvar.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const removeTool = async () => {
+    if (!current || busy || deleteConfirmation !== current.name) return
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const response = await fetch('/api/admin/catalog/' + current.id, { method: 'DELETE' })
+      const body = await response.json()
+      if (!response.ok) throw new Error(body.message || 'Falha ao excluir ferramenta.')
+      setTools(previous => previous.filter(tool => tool.id !== current.id))
+      setSelected(null)
+      setShowDelete(false)
+      setDeleteConfirmation('')
+      setMessage(current.name + ': ferramenta excluída do catálogo.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Falha ao excluir ferramenta.')
     } finally {
       setBusy(false)
     }
@@ -174,6 +199,38 @@ export default function AdminCatalog() {
               className='mt-5 h-11 rounded-[6px] bg-accent px-5 text-[13px] font-semibold text-[var(--on-mint)] disabled:opacity-50'>
               {busy ? 'Salvando…' : 'Salvar classificação'}
             </button>
+
+            <div className='mt-8 border-t border-border pt-5'>
+              <h3 className='text-[14px] font-semibold text-text'>Excluir ferramenta</h3>
+              <p className='mt-1 text-[12px] leading-relaxed text-muted'>
+                Exclusão permanente. Os favoritos associados serão removidos e sugestões relacionadas perderão o vínculo com esta ferramenta.
+              </p>
+              {!showDelete ? (
+                <button type='button' disabled={busy} onClick={() => { setShowDelete(true); setDeleteConfirmation(''); setError('') }}
+                  className='mt-3 inline-flex h-10 items-center gap-2 rounded-[6px] border border-[var(--pink)] px-4 text-[12px] font-medium text-[var(--pink)] disabled:opacity-50'>
+                  <Trash2 className='h-4 w-4' /> Excluir ferramenta
+                </button>
+              ) : (
+                <div className='mt-4 space-y-3 rounded-[8px] border border-[var(--pink)] p-4'>
+                  <label htmlFor='catalog-delete-confirm' className='block text-[12px] text-muted'>
+                    Para confirmar, digite exatamente <strong className='text-text'>{current.name}</strong>:
+                  </label>
+                  <input id='catalog-delete-confirm' type='text' autoComplete='off' value={deleteConfirmation}
+                    onChange={e => setDeleteConfirmation(e.target.value)} disabled={busy} className={inputClass}
+                    placeholder='Nome exato da ferramenta' />
+                  <div className='flex flex-wrap gap-2'>
+                    <button type='button' onClick={() => void removeTool()} disabled={busy || deleteConfirmation !== current.name}
+                      className='h-10 rounded-[6px] bg-[var(--pink)] px-4 text-[12px] font-semibold text-white disabled:opacity-40'>
+                      {busy ? 'Excluindo…' : 'Confirmar exclusão'}
+                    </button>
+                    <button type='button' onClick={() => { setShowDelete(false); setDeleteConfirmation('') }} disabled={busy}
+                      className='h-10 rounded-[6px] border border-border-strong px-4 text-[12px] text-muted disabled:opacity-50'>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </>}
         </section>
       </div>
