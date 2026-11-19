@@ -98,7 +98,7 @@ export default function Navbar() {
   return (
     <>
       <header className='relative z-40 border-b border-border bg-canvas'>
-        <div className='mx-auto flex min-h-[72px] max-w-[1240px] items-center justify-between gap-3 px-[clamp(16px,2.3vw,28px)] py-3.5'>
+        <div className='mx-auto flex min-h-[64px] max-w-[1600px] desktop:min-h-[72px] items-center justify-between gap-3 px-[clamp(16px,2.3vw,28px)] py-2.5 desktop:py-3.5'>
           <div className='flex min-w-0 items-center gap-7'>
             <Link
               href='/'

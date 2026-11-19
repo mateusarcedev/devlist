@@ -19,7 +19,7 @@ export default function FavoritesContent({ initialFavorites }: Props) {
   }
 
   return (
-    <main className='mx-auto w-full max-w-[1240px] px-[clamp(16px,2.3vw,28px)] pb-20 pt-9'>
+    <main className='mx-auto w-full max-w-[1600px] px-[clamp(16px,2.3vw,28px)] pb-20 pt-9'>
       <div className='mb-7 flex flex-wrap items-end justify-between gap-4'>
         <div>
           <h1 className='font-sans text-[28px] font-semibold tracking-[-0.025em] text-text'>{t('myFavorites')}</h1>

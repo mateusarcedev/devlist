@@ -177,6 +177,30 @@ describe('DiscoverContent', () => {
     expect(screen.getByRole('button', { name: 'Testing' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('offers a compact mobile category picker synchronized with the desktop sidebar', () => {
+    render(<DiscoverContent tools={tools} categories={categories} />)
+
+    const picker = screen.getByRole('combobox', { name: 'Categories' })
+    expect(picker).toHaveValue('all')
+    expect(picker).toHaveClass('appearance-none')
+
+    fireEvent.change(picker, { target: { value: 'cat-testing' } })
+    expect(picker).toHaveValue('cat-testing')
+    expect(screen.getByRole('button', { name: 'Testing' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText(/Playwright — Testing/)).toBeInTheDocument()
+    expect(screen.queryByText(/React — Frontend/)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'All' }))
+    expect(picker).toHaveValue('all')
+    expect(screen.getByText(/React — Frontend/)).toBeInTheDocument()
+  })
+
+  it('uses a wider catalog and keeps the desktop category sidebar hidden on mobile', () => {
+    const { container } = render(<DiscoverContent tools={tools} categories={categories} />)
+    expect(container.querySelector('main')).toHaveClass('max-w-[1600px]')
+    expect(screen.getByRole('complementary', { name: 'Categories' })).toHaveClass('hidden', 'laptop:flex')
+  })
+
   it('opens the existing suggestion modal from the empty state', () => {
     const listener = vi.fn()
     window.addEventListener('devhub:open-suggestion', listener)

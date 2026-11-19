@@ -7,7 +7,7 @@ export default function Footer() {
   const { t } = useI18n()
   return (
     <footer className='border-t border-border'>
-      <div className='mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-[clamp(16px,2.3vw,28px)] pb-10 pt-7 text-[11.5px] text-subtle'>
+      <div className='mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-[clamp(16px,2.3vw,28px)] pb-10 pt-7 text-[11.5px] text-subtle'>
         <span>{t('footerDescription')}</span>
         <nav aria-label={t('footerLinks')} className='flex flex-wrap items-center gap-5'>
           <Link href='https://github.com/mateusarcedev/devlist' target='_blank' rel='noopener noreferrer' className='transition-colors hover:text-accent'>

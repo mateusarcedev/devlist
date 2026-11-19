@@ -43,7 +43,7 @@ export default function CardsContributors({ data, loadError = false, catalogPend
   const people = useMemo(() => sortContributors(data, sortBy), [data, sortBy])
 
   return (
-    <main className='mx-auto flex w-full max-w-[1240px] flex-col gap-7 px-[clamp(16px,2.3vw,28px)] pb-14 pt-9'>
+    <main className='mx-auto flex w-full max-w-[1600px] flex-col gap-7 px-[clamp(16px,2.3vw,28px)] pb-14 pt-9'>
       <header>
         <h1 className='font-sans text-[28px] font-semibold leading-[1.2] tracking-[-0.025em] text-text'>
           {t('contributorsHeading')}
