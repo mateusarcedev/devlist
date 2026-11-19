@@ -27,7 +27,7 @@ describe('DevhubAiSearch', () => {
     await waitFor(() => expect(remote).toHaveBeenCalledWith('/api/ai/search',
       expect.objectContaining({method:'POST'})))
     const link = await screen.findByRole('link',{name:/Visit/i})
-    expect(link).toHaveAttribute('href','https://coolify.io/?ref=devhub')
+    expect(link).toHaveAttribute('href','https://coolify.io/?ref=devlist.mateusarce.dev')
     expect(screen.getByText('Coolify')).toBeInTheDocument()
   })
 
