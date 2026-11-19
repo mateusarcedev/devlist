@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   regenerate:
-    if: github.event.head_commit.message != 'chore(lock): regenerate Supabase dependency lockfile'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
