@@ -1,23 +1,29 @@
 import CardsContributors from '@/components/CardsContributors'
+import { fetchGitHubCodeContributors } from '@/lib/github-code-contributors'
 import { fetchPublicContributors } from '@/lib/public-contributors'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Contribuidores',
-  description: 'Pessoas que ajudaram a montar o catálogo DevHub por meio de sugestões aprovadas.',
+  description: 'Quem contribuiu com código no GitHub e com ferramentas aprovadas no DevHub.',
   alternates: { canonical: '/contributors' },
 }
 
-// Rank data is derived from approved suggestions and changes after moderation.
 export const dynamic = 'force-dynamic'
 
 export default async function ContributorsPage() {
-  let contributors: Awaited<ReturnType<typeof fetchPublicContributors>> = []
-  let loadError = false
-  try {
-    contributors = await fetchPublicContributors('approved')
-  } catch {
-    loadError = true
-  }
-  return <CardsContributors data={contributors} loadError={loadError} />
+  // Independent sources: absent catalog migration must not hide GitHub contributors.
+  const [approved, code] = await Promise.allSettled([
+    fetchPublicContributors('approved'),
+    fetchGitHubCodeContributors(),
+  ])
+
+  return (
+    <CardsContributors
+      data={approved.status === 'fulfilled' ? approved.value : []}
+      loadError={approved.status === 'rejected'}
+      codeContributors={code.status === 'fulfilled' ? code.value : []}
+      codeLoadError={code.status === 'rejected'}
+    />
+  )
 }
