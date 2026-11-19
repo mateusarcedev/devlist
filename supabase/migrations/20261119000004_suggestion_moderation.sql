@@ -7,6 +7,9 @@ ALTER TABLE public.suggestions
   ADD COLUMN IF NOT EXISTS metadata_fetched_at timestamptz;
 CREATE INDEX IF NOT EXISTS suggestions_status_created_idx ON public.suggestions(status,created_at DESC);
 CREATE INDEX IF NOT EXISTS suggestions_host_idx ON public.suggestions(host);
+-- Admins may see public display names of submitters, never other users' emails.
+CREATE POLICY "Admins read submitter profiles" ON public.profiles FOR SELECT
+  TO authenticated USING ((select public.is_admin()));
 -- No direct client edits to moderation fields: only the guarded RPC can write them.
 REVOKE UPDATE, DELETE ON public.suggestions FROM authenticated;
 DROP POLICY IF EXISTS "Admins update suggestions" ON public.suggestions;
