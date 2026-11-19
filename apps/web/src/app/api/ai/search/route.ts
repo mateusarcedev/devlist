@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'node:crypto'
+import { createHash, createHmac } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -18,11 +18,14 @@ export async function POST(request: NextRequest) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  if (!url || !key) return noStore({ message: 'Busca inteligente indisponível.' }, 503)
+  const secret = process.env.DEVHUB_AI_PROXY_SECRET
+  if (!url || !key || !secret) return noStore({ message: 'Busca inteligente indisponível.' }, 503)
 
   const ip = request.headers.get('x-real-ip') ||
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
   const hashedIp = createHash('sha256').update(ip).digest('hex')
+  const timestamp = String(Date.now())
+  const signature = createHmac('sha256',secret).update(timestamp + '\n' + hashedIp + '\n' + query.trim()).digest('hex')
   try {
     const response = await fetch(url + '/functions/v1/devhub-ai-search', {
       method: 'POST',
@@ -30,6 +33,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         apikey: key,
         'x-devhub-client-ip': hashedIp,
+        'x-devhub-ai-timestamp': timestamp,
+        'x-devhub-ai-signature': signature,
       },
       body: JSON.stringify({ query: query.trim() }),
       cache: 'no-store',
