@@ -17,6 +17,7 @@ interface Props {
   tools: Tool[]
   categories: Category[]
   loadError?: boolean
+  initialQuery?: string
 }
 
 function getDomain(link: string) {
@@ -31,11 +32,12 @@ export default function DiscoverContent({
   tools,
   categories,
   loadError = false,
+  initialQuery = '',
 }: Props) {
   const { locale, t } = useI18n()
   const router = useRouter()
   const searchRef = useRef<HTMLInputElement>(null)
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialQuery)
   const [activeCategory, setActiveCategory] = useState('all')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
