@@ -50,6 +50,23 @@ describe('POST /api/ai/search', () => {
     expect(response.headers.get('Cache-Control')).toBe('no-store')
   })
 
+  it('preserves every valid recommendation beyond the previous six-result limit', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://sample.supabase.co')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','sb_publishable_test')
+    vi.stubEnv('DEVHUB_AI_PROXY_SECRET','test-secret-not-for-production')
+    const results = Array.from({ length: 19 }, (_, index) => ({
+      ...tool, id: 'tool-' + index, name: 'Tool ' + index,
+    }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({ results }),
+    }))
+    const response = await POST(makeRequest({query:'Find open-source Docker deployment tools'}))
+    expect(response.status).toBe(200)
+    const payload = await response.json()
+    expect(payload.results).toHaveLength(19)
+    expect(payload.results[18].name).toBe('Tool 18')
+  })
+
   it('propagates the rate limit without exposing internal details', async () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://sample.supabase.co')
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','sb_publishable_test')

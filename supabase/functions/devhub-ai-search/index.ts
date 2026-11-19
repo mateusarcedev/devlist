@@ -170,12 +170,12 @@ Deno.serve(async (req) => {
     }
     const queryVector = await embedding(translate(query))
     const {data:matched,error:matchError}=await db.rpc('match_devhub_ai_tools',{
-      query_embedding:JSON.stringify(queryVector),match_count:24,
+      query_embedding:JSON.stringify(queryVector),match_count:Math.min(tools.length,1000),
     })
     if (matchError) throw matchError
     const scores = new Map(((matched??[]) as Match[]).map(item=>[item.tool_id,item.similarity]))
     const candidates = [...new Map([
-      ...lexicalRanks.slice(0,15).map(item=>[item.tool.id,item.tool] as const),
+      ...lexicalRanks.filter(item=>item.lex>0).map(item=>[item.tool.id,item.tool] as const),
       ...tools.filter(tool=>scores.has(tool.id)).map(tool=>[tool.id,tool] as const),
     ]).values()]
     const results = candidates.map(tool=>{
@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       return { tool, relevance: 0.70*Math.max(0,similarity) + 0.30*Math.min(1,lexicalScore/10),
         similarity,lexicalScore }
     }).filter(item=>item.lexicalScore>0 || item.similarity>0.47)
-      .sort((a,b)=>b.relevance-a.relevance).slice(0,6)
+      .sort((a,b)=>b.relevance-a.relevance)
       .map(({tool})=>({
         id:tool.id,name:tool.name,link:tool.link,description:tool.description,
         accessModel:tool.access_model,categoryName:tool.categoryName,
