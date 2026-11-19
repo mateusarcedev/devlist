@@ -163,12 +163,14 @@ export default function Navbar() {
                       <div className='text-[11px] text-subtle'>{user.role === 'ADMIN' ? t('administrator') : t('member')}</div>
                     </div>
                     {user.role === 'ADMIN' && (
+                      <>
                       <Link href='/admin/suggestions' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
                         Sugestões
                       </Link>
                       <Link href='/admin/catalog' role='menuitem' onClick={() => setUserMenuOpen(false)} className='block rounded-[6px] px-2.5 py-2 text-[12.5px] text-text hover:bg-surface-hover'>
                         Revisar catálogo
                       </Link>
+                      </>
                     )}
                     <button type='button' role='menuitem' onClick={handleLogout} className='flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-left text-[12.5px] text-text hover:bg-surface-hover'>
                       <LogOut aria-hidden='true' className='h-4 w-4' /> {t('signOut')}
