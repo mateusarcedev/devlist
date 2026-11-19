@@ -6,7 +6,7 @@ const sample = vi.hoisted(()=>[
 ])
 vi.mock('../src/lib/seo/data',()=>({
   getSeoTools: vi.fn(async()=>sample),
-  groupByCategory: (tools: typeof sample, _locale: string) =>
+  groupByCategory: (tools: typeof sample) =>
     new Map([['DevOps & Infrastructure',tools]]),
 }))
 
