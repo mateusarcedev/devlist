@@ -23,6 +23,7 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const doneButtonRef = useRef<HTMLButtonElement>(null)
+  const pendingRef = useRef(false)
   const [link, setLink] = useState('')
   const [error, setError] = useState('')
   const [step, setStep] = useState<'form' | 'done'>('form')
@@ -41,6 +42,8 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
     },
   })
 
+  pendingRef.current = mutation.isPending
+
   const closeModal = () => {
     if (mutation.isPending) return
     setLink('')
@@ -57,7 +60,6 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
     setError('')
     setSubmittedHost('')
     setStep('form')
-    requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   useEffect(() => {
@@ -67,10 +69,10 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const frame = requestAnimationFrame(() => inputRef.current?.focus())
+    inputRef.current?.focus()
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (!mutation.isPending) {
+        if (!pendingRef.current) {
           event.preventDefault()
           // A click on the close button uses the same teardown as the keyboard.
           dialogRef.current?.querySelector<HTMLButtonElement>('[data-close-dialog]')?.click()
@@ -94,15 +96,16 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => {
-      cancelAnimationFrame(frame)
       window.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
       previousFocus?.focus()
     }
-  }, [isOpen, mutation.isPending])
+  }, [isOpen])
 
   useEffect(() => {
-    if (isOpen && step === 'done') doneButtonRef.current?.focus()
+    if (!isOpen) return
+    if (step === 'done') doneButtonRef.current?.focus()
+    else inputRef.current?.focus()
   }, [isOpen, step])
 
   const submit = (event: FormEvent<HTMLFormElement>) => {

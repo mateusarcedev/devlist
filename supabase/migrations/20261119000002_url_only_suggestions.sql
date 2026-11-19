@@ -12,7 +12,7 @@ ALTER TABLE public.suggestions
 UPDATE public.suggestions
 SET host = regexp_replace(
   lower(split_part(split_part(split_part(split_part(link, '://', 2), '/', 1), '?', 1), '#', 1)),
-  '^www\\.', ''
+  '^www\.', ''
 )
 WHERE host IS NULL;
 
@@ -58,9 +58,9 @@ BEGIN
   IF v_authority ~ '[:@]' THEN
     RAISE EXCEPTION USING ERRCODE = 'D4220', MESSAGE = 'Invalid tool URL';
   END IF;
-  v_host := regexp_replace(v_authority, '^www\\.', '');
+  v_host := regexp_replace(v_authority, '^www\.', '');
   IF length(v_host) > 253 OR
-     v_host !~ '^[a-z0-9-]+(\\.[a-z0-9-]+)+$' OR
+     v_host !~ '^[a-z0-9-]+(\.[a-z0-9-]+)+$' OR
      v_host ~ '^[0-9.]+$' THEN
     RAISE EXCEPTION USING ERRCODE = 'D4220', MESSAGE = 'Invalid tool URL';
   END IF;
@@ -89,7 +89,7 @@ BEGIN
   WHERE (v_host <> 'github.com' AND
          regexp_replace(
            lower(split_part(split_part(split_part(split_part(t.link, '://', 2), '/', 1), '?', 1), '#', 1)),
-           '^www\\.', ''
+           '^www\.', ''
          ) = v_host)
      OR (v_host = 'github.com' AND
          lower(trim(trailing '/' FROM split_part(t.link, '#', 1))) = v_key)
