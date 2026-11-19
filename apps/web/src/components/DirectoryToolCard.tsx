@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Tool favicons are remote site assets and intentionally remain unoptimized. */
 
 import { useFavoriteToggle } from '@/hooks/useFavoriteToggle'
+import { memo } from 'react'
 import type { OnFavoriteChange, Tool } from '@/types'
 import { withReferral } from '@/lib/tool-url'
 import { ExternalLink, Heart } from 'lucide-react'
@@ -23,7 +24,7 @@ function domainOf(link: string) {
   }
 }
 
-export default function DirectoryToolCard({
+function DirectoryToolCard({
   tool,
   categoryName,
   initialIsFavorite = false,
@@ -57,6 +58,8 @@ export default function DirectoryToolCard({
             <div className='relative flex h-[34px] w-[34px] shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-border-strong bg-surface-hover'>
               <img
                 src={faviconUrl}
+                loading='lazy'
+                decoding='async'
                 alt=''
                 className='h-5 w-5 object-contain'
                 onError={event => {
@@ -129,3 +132,5 @@ export default function DirectoryToolCard({
     </>
   )
 }
+
+export default memo(DirectoryToolCard)

@@ -82,6 +82,20 @@ describe('CategoryToolsContent', () => {
     expect(screen.getByText(/Motion — Animation/)).toBeInTheDocument()
   })
 
+  it('paginates large categories without rendering every card immediately', () => {
+    const manyTools = Array.from({ length: 30 }, (_, index) => ({
+      id: `tool-${index}`,
+      name: `Tool ${index}`,
+      link: `https://example.com/${index}`,
+      description: 'Test resource',
+      categoryId: 'cat-animation',
+    }))
+    render(<CategoryToolsContent categoryName='Animation' tools={manyTools} />)
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
+    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(30)
+  })
+
   it('shows the search empty state', () => {
     render(
       <CategoryToolsContent categoryName='Animation' tools={tools} />,
