@@ -1,42 +1,30 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AddSuggestionModal from '../src/components/AddSuggestionModal'
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   mutate: vi.fn(),
-  refetch: vi.fn(),
+  reset: vi.fn(),
+  success: null as null | ((value: { id: string; host: string }) => void),
+  error: null as null | ((err: unknown) => void),
 }))
 
-let authUser: null | {
-  githubId: number
-  name: string
-  avatar: string
-  role: 'USER' | 'ADMIN'
-} = null
-
-let queryState = {
-  data: [{ id: 'cat-testing', name: 'Testing' }],
-  isLoading: false,
-  isError: false,
-}
+let authUser: null | { id: string; name: string; githubLogin?: string; role: 'USER' | 'ADMIN' } = null
 
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: authUser }),
+  useAuth: () => ({ user: authUser, loading: false }),
 }))
 
 vi.mock('@/hooks/useSubmitSuggestion', () => ({
-  useSubmitSuggestion: () => ({
-    mutate: mocks.mutate,
-    isPending: false,
-  }),
-}))
-
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({
-    ...queryState,
-    refetch: mocks.refetch,
-  }),
+  useSubmitSuggestion: (callbacks: {
+    onSuccess: (value: { id: string; host: string }) => void
+    onError: (err: unknown) => void
+  }) => {
+    mocks.success = callbacks.onSuccess
+    mocks.error = callbacks.onError
+    return { mutate: mocks.mutate, reset: mocks.reset, isPending: false }
+  },
 }))
 
 vi.mock('next/navigation', () => ({
@@ -46,76 +34,64 @@ vi.mock('next/navigation', () => ({
 describe('AddSuggestionModal', () => {
   beforeEach(() => {
     authUser = null
-    queryState = {
-      data: [{ id: 'cat-testing', name: 'Testing' }],
-      isLoading: false,
-      isError: false,
-    }
     mocks.push.mockReset()
     mocks.mutate.mockReset()
-    mocks.refetch.mockReset()
+    mocks.reset.mockReset()
   })
 
-  it('shows the sign-in state for anonymous users', () => {
+  it('shows one URL field and sign-in for anonymous visitors', () => {
     const onClose = vi.fn()
     render(<AddSuggestionModal isOpen onClose={onClose} />)
-
-    expect(
-      screen.getByRole('heading', { name: 'Sign in required' }),
-    ).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-
-    expect(onClose).toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getByLabelText('Tool link')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Tool name')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in with GitHub' }))
     expect(mocks.push).toHaveBeenCalledWith('/login')
+    expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('submits the real suggestion payload for authenticated users', () => {
-    authUser = {
-      githubId: 1,
-      name: 'Mateus Arce',
-      avatar: 'https://example.com/avatar.png',
-      role: 'USER',
-    }
-
+  it('validates blank URL and clears errors on edit', () => {
+    authUser = { id: 'u-1', name: 'Person', role: 'USER' }
     render(<AddSuggestionModal isOpen onClose={vi.fn()} />)
-
-    fireEvent.change(screen.getByLabelText('Tool name'), {
-      target: { value: 'Playwright' },
-    })
-    fireEvent.change(screen.getByLabelText('Link'), {
-      target: { value: 'https://playwright.dev' },
-    })
-    fireEvent.change(screen.getByLabelText('Description'), {
-      target: { value: 'End-to-end testing for modern web apps.' },
-    })
-    fireEvent.change(screen.getByLabelText('Category'), {
-      target: { value: 'cat-testing' },
-    })
-
     fireEvent.click(screen.getByRole('button', { name: 'Submit suggestion' }))
-
-    expect(mocks.mutate).toHaveBeenCalledWith({
-      name: 'Playwright',
-      link: 'https://playwright.dev',
-      description: 'End-to-end testing for modern web apps.',
-      categoryId: 'cat-testing',
-    })
+    expect(screen.getByRole('alert')).toHaveTextContent('Cole o link da ferramenta.')
+    expect(mocks.mutate).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText('Tool link'), { target: { value: 'example.com' } })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('shows category loading failure with a retry action', () => {
-    authUser = {
-      githubId: 1,
-      name: 'Mateus Arce',
-      avatar: 'https://example.com/avatar.png',
-      role: 'USER',
-    }
-    queryState = { data: [], isLoading: false, isError: true }
-
+  it('submits only the normalized URL', () => {
+    authUser = { id: 'u-1', name: 'Person', githubLogin: 'mateusarcedev', role: 'USER' }
     render(<AddSuggestionModal isOpen onClose={vi.fn()} />)
+    expect(screen.getByText('Submitting as @mateusarcedev')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Tool link'), { target: { value: 'example.com/docs' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Submit suggestion' }))
+    expect(mocks.mutate).toHaveBeenCalledWith({ url: 'https://example.com/docs' })
+  })
 
-    expect(screen.getByText("Couldn't load categories.")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(mocks.refetch).toHaveBeenCalled()
+  it('displays server duplicate errors and success with Suggest another', () => {
+    authUser = { id: 'u-1', name: 'Person', role: 'USER' }
+    render(<AddSuggestionModal isOpen onClose={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Tool link'), { target: { value: 'example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Submit suggestion' }))
+    act(() => mocks.error?.(new Error('Tool X já está no catálogo.')))
+    expect(screen.getByRole('alert')).toHaveTextContent('Tool X já está no catálogo.')
+    act(() => mocks.success?.({ id: 's1', host: 'example.com' }))
+    expect(screen.getByRole('heading', { name: 'Suggestion submitted' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest another' }))
+    expect(screen.getByLabelText('Tool link')).toHaveValue('')
+  })
+
+  it('closes with Escape, Cancel and backdrop', () => {
+    authUser = { id: 'u-1', name: 'Person', role: 'USER' }
+    const onClose = vi.fn()
+    const view = render(<AddSuggestionModal isOpen onClose={onClose} />)
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
+    view.rerender(<AddSuggestionModal isOpen={false} onClose={onClose} />)
+    view.rerender(<AddSuggestionModal isOpen onClose={onClose} />)
+    fireEvent.mouseDown(screen.getByRole('dialog').parentElement!)
+    expect(onClose).toHaveBeenCalledTimes(2)
   })
 })

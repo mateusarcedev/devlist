@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 export interface AuthUser {
   id: string
   githubId: number | null
+  githubLogin?: string
   name: string
   avatar: string
   role: 'USER' | 'ADMIN'
@@ -49,9 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('id', auth.user.id)
           .single()
         if (active && seq === mySeq) {
+          const githubIdentity = auth.user.identities?.find(identity => identity.provider === 'github')
+          const login = githubIdentity?.identity_data?.user_name
           setUser(error || !data ? null : {
             id: data.id,
             githubId: data.github_id,
+            githubLogin: typeof login === 'string' ? login : undefined,
             name: data.name,
             avatar: data.avatar,
             role: data.role,

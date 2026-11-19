@@ -22,11 +22,6 @@ interface ToastState {
   type: 'success' | 'error' | 'warning'
 }
 
-interface SubmitResult {
-  status: 'success' | 'error'
-  message?: string
-}
-
 const repoUrl = 'https://github.com/mateusarcedev/devlist'
 
 export default function Navbar() {
@@ -77,12 +72,6 @@ export default function Navbar() {
   const handleSuggestionClick = () => {
     setMobileMenuOpen(false)
     setIsModalOpen(true)
-  }
-
-  const handleModalSubmit = (result: SubmitResult) => {
-    setToast(result.status === 'success'
-      ? { message: t('suggestionSent'), type: 'success' }
-      : { message: result.message ?? t('suggestionError'), type: 'error' })
   }
 
   const handleLogout = async () => {
@@ -221,7 +210,7 @@ export default function Navbar() {
         )}
       </header>
 
-      <AddSuggestionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleModalSubmit} />
+      <AddSuggestionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </>
   )

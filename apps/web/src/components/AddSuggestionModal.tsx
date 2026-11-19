@@ -1,335 +1,236 @@
 'use client'
 
 import { useAuth } from '@/hooks/useAuth'
+import { useI18n } from '@/contexts/i18n-context'
 import { useSubmitSuggestion } from '@/hooks/useSubmitSuggestion'
-import { getApiErrorMessage } from '@/lib/http-error'
-import type { Category, Suggestion } from '@/types'
-import { AxiosConfig } from '@/utils'
-import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, X } from 'lucide-react'
+import { normalizeSuggestionUrl, SuggestionUrlError } from '@/lib/suggestion-url'
+import { Check, LoaderCircle, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-
-interface SubmitResult {
-  status: 'success' | 'error'
-  data?: Suggestion
-  message?: string
-}
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
-  onSubmit?: (result: SubmitResult) => void
 }
 
-async function fetchCategories(): Promise<Category[]> {
-  const { data } = await AxiosConfig.get<Category[]>('/categories')
-  return data
-}
+const primary = 'inline-flex h-10 items-center justify-center rounded-[6px] bg-accent px-4 text-[12.5px] font-semibold text-[var(--on-mint)] transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40'
+const outline = 'inline-flex h-10 items-center justify-center rounded-[6px] border border-border-strong px-3.5 text-[12.5px] text-text transition-colors hover:border-[var(--mint-edge)] hover:text-accent'
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(part => part.charAt(0).toUpperCase())
-    .join('')
-}
-
-export default function AddSuggestionModal({
-  isOpen,
-  onClose,
-  onSubmit,
-}: Props) {
-  const { user } = useAuth()
+export default function AddSuggestionModal({ isOpen, onClose }: Props) {
+  const { user, loading } = useAuth()
+  const { t } = useI18n()
   const router = useRouter()
-  const [name, setName] = useState('')
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const doneButtonRef = useRef<HTMLButtonElement>(null)
+  const pendingRef = useRef(false)
   const [link, setLink] = useState('')
-  const [description, setDescription] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [submitError, setSubmitError] = useState('')
-
-  const {
-    data: categories,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery<Category[]>({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-    enabled: isOpen && Boolean(user),
-  })
+  const [error, setError] = useState('')
+  const [step, setStep] = useState<'form' | 'done'>('form')
+  const [submittedHost, setSubmittedHost] = useState('')
 
   const mutation = useSubmitSuggestion({
-    onSuccess: data => {
-      setName('')
-      setLink('')
-      setDescription('')
-      setCategoryId('')
-      setSubmitError('')
-      onClose()
-      onSubmit?.({ status: 'success', data })
+    onSuccess: result => {
+      setSubmittedHost(result.host)
+      setError('')
+      setStep('done')
     },
-    onError: (error: unknown) => {
-      const message = getApiErrorMessage(
-        error,
-        'Error sending suggestion. Please try again.',
-      )
-      setSubmitError(message)
-      onSubmit?.({ status: 'error', message })
+    onError: cause => {
+      setError(cause instanceof Error
+        ? cause.message
+        : t('suggestErrorGeneric'))
     },
   })
 
   useEffect(() => {
-    if (!isOpen) return
+    pendingRef.current = mutation.isPending
+  }, [mutation.isPending])
 
+  const closeModal = () => {
+    if (mutation.isPending) return
+    setLink('')
+    setError('')
+    setStep('form')
+    setSubmittedHost('')
+    mutation.reset()
+    onClose()
+  }
+
+  const startAnother = () => {
+    mutation.reset()
+    setLink('')
+    setError('')
+    setSubmittedHost('')
+    setStep('form')
+  }
+
+  useEffect(() => {
+    if (!isOpen) return
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement : null
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !mutation.isPending) {
-        onClose()
+    inputRef.current?.focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (!pendingRef.current) {
+          event.preventDefault()
+          // A click on the close button uses the same teardown as the keyboard.
+          dialogRef.current?.querySelector<HTMLButtonElement>('[data-close-dialog]')?.click()
+        }
+        return
+      }
+      if (event.key !== 'Tab') return
+      const elements = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])',
+      ) ?? [])
+      if (!elements.length) return
+      const first = elements[0]
+      const last = elements[elements.length - 1]
+      if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault()
+        first.focus()
       }
     }
-
-    window.addEventListener('keydown', handleKeyDown)
-
+    window.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = 'unset'
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previousOverflow
+      previousFocus?.focus()
     }
-  }, [isOpen, mutation.isPending, onClose])
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (step === 'done') doneButtonRef.current?.focus()
+    else inputRef.current?.focus()
+  }, [isOpen, step])
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (mutation.isPending || !user || loading) return
+    try {
+      const normalized = normalizeSuggestionUrl(link)
+      setError('')
+      mutation.mutate({ url: normalized.url })
+    } catch (cause) {
+      setError(cause instanceof SuggestionUrlError
+        ? cause.message
+        : t('suggestInvalidUrl'))
+    }
+  }
 
   if (!isOpen) return null
 
-  const remainingChars = 230 - description.length
-  const submitDisabled =
-    mutation.isPending ||
-    isLoading ||
-    isError ||
-    !name.trim() ||
-    !link.trim() ||
-    !description.trim() ||
-    !categoryId ||
-    remainingChars < 0
-
-  const closeModal = () => {
-    if (!mutation.isPending) {
-      setSubmitError('')
-      onClose()
-    }
-  }
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!user || submitDisabled) return
-
-    setSubmitError('')
-    mutation.mutate({ name, link, description, categoryId })
-  }
-
+  const account = user?.githubLogin ? '@' + user.githubLogin : user?.name ?? ''
   return (
     <div
-      className='fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4'
+      className='fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-5'
       onMouseDown={event => {
         if (event.target === event.currentTarget) closeModal()
       }}
     >
-      {!user ? (
-        <div
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby='suggest-auth-title'
-          className='dl-enter w-full max-w-[360px] rounded-[12px] border border-border-strong bg-surface p-7 text-center shadow-[0_20px_60px_rgba(0,0,0,.55)]'
-        >
-          <h2
-            id='suggest-auth-title'
-            className='text-[17px] font-semibold text-white'
-          >
-            Sign in required
-          </h2>
-          <p className='mb-5 mt-2 text-[13px] leading-5 text-muted'>
-            You need to be signed in to suggest a tool.
-          </p>
-          <div className='flex justify-center gap-2'>
-            <button
-              type='button'
-              onClick={closeModal}
-              className='rounded-[6px] border border-border-strong px-3.5 py-2 text-[13px] font-medium text-text transition-colors hover:bg-surface-hover'
-            >
-              Close
-            </button>
-            <button
-              type='button'
-              onClick={() => {
-                closeModal()
-                router.push('/login')
-              }}
-              className='rounded-[6px] bg-white px-3.5 py-2 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200'
-            >
-              Sign in
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby='suggest-title'
-          className='dl-enter max-h-[88vh] w-full max-w-[440px] overflow-y-auto rounded-[12px] border border-border-strong bg-surface shadow-[0_20px_60px_rgba(0,0,0,.55)]'
-        >
-          <div className='sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface px-6 py-5'>
-            <h2
-              id='suggest-title'
-              className='text-base font-semibold text-white'
-            >
-              Suggest a tool
+      <div
+        ref={dialogRef}
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='suggest-dialog-title'
+        aria-describedby={step === 'form' ? 'suggest-dialog-description' : 'suggest-dialog-success-description'}
+        className='dl-enter max-h-[calc(100vh-40px)] w-full max-w-[460px] overflow-y-auto rounded-[14px] border border-border-strong bg-surface shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]'
+      >
+        {step === 'done' ? (
+          <div role='status' className='flex flex-col items-center gap-2.5 px-6 pb-[22px] pt-7 text-center'>
+            <span aria-hidden='true' className='grid h-11 w-11 place-items-center rounded-full border border-[var(--mint-edge)] bg-[var(--mint-dim)] text-accent'>
+              <Check className='h-5 w-5' strokeWidth={2} />
+            </span>
+            <h2 id='suggest-dialog-title' className='font-sans text-[18px] font-semibold tracking-[-0.015em] text-text'>
+              {t('suggestSentTitle')}
             </h2>
-            <button
-              type='button'
-              onClick={closeModal}
-              disabled={mutation.isPending}
-              aria-label='Close'
-              className='rounded-[5px] p-1 text-subtle transition-colors hover:bg-surface-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-50'
-            >
-              <X className='h-[18px] w-[18px]' />
-            </button>
+            <p id='suggest-dialog-success-description' className='max-w-[360px] text-[12.5px] leading-[1.6] text-muted'>
+              <span className='text-text'>{submittedHost}</span> {t('suggestSentDescription')}
+            </p>
+            <div className='mt-2 flex flex-wrap items-center justify-center gap-2'>
+              <button type='button' onClick={startAnother} className={outline}>{t('suggestAnother')}</button>
+              <button ref={doneButtonRef} data-close-dialog type='button' onClick={closeModal} className={primary}>{t('close')}</button>
+            </div>
           </div>
-
-          <form onSubmit={handleSubmit} className='flex flex-col gap-4 p-6'>
-            <div className='flex items-center gap-2.5 rounded-[8px] bg-surface-hover px-3 py-2.5'>
-              <div className='flex h-[26px] w-[26px] items-center justify-center rounded-full border border-border-strong bg-border font-mono text-[11px] font-semibold text-text'>
-                {initials(user.name)}
+        ) : (
+          <form onSubmit={submit} noValidate className='flex flex-col gap-4 px-6 pb-5 pt-[22px]'>
+            <div className='flex items-start justify-between gap-3'>
+              <div className='flex flex-col gap-1'>
+                <h2 id='suggest-dialog-title' className='font-sans text-[18px] font-semibold tracking-[-0.015em] text-text'>
+                  {t('suggestTool')}
+                </h2>
+                <p id='suggest-dialog-description' className='text-[12.5px] leading-[1.6] text-muted'>
+                  {t('suggestUrlDescription')}
+                </p>
               </div>
-              <span className='text-[13px] text-text'>{user.name}</span>
+              <button
+                type='button'
+                data-close-dialog
+                onClick={closeModal}
+                disabled={mutation.isPending}
+                aria-label={t('close')}
+                className='-mr-2 -mt-1.5 grid h-9 w-9 shrink-0 place-items-center rounded-[6px] text-muted transition-colors hover:bg-[var(--mint-dim)] hover:text-accent disabled:opacity-40'
+              >
+                <X aria-hidden='true' className='h-4 w-4' strokeWidth={1.8} />
+              </button>
             </div>
-
-            {submitError && (
-              <div
-                role='alert'
-                className='flex items-start gap-2 rounded-[6px] border border-[#3a1414] bg-[#1a0a0a] px-3 py-2.5 text-[13px] text-danger'
-              >
-                <AlertCircle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-                <span>{submitError}</span>
-              </div>
-            )}
-
-            <div>
-              <label
-                htmlFor='suggest-name'
-                className='mb-1.5 block text-[13px] text-muted'
-              >
-                Tool name
-              </label>
+            <div className='flex flex-col gap-1.5'>
+              <label htmlFor='suggest-url' className='text-[12px] text-muted'>{t('suggestLinkLabel')}</label>
               <input
-                id='suggest-name'
+                ref={inputRef}
+                id='suggest-url'
                 type='text'
-                value={name}
-                onChange={event => setName(event.target.value)}
-                disabled={mutation.isPending}
-                className='dl-control h-10 w-full px-3 text-sm outline-none focus:border-zinc-600'
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor='suggest-link'
-                className='mb-1.5 block text-[13px] text-muted'
-              >
-                Link
-              </label>
-              <input
-                id='suggest-link'
-                type='url'
+                inputMode='url'
+                autoComplete='url'
                 value={link}
-                onChange={event => setLink(event.target.value)}
                 disabled={mutation.isPending}
-                placeholder='https://...'
-                className='dl-control h-10 w-full px-3 text-sm outline-none focus:border-zinc-600'
-                required
+                onChange={event => {
+                  setLink(event.target.value)
+                  if (error) setError('')
+                }}
+                placeholder='https://exemplo.com'
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'suggest-url-error' : undefined}
+                className={'h-[46px] w-full rounded-[8px] border bg-canvas px-3.5 text-[13.5px] text-text outline-none transition-[border-color,box-shadow] placeholder:text-subtle focus:border-[var(--mint-edge)] focus:shadow-[0_0_0_4px_var(--mint-dim)] ' +
+                  (error ? 'border-[var(--pink)]' : 'border-border-strong')}
               />
-            </div>
-
-            <div>
-              <div className='mb-1.5 flex items-center justify-between gap-4'>
-                <label
-                  htmlFor='suggest-description'
-                  className='text-[13px] text-muted'
-                >
-                  Description
-                </label>
-                <span
-                  className={`font-mono text-[11px] ${
-                    remainingChars < 0 ? 'text-danger' : 'text-subtle'
-                  }`}
-                >
-                  {remainingChars} / 230
-                </span>
-              </div>
-              <textarea
-                id='suggest-description'
-                value={description}
-                onChange={event => setDescription(event.target.value)}
-                disabled={mutation.isPending}
-                rows={4}
-                maxLength={230}
-                className='dl-control min-h-28 w-full resize-y px-3 py-2.5 text-sm outline-none focus:border-zinc-600'
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor='suggest-category'
-                className='mb-1.5 block text-[13px] text-muted'
-              >
-                Category
-              </label>
-
-              {isError ? (
-                <div className='rounded-[6px] border border-[#3a1414] bg-[#1a0a0a] px-3 py-2.5 text-[13px] text-muted'>
-                  <div className='flex flex-wrap items-center justify-between gap-2'>
-                    <span>Couldn&apos;t load categories.</span>
-                    <button
-                      type='button'
-                      onClick={() => void refetch()}
-                      className='font-medium text-text underline-offset-4 hover:underline'
-                    >
-                      Try again
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <select
-                  id='suggest-category'
-                  value={categoryId}
-                  onChange={event => setCategoryId(event.target.value)}
-                  disabled={isLoading || mutation.isPending}
-                  className='dl-control h-10 w-full px-3 text-sm outline-none [color-scheme:dark] focus:border-zinc-600'
-                  required
-                >
-                  <option value=''>
-                    {isLoading ? 'Loading categories...' : 'Select a category'}
-                  </option>
-                  {categories?.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+              {error && (
+                <span id='suggest-url-error' role='alert' className='text-[12px] text-[var(--pink)]'>{error}</span>
               )}
             </div>
-
-            <button
-              type='submit'
-              disabled={submitDisabled}
-              className='mt-1 flex h-10 w-full items-center justify-center rounded-[6px] bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-border disabled:text-subtle'
-            >
-              {mutation.isPending ? 'Sending...' : 'Submit suggestion'}
-            </button>
+            <div className='flex flex-wrap items-center justify-between gap-3 pt-1'>
+              <div className='text-[11.5px] text-subtle'>
+                {!loading && user ? (
+                  <span className='inline-flex items-center gap-2'>
+                    <span aria-hidden='true' className='grid h-5 w-5 place-items-center rounded-full bg-surface-hover text-[10px] font-semibold text-text'>
+                      {(user.name || '?').charAt(0).toUpperCase()}
+                    </span>
+                    {t('suggestSubmittingAs')} {account}
+                  </span>
+                ) : (
+                  <button type='button' onClick={() => { closeModal(); router.push('/login') }}
+                    className='text-accent underline-offset-2 hover:underline'>{t('suggestSignInGithub')}</button>
+                )}
+              </div>
+              <div className='flex flex-wrap items-center gap-2'>
+                <button type='button' onClick={closeModal} disabled={mutation.isPending} className={outline}>{t('cancel')}</button>
+                {user && (
+                  <button type='submit' disabled={mutation.isPending || loading} className={primary}>
+                    {mutation.isPending && <LoaderCircle aria-hidden='true' className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
+                    {mutation.isPending ? t('suggestSending') : t('suggestSubmit')}
+                  </button>
+                )}
+              </div>
+            </div>
           </form>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

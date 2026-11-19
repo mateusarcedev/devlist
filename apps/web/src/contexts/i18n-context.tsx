@@ -8,6 +8,15 @@ const messages = {
   en: {
     discover: 'Discover', favorites: 'Favorites', contributors: 'Contributors',
     suggestTool: 'Suggest a tool', signIn: 'Sign in', signOut: 'Sign out',
+    suggestUrlDescription: 'Just the link. Name, description and category are completed during review.',
+    suggestLinkLabel: 'Tool link', suggestInvalidUrl: 'This link does not look valid. E.g. https://example.com',
+    suggestErrorGeneric: 'Could not submit the suggestion. Try again.',
+    suggestSubmittingAs: 'Submitting as', suggestSignInGithub: 'Sign in with GitHub',
+    suggestSubmit: 'Submit suggestion', suggestSending: 'Sending...',
+    suggestSentTitle: 'Suggestion submitted',
+    suggestSentDescription: 'is in the review queue. When published, you will appear in Contributors.',
+    suggestAnother: 'Suggest another', close: 'Close', cancel: 'Cancel',
+
     administrator: 'Administrator', member: 'Member', addToolAdmin: 'Add a tool (admin)',
     loginFavorites: 'Log in to access your favorites!', suggestionSent: 'Suggestion sent successfully!',
     suggestionError: 'Error sending suggestion. Please try again.', accountMenu: 'Account menu',
@@ -36,6 +45,15 @@ const messages = {
   'pt-BR': {
     discover: 'Descobrir', favorites: 'Favoritos', contributors: 'Contribuidores',
     suggestTool: 'Sugerir ferramenta', signIn: 'Entrar', signOut: 'Sair',
+    suggestUrlDescription: 'Só o link. Nome, descrição e categoria são preenchidos na revisão.',
+    suggestLinkLabel: 'Link da ferramenta', suggestInvalidUrl: 'Esse link não parece válido. Ex.: https://exemplo.com',
+    suggestErrorGeneric: 'Não foi possível enviar a sugestão. Tente novamente.',
+    suggestSubmittingAs: 'Enviando como', suggestSignInGithub: 'Entrar com GitHub',
+    suggestSubmit: 'Enviar sugestão', suggestSending: 'Enviando...',
+    suggestSentTitle: 'Sugestão enviada',
+    suggestSentDescription: 'entrou na fila de revisão. Quando for publicada, você aparece em Contribuidores.',
+    suggestAnother: 'Sugerir outra', close: 'Fechar', cancel: 'Cancelar',
+
     administrator: 'Administrador', member: 'Membro', addToolAdmin: 'Adicionar ferramenta (admin)',
     loginFavorites: 'Entre para acessar seus favoritos!', suggestionSent: 'Sugestão enviada com sucesso!',
     suggestionError: 'Erro ao enviar a sugestão. Tente novamente.', accountMenu: 'Menu da conta',
