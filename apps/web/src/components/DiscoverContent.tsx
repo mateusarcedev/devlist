@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { FaGithub } from 'react-icons/fa'
 
+const PAGE_SIZE = 24
+
 interface Props {
   tools: Tool[]
   categories: Category[]
@@ -23,6 +25,7 @@ export default function DiscoverContent({
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string>('all')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const router = useRouter()
 
   const categoriesById = useMemo(
@@ -59,6 +62,10 @@ export default function DiscoverContent({
     category => category.id === activeCategory,
   )
 
+  // Hydrate only the first page of cards. Search/filter still covers every tool.
+  const displayedTools = visibleTools.slice(0, visibleCount)
+  const hasMore = visibleCount < visibleTools.length
+
   const resultsLabel =
     activeCategory === 'all' && !query.trim()
       ? t('allTools')
@@ -82,7 +89,10 @@ export default function DiscoverContent({
             <input
               type='search'
               value={query}
-              onChange={event => setQuery(event.target.value)}
+              onChange={event => {
+                setQuery(event.target.value)
+                setVisibleCount(PAGE_SIZE)
+              }}
               placeholder={t('searchTools')}
               aria-label={t('searchTools')}
               className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
@@ -92,7 +102,10 @@ export default function DiscoverContent({
           <div className='mb-7 flex flex-wrap gap-2'>
             <button
               type='button'
-              onClick={() => setActiveCategory('all')}
+              onClick={() => {
+                setActiveCategory('all')
+                setVisibleCount(PAGE_SIZE)
+              }}
               aria-pressed={activeCategory === 'all'}
               className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
                 activeCategory === 'all'
@@ -107,7 +120,10 @@ export default function DiscoverContent({
               <button
                 type='button'
                 key={category.id}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => {
+                  setActiveCategory(category.id)
+                  setVisibleCount(PAGE_SIZE)
+                }}
                 aria-pressed={activeCategory === category.id}
                 className={`rounded-full border px-3.5 py-[7px] text-[13px] font-medium transition-colors ${
                   activeCategory === category.id
@@ -195,14 +211,30 @@ export default function DiscoverContent({
               </div>
             </div>
           ) : (
-            <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
-              {visibleTools.map(tool => (
-                <DirectoryToolCard
-                  key={tool.id}
-                  tool={tool}
-                  categoryName={categoriesById.get(tool.categoryId)}
-                />
-              ))}
+            <div>
+              <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
+                {displayedTools.map(tool => (
+                  <DirectoryToolCard
+                    key={tool.id}
+                    tool={tool}
+                    categoryName={categoriesById.get(tool.categoryId)}
+                  />
+                ))}
+              </div>
+              {hasMore && (
+                <div className='mt-8 flex flex-col items-center gap-3'>
+                  <p className='text-[12px] text-subtle' aria-live='polite'>
+                    Showing {displayedTools.length} of {visibleTools.length} tools
+                  </p>
+                  <button
+                    type='button'
+                    onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
+                    className='rounded-[6px] border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-text transition-colors hover:border-zinc-600 hover:bg-surface-hover'
+                  >
+                    Load more tools
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </>

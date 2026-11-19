@@ -94,6 +94,44 @@ describe('DiscoverContent', () => {
     expect(screen.getByText(/React — Frontend/)).toBeInTheDocument()
   })
 
+  it('renders only 24 cards initially and reveals more on demand', () => {
+    const manyTools = Array.from({ length: 61 }, (_, index) => ({
+      id: `tool-${index}`,
+      name: `Tool ${index}`,
+      link: `https://example.com/tool-${index}`,
+      description: `Description ${index}`,
+      categoryId: 'cat-frontend',
+    }))
+    render(<DiscoverContent tools={manyTools} categories={categories} />)
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
+    expect(screen.getByText('Showing 24 of 61 tools')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(48)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(61)
+    expect(screen.queryByRole('button', { name: 'Load more tools' })).not.toBeInTheDocument()
+  })
+
+  it('resets the visible page when the search changes', () => {
+    const manyTools = Array.from({ length: 35 }, (_, index) => ({
+      id: `tool-${index}`,
+      name: `Tool ${index}`,
+      link: `https://example.com/tool-${index}`,
+      description: 'Library',
+      categoryId: 'cat-frontend',
+    }))
+    render(<DiscoverContent tools={manyTools} categories={categories} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Load more tools' }))
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(35)
+    fireEvent.change(
+      screen.getByRole('searchbox', { name: 'Search tools, categories, technologies...' }),
+      { target: { value: 'Tool' } },
+    )
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(24)
+  })
+
   it('shows a retry state when the directory fails to load', () => {
     render(<DiscoverContent tools={[]} categories={[]} loadError />)
 

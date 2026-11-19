@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const PAGE_SIZE = 24
+
 interface Props {
   categoryName: string
   tools: Tool[]
@@ -27,6 +29,7 @@ export default function CategoryToolsContent({
   loadError = false,
 }: Props) {
   const [query, setQuery] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const router = useRouter()
 
   const filteredTools = useMemo(() => {
@@ -42,6 +45,8 @@ export default function CategoryToolsContent({
   }, [query, tools])
 
   const hasSearch = Boolean(query.trim())
+  const displayedTools = filteredTools.slice(0, visibleCount)
+  const hasMore = visibleCount < filteredTools.length
 
   return (
     <main className='dl-page'>
@@ -66,7 +71,10 @@ export default function CategoryToolsContent({
           <input
             type='search'
             value={query}
-            onChange={event => setQuery(event.target.value)}
+            onChange={event => {
+              setQuery(event.target.value)
+              setVisibleCount(PAGE_SIZE)
+            }}
             placeholder={`Search ${categoryName} tools...`}
             aria-label={`Search ${categoryName} tools`}
             className='dl-control h-[42px] w-full pl-[38px] pr-3.5 font-mono text-sm outline-none focus:border-zinc-600'
@@ -102,14 +110,30 @@ export default function CategoryToolsContent({
           </p>
         </div>
       ) : (
-        <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
-          {filteredTools.map(tool => (
-            <DirectoryToolCard
-              key={tool.id}
-              tool={tool}
-              categoryName={categoryName}
-            />
-          ))}
+        <div>
+          <div className='grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3'>
+            {displayedTools.map(tool => (
+              <DirectoryToolCard
+                key={tool.id}
+                tool={tool}
+                categoryName={categoryName}
+              />
+            ))}
+          </div>
+          {hasMore && (
+            <div className='mt-8 flex flex-col items-center gap-3'>
+              <p className='text-[12px] text-subtle' aria-live='polite'>
+                Showing {displayedTools.length} of {filteredTools.length} tools
+              </p>
+              <button
+                type='button'
+                onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
+                className='rounded-[6px] border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-text transition-colors hover:border-zinc-600 hover:bg-surface-hover'
+              >
+                Load more tools
+              </button>
+            </div>
+          )}
         </div>
       )}
     </main>
