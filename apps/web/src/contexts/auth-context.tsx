@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       supabase = createClient()
     } catch {
-      setLoading(false)
+      queueMicrotask(() => { if (active) setLoading(false) })
       return
     }
 

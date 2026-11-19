@@ -22,8 +22,7 @@ export default function FavoritesAccessState({ state }: Props) {
     setSigningOut(true)
 
     try {
-      await createClient().auth.signOut())
-      }
+      await createClient().auth.signOut()
     } catch {
       // The local session should still be abandoned even if logout is unavailable.
     } finally {
