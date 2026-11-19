@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -21,14 +22,7 @@ export default function FavoritesAccessState({ state }: Props) {
     setSigningOut(true)
 
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_URL_API
-
-      if (apiBaseUrl) {
-        await fetch(`${apiBaseUrl}/auth/logout`, {
-          method: 'POST',
-          credentials: 'include',
-        })
-      }
+      await createClient().auth.signOut()
     } catch {
       // The local session should still be abandoned even if logout is unavailable.
     } finally {

@@ -1,6 +1,7 @@
 import DiscoverContent from '@/components/DiscoverContent'
 import type { Category, Tool } from '@/types'
-import { getApiBaseUrl } from '@/utils'
+import { createClient } from '@/lib/supabase/server'
+import { toCategory, toTool, type ToolRow } from '@/lib/supabase/mappers'
 
 interface DirectoryData {
   tools: Tool[]
@@ -9,42 +10,27 @@ interface DirectoryData {
 }
 
 async function getDirectoryData(): Promise<DirectoryData> {
-  const apiBaseUrl = getApiBaseUrl()
-
-  if (!apiBaseUrl) {
-    return { tools: [], categories: [], loadError: true }
-  }
-
   try {
-    const [toolsResponse, categoriesResponse] = await Promise.all([
-      fetch(`${apiBaseUrl}/tools`, { cache: 'no-store' }),
-      fetch(`${apiBaseUrl}/categories`, { cache: 'no-store' }),
+    const supabase = await createClient()
+    const [toolsResult, categoriesResult] = await Promise.all([
+      supabase.from('tools').select('id,name,link,description,category_id').order('name'),
+      supabase.from('categories').select('id,name').order('name'),
     ])
-
-    if (!toolsResponse.ok || !categoriesResponse.ok) {
+    if (toolsResult.error || categoriesResult.error) {
       return { tools: [], categories: [], loadError: true }
     }
-
-    const [tools, categories] = await Promise.all([
-      toolsResponse.json() as Promise<Tool[]>,
-      categoriesResponse.json() as Promise<Category[]>,
-    ])
-
-    return { tools, categories, loadError: false }
+    return {
+      tools: ((toolsResult.data ?? []) as ToolRow[]).map(toTool),
+      categories: (categoriesResult.data ?? []).map(toCategory),
+      loadError: false,
+    }
   } catch (error) {
-    console.error('Failed to load discovery directory', error)
+    console.error('Failed to load Supabase catalog', error)
     return { tools: [], categories: [], loadError: true }
   }
 }
 
 export default async function Home() {
   const { tools, categories, loadError } = await getDirectoryData()
-
-  return (
-    <DiscoverContent
-      tools={tools}
-      categories={categories}
-      loadError={loadError}
-    />
-  )
+  return <DiscoverContent tools={tools} categories={categories} loadError={loadError} />
 }

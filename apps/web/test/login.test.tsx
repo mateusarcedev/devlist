@@ -1,8 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoginContent } from '../src/app/login/page'
 
+const signInWithOAuth = vi.hoisted(() => vi.fn().mockResolvedValue({ error: null }))
 let errorParam: string | null = null
+
+vi.mock('@/lib/supabase/browser', () => ({
+  createClient: () => ({ auth: { signInWithOAuth } }),
+}))
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
@@ -13,38 +18,29 @@ vi.mock('next/navigation', () => ({
 describe('LoginContent', () => {
   beforeEach(() => {
     errorParam = null
-    process.env.NEXT_PUBLIC_URL_API = 'https://api.devlist.mateusarce.dev'
+    signInWithOAuth.mockClear()
   })
 
-  it('renders the GitHub OAuth action and privacy note', () => {
+  it('starts Supabase GitHub OAuth and explains privacy', async () => {
     render(<LoginContent />)
-
-    expect(
-      screen.getByRole('heading', { name: 'Sign in to Devlist' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /Continue with GitHub/ }),
-    ).toHaveAttribute('href', 'https://api.devlist.mateusarce.dev/auth/github')
-    expect(
-      screen.getByText(/We only request your public GitHub profile/),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Continue with GitHub/ }))
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'github',
+      options: { redirectTo: window.location.origin + '/auth/callback' },
+    }))
+    expect(screen.getByText(/GitHub profile is used/)).toBeInTheDocument()
   })
 
-  it('shows the authentication failure state', () => {
+  it('shows a provider authentication failure', () => {
     errorParam = 'auth_failed'
-
     render(<LoginContent />)
-
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Authentication failed. Please try again.',
-    )
+    expect(screen.getByRole('alert')).toHaveTextContent('Authentication failed. Please try again.')
   })
 
-  it('does not show an error for unrelated query values', () => {
+  it('does not show an error for other query values', () => {
     errorParam = 'other'
-
     render(<LoginContent />)
-
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
