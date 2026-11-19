@@ -180,7 +180,7 @@ describe('DiscoverContent', () => {
     const listener = vi.fn()
     window.addEventListener('devhub:open-suggestion', listener)
     render(<DiscoverContent tools={[]} categories={categories} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest a tool' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Suggest a tool' })[0])
     expect(listener).toHaveBeenCalledTimes(1)
     window.removeEventListener('devhub:open-suggestion', listener)
   })
