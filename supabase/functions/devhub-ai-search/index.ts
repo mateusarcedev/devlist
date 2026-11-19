@@ -109,6 +109,27 @@ Deno.serve(async (req) => {
     const query = typeof body.query === 'string' ? body.query.trim() : ''
     if (query.length < 8 || query.length > 300) return respond({message:'Descreva sua necessidade em 8 a 300 caracteres.'},422)
 
+    // Reject direct requests: only the Next.js server knows the signing secret.
+    const timestamp = req.headers.get('x-devhub-ai-timestamp') ?? ''
+    const signature = req.headers.get('x-devhub-ai-signature') ?? ''
+    const clientHash = req.headers.get('x-devhub-client-ip') ?? ''
+    const sentAt = Number(timestamp)
+    if (!/^\\d{13}$/.test(timestamp) || !Number.isFinite(sentAt) ||
+        Math.abs(Date.now()-sentAt)>120_000 ||
+        !/^[a-f0-9]{64}$/.test(clientHash) || !/^[a-f0-9]{64}$/.test(signature))
+      return respond({message:'Acesso não autorizado.'},403)
+    const {data: proxy, error: proxyError} = await db.from('ai_search_proxy_secrets')
+      .select('secret').eq('id','next_proxy').single()
+    if (proxyError || !proxy?.secret) throw new Error('AI proxy is not configured')
+    const signer = await crypto.subtle.importKey('raw',new TextEncoder().encode(proxy.secret),
+      {name:'HMAC',hash:'SHA-256'},false,['sign'])
+    const digest = new Uint8Array(await crypto.subtle.sign('HMAC',signer,
+      new TextEncoder().encode(timestamp+'\\n'+clientHash+'\\n'+query)))
+    const expected = Array.from(digest).map(x=>x.toString(16).padStart(2,'0')).join('')
+    let mismatch = 0
+    for (let index=0;index<64;index++) mismatch |= expected.charCodeAt(index)^signature.charCodeAt(index)
+    if (mismatch) return respond({message:'Acesso não autorizado.'},403)
+
     const ip = req.headers.get('x-devhub-client-ip') ||
       req.headers.get('cf-connecting-ip') ||
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
