@@ -25,14 +25,14 @@ const labels = {
     add:'Add tool',remove:'Remove',selected:'Selected for comparison',compare:'Compare tools',
     comparing:'Comparing…',reset:'Clear comparison',share:'Copy comparison link',copied:'Link copied',
     failedCopy:'Could not copy the link.',unavailable:'The comparison is unavailable. Try again.',
-    limit:'Choose exactly 2 or 3 different tools.',noMatches:'No matching tools in the public catalog.',
+    noMatches:'No matching tools in the public catalog.',
     empty:'Select two or three tools to see their differences.',
-    model:'Access model',purpose:'Purpose and differences',cases:'Documented use cases',
+    purpose:'Purpose and differences',cases:'Documented use cases',
     limitations:'Known limitations',costs:'Known costs',source:'Official source',
     accessSource:'Access-model evidence',unknown:'Not documented in the catalog.',
     priceUnknown:'No exact price or billing limits verified for this tool.',
     costCaution:'Access type is not a final price. Hosting, usage and support may incur additional costs.',
-    semantic:'AI semantic analysis',similarity:'Text similarity',semanticNote:'Computed from catalog descriptions with an embedding model. It does not prove feature equivalence or indicate a winner.',
+    semantic:'AI semantic analysis',semanticNote:'Computed from catalog descriptions with an embedding model. It does not prove feature equivalence or indicate a winner.',
     aiUnavailable:'AI similarity is temporarily unavailable; sourced comparison facts remain visible.',
     asOf:'Reviewed',sourceWarning:'Vendor information may change. Check the linked official source before making a purchase.',
     website:'Official website',all:'Tool comparison',example:'Try Coolify vs Canine',
@@ -43,14 +43,14 @@ const labels = {
     add:'Adicionar ferramenta',remove:'Remover',selected:'Selecionadas para comparação',compare:'Comparar ferramentas',
     comparing:'Comparando…',reset:'Limpar comparação',share:'Copiar link da comparação',copied:'Link copiado',
     failedCopy:'Não foi possível copiar o link.',unavailable:'Não foi possível comparar agora. Tente novamente.',
-    limit:'Selecione exatamente 2 ou 3 ferramentas diferentes.',noMatches:'Nenhuma ferramenta correspondente no catálogo público.',
+    noMatches:'Nenhuma ferramenta correspondente no catálogo público.',
     empty:'Selecione duas ou três ferramentas para comparar suas diferenças.',
-    model:'Modelo de acesso',purpose:'Proposta e diferenças',cases:'Casos de uso documentados',
+    purpose:'Proposta e diferenças',cases:'Casos de uso documentados',
     limitations:'Limitações conhecidas',costs:'Custos conhecidos',source:'Fonte oficial',
     accessSource:'Fonte da classificação',unknown:'Não informado no catálogo.',
     priceUnknown:'Preço exato e limites de cobrança não verificados para esta ferramenta.',
     costCaution:'O modelo de acesso não determina o custo total. Hospedagem, uso e suporte podem gerar despesas.',
-    semantic:'Análise semântica por IA',similarity:'Similaridade dos textos',semanticNote:'Calculada a partir das descrições do catálogo por um modelo de embeddings. Não comprova equivalência de funcionalidades nem indica vencedores.',
+    semantic:'Análise semântica por IA',semanticNote:'Calculada a partir das descrições do catálogo por um modelo de embeddings. Não comprova equivalência de funcionalidades nem indica vencedores.',
     aiUnavailable:'A similaridade por IA está temporariamente indisponível; as informações verificadas continuam disponíveis.',
     asOf:'Revisado em',sourceWarning:'Informações de fornecedores podem mudar. Confira a fonte oficial antes de contratar.',
     website:'Site oficial',all:'Comparação de ferramentas',example:'Experimentar Coolify vs Canine',
@@ -261,7 +261,9 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
               </div>
               <div className={'grid gap-3 '+(result.tools.length===3?'tablet:grid-cols-2 desktop:grid-cols-3':'tablet:grid-cols-2')}>
                 {result.tools.map(tool=>{
-                  const facts=tool.evidence
+                  const facts=locale==='en' && tool.evidence.en
+                    ? { ...tool.evidence, ...tool.evidence.en }
+                    : tool.evidence
                   return <article key={tool.id} className='flex min-w-0 flex-col rounded-[12px] border border-border-strong bg-surface p-4 tablet:p-5'>
                     <div className='mb-4 flex items-center gap-3'>
                       <span aria-hidden='true' className='grid h-11 w-11 shrink-0 place-items-center rounded-[9px] border border-border-strong bg-canvas'>
