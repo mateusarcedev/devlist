@@ -30,6 +30,7 @@ async function getPublicRows<T>(table: string, columns: string): Promise<T[]> {
   if (!url || !key) return []
   try {
     const params = new URLSearchParams({ select: columns, limit: '1000' })
+    if (table === 'tools') params.set('access_model','neq.PAID')
     const response = await fetch(`${url}/rest/v1/${table}?${params.toString()}`, {
       headers: { apikey: key, Accept: 'application/json' },
       next: { revalidate: cacheSeconds, tags: ['devhub-seo'] },
