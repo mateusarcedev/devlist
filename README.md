@@ -1,233 +1,86 @@
-# Devlist
+# DevHub
 
-> A community-driven catalog for discovering, saving, and suggesting useful developer tools.
+> A community-curated catalog for discovering, saving, and suggesting developer tools.
 
 [![CI](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml/badge.svg)](https://github.com/mateusarcedev/devlist/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
-![Node](https://img.shields.io/badge/Node.js-24-black)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-black)
 
 [Português (Brasil)](./README.pt-BR.md)
 
-## What is Devlist?
+**Planned site:** https://devhub.mateusarce.dev
 
-**Devlist** is an open-source directory for developer tools.
+The GitHub repository remains `mateusarcedev/devlist` to preserve history and technical integrations. **DevHub** is the product's public name.
 
-Instead of relying on scattered bookmarks, social posts, or private lists, developers can browse a curated catalog, filter by category, save favorites, suggest new tools, and contribute back to the project.
+## Features
 
-> The repository keeps the historical name `devlist`, but the product name is **Devlist**.
+DevHub helps developers discover and search curated tools, browse categories, save favorites, suggest new tools for moderation, and view project contributors. GitHub sign-in controls user-specific capabilities, and administrators can maintain the catalog. The frontend supports English and Portuguese, light/dark themes, and responsive layouts.
 
-## Product tour
-
-| Area | What it does |
-| --- | --- |
-| Discover | Browse and search the full catalog, filter by category, and open tool pages |
-| Categories | Explore focused directories for each category |
-| Favorites | Save tools to a personal list after GitHub sign-in |
-| Suggest a tool | Send a tool suggestion through the authenticated community flow |
-| Contributors | Explore the people contributing to the repository |
-| Admin | Create catalog entries through an API-protected admin flow |
-
-The current interface uses a compact dark developer-focused design with accessible navigation, responsive layouts, global loading/error states, keyboard support, and reduced-motion handling.
-
-## Core features
-
-- Public catalog organized by category
-- Search and category filters
-- GitHub OAuth authentication
-- HTTP-only access and refresh token flow
-- Personal favorites
-- Community tool suggestions
-- Contributors directory backed by GitHub data
-- Admin-only catalog mutations enforced by the API
-- PostgreSQL migrations and demo seed
-- Health/readiness endpoints for production orchestration
-- Permanent CI quality gate
-- Responsive and accessible frontend states
-- Open Graph / social sharing metadata
-
-## Architecture
+## Target architecture
 
 ```text
 Browser
-  │
-  ▼
-Next.js 16 / React 19
-  │  HTTPS + HTTP-only access cookie
-  ▼
-NestJS 12 API
-  │
-  ├── GitHub OAuth
-  ├── JWT + rotating refresh tokens
-  └── Prisma 7
-        │
-        ▼
-    PostgreSQL 16
+   |
+   v
+Next.js 16 / React 19 (Vercel)
+   |                           |
+   |                           +-- GitHub contributor data (server-side)
+   v
+Supabase Auth (GitHub OAuth) + Data API / RLS
+   |
+   v
+Supabase PostgreSQL
 ```
-
-This repository is a **pnpm monorepo** managed with Turborepo:
-
-```text
-devlist/
-├── apps/
-│   ├── api/       # NestJS API
-│   └── web/       # Next.js app
-├── .github/
-│   └── workflows/ # CI quality gate
-├── docker-compose.dev.yml
-├── docker-compose.yml
-└── pnpm-workspace.yaml
-```
-
-## Tech stack
 
 | Area | Technology |
 | --- | --- |
 | Web | Next.js 16, React 19, Tailwind CSS 4, TanStack Query |
-| API | NestJS 12, Express 5 |
-| ORM | Prisma 7 |
-| Database | PostgreSQL 16 |
-| Auth | GitHub OAuth, signed JWT access tokens, rotating refresh tokens |
-| Tests | Jest/Supertest (API), Vitest/Testing Library (web) |
-| Monorepo | pnpm 12, Turborepo 2 |
-| Runtime | Node.js 24 |
-| Delivery | Docker, Docker Compose, GitHub Actions |
+| Backend | Supabase Auth, Data API, PostgreSQL, Row Level Security |
+| Monorepo | pnpm / Turborepo |
+| Frontend tests | Vitest / Testing Library |
+| Hosting | Vercel (web), Supabase (database and auth) |
+
+The legacy `apps/api` NestJS/Prisma service, Docker Compose, Caddy and operations scripts remain in the repository for reference and rollback while the migration is completed. They are **not** part of the target hosting architecture.
 
 ## Local development
 
-### Requirements
-
-- Node.js **24.21+**
-- pnpm **12.9.1**
-- Docker with Docker Compose
-- A GitHub OAuth App for sign-in flows
-
-### 1. Install dependencies
+Requirements: Node.js 24.21+ and pnpm 12.9.1.
 
 ```bash
 pnpm install --frozen-lockfile
-```
-
-### 2. Start PostgreSQL
-
-```bash
-docker compose -f docker-compose.dev.yml up -d postgres
-```
-
-### 3. Configure the API
-
-```bash
-cp apps/api/.env.example apps/api/.env
-```
-
-Fill in at least:
-
-```dotenv
-GITHUB_ID=your-github-oauth-client-id
-GITHUB_SECRET=your-github-oauth-client-secret
-JWT_SECRET=replace-with-a-local-secret
-```
-
-For the local GitHub OAuth App:
-
-```text
-Homepage URL: http://localhost:3000
-Authorization callback URL: http://localhost:3001/auth/callback/github
-```
-
-### 4. Configure the web app
-
-```bash
 cp apps/web/.env.example apps/web/.env.local
+# Configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+pnpm --filter @devlist/web dev
 ```
 
-Use the **same `JWT_SECRET`** configured for the API.
+Configure a Supabase project, enable GitHub OAuth, apply the SQL schema in `supabase/migrations`, and register `http://localhost:3000/auth/callback` as an allowed redirect. The OAuth provider itself uses `https://<project-ref>.supabase.co/auth/v1/callback`.
 
-### 5. Apply migrations
+Migration, data ownership and security setup: [Supabase + Vercel migration guide](./docs/migration-supabase-vercel.md).
 
-```bash
-pnpm --filter @devlist/api exec prisma migrate deploy
-```
-
-Optional demo data:
+## Quality checks
 
 ```bash
-pnpm --filter @devlist/api seed:demo
-```
-
-### 6. Run the monorepo
-
-```bash
-pnpm dev
-```
-
-Local services:
-
-- Web: `http://localhost:3000`
-- API: `http://localhost:3001`
-- Swagger: `http://localhost:3001/api`
-- Liveness: `http://localhost:3001/health/live`
-- Readiness: `http://localhost:3001/health/ready`
-
-## Tests and quality gate
-
-Run the main checks locally:
-
-```bash
-# API
-pnpm --filter @devlist/api lint
-pnpm --filter @devlist/api build
-pnpm --filter @devlist/api test --runInBand
-pnpm --filter @devlist/api test:e2e
-
-# Web
 pnpm --filter @devlist/web lint
 pnpm --filter @devlist/web test
 pnpm --filter @devlist/web typecheck
 pnpm --filter @devlist/web build
 ```
 
-Every pull request to `main` is validated by the GitHub Actions **Quality Gate**, including PostgreSQL migrations, API tests/E2E, frontend tests, lint, type checking, and production builds.
+The existing GitHub Actions quality gate also validates the old API until it is removed.
 
-## Production topology
+## Vercel deployment
 
-The self-hosted production stack is now defined in the repository:
+Import this repository into a Vercel Next.js project using **Root Directory: `apps/web`**. Configure the following variables for production:
 
-- Caddy 2.11.6 as the only public entry point on ports 80/443;
-- automatic HTTPS for `devlist.mateusarce.dev` and `api.devlist.mateusarce.dev`;
-- web and API on private Docker networks;
-- PostgreSQL isolated from the public host network;
-- immutable API/migrator/web images published to GHCR after `main` passes CI;
-- deploy by full Git SHA;
-- PostgreSQL backup/guarded restore;
-- application image rollback;
-- public smoke checks after deploy.
-
-Production URLs:
-
-```text
-https://devlist.mateusarce.dev
-https://api.devlist.mateusarce.dev
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
+NEXT_PUBLIC_SITE_URL=https://devhub.mateusarce.dev
 ```
 
-See [`docs/deployment.md`](./docs/deployment.md) for DNS, GitHub OAuth, VPS setup, deploy, backup, restore, rollback, and smoke-test procedures.
+Set the canonical domain to `devhub.mateusarce.dev` and allow `https://devhub.mateusarce.dev/auth/callback` as a Supabase Auth redirect. Verify production DNS and RLS ownership rules before cutover.
 
-The infrastructure is **deployment-ready but not claimed as live yet**. The remaining operational step is provisioning/configuring the actual VPS and executing the runbook.
+**Status:** The Supabase integration code has been merged, but a real Supabase project, data migration and Vercel production deployment must be tested before calling the service live. The old VPS guide is [kept as legacy documentation](./docs/deployment.md).
 
 ## Open source
 
-Devlist is released under the [MIT License](./LICENSE).
-
-Useful project documents:
-
-- [Contributing guide](./CONTRIBUTING.md)
-- [Security policy](./SECURITY.md)
-- [Contributors](./CONTRIBUTORS.md)
-
-## Project status
-
-The application baseline and frontend redesign are complete.
-
-Completed areas include framework modernization, PostgreSQL, migrations, environment validation, authentication hardening, API authorization, health checks, backend E2E, frontend tests, CI, responsive UI, accessibility states, and open-source project documentation.
-
-The remaining work is focused on production deployment and post-deploy screenshots/operational verification.
+DevHub is available under the [MIT License](./LICENSE). See [Contributing](./CONTRIBUTING.md), [Security](./SECURITY.md) and [Contributors](./CONTRIBUTORS.md).
