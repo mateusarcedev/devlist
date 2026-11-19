@@ -115,7 +115,8 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
   useEffect(()=>{
     if(initialized.current)return
     initialized.current=true
-    if(initialIds.length>=2&&initialIds.every(id=>nameById.has(id)))void compare(initialIds)
+    if(initialIds.length>=2&&initialIds.every(id=>nameById.has(id)))
+      queueMicrotask(()=>void compare(initialIds))
     // Intentionally load a shared comparison once for the initial server-provided IDs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
@@ -193,8 +194,7 @@ export default function CompareContent({tools,categories,initialIds=[],loadError
                     }
                   }}
                   className='h-full min-w-0 flex-1 bg-transparent text-[13px] text-text outline-none placeholder:text-subtle disabled:opacity-50'
-                  aria-autocomplete='list' aria-expanded={active&&selected.length<3}
-                  aria-controls='compare-tool-options'
+                  aria-autocomplete='list' aria-controls='compare-tool-options'
                 />
               </div>
               {active&&selected.length<3&&(
