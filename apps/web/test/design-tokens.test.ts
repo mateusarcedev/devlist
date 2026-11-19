@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import postcss from 'postcss'
 
-const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8')
+const css = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
 const root = postcss.parse(css)
 
 function tokens(selector: string) {
