@@ -42,7 +42,9 @@ export default function AddSuggestionModal({ isOpen, onClose }: Props) {
     },
   })
 
-  pendingRef.current = mutation.isPending
+  useEffect(() => {
+    pendingRef.current = mutation.isPending
+  }, [mutation.isPending])
 
   const closeModal = () => {
     if (mutation.isPending) return
